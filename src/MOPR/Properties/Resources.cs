@@ -15,7 +15,6 @@ namespace MOP.Properties
 
         internal static byte[] icon => iconCache ?? (iconCache = ReadBytes("MOPR.Resources.icon"));
         internal static string changelog => ReadText("MOPR.Resources.changelog.txt");
-        internal static string itemcounter_to_transform => ReadText("MOPR.Resources.itemcounter_to_transform.csv");
 
         private static byte[] ReadBytes(string name)
         {

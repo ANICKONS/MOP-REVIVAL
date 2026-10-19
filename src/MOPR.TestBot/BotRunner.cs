@@ -20,11 +20,22 @@ namespace MOPR.TestBot
         public static BotRunner Instance { get; private set; }
 
         Scenario scenario;
-        readonly Report report = new Report();
-        readonly Dictionary<string, Dictionary<string, string>> snapshots = new Dictionary<string, Dictionary<string, string>>();
+        Report report = new Report();
+        Dictionary<string, Dictionary<string, string>> snapshots = new Dictionary<string, Dictionary<string, string>>();
         float startTime;
         float lastHeartbeat;
         bool finished;
+
+        // "reloadgame": back in the main menu MSCLoader's MSCUnloader destroys every object (this one too) and sets
+        // the mods up again. Static fields survive it (the assemblies stay loaded), so the run is handed over here
+        // and TestBotMod.OnMenuLoad starts a new runner that continues with the step after "reloadgame".
+        static Scenario resumeScenario;
+        static Report resumeReport;
+        static Dictionary<string, Dictionary<string, string>> resumeSnapshots;
+        static int resumeStep = -1;
+        static float resumeStartTime;
+
+        public static bool HasResume => resumeScenario != null && resumeStep >= 0;
 
         public void Begin(string runFile)
         {
@@ -38,6 +49,39 @@ namespace MOPR.TestBot
             lastHeartbeat = startTime;
             Log($"TestBot started: scenario '{scenario.Name}', variant '{scenario.Variant}'");
             StartCoroutine(Run());
+        }
+
+        /// <summary>Continues a run after "reloadgame" (see resumeScenario).</summary>
+        public void Resume()
+        {
+            Instance = this;
+            scenario = resumeScenario;
+            report = resumeReport ?? new Report();
+            snapshots = resumeSnapshots ?? snapshots;
+            startTime = resumeStartTime;
+            lastHeartbeat = Time.realtimeSinceStartup;
+            int from = resumeStep;
+            resumeScenario = null;
+            resumeReport = null;
+            resumeSnapshots = null;
+            resumeStep = -1;
+            Application.runInBackground = true;
+            Log($"TestBot resumed after reloadgame: step {from + 1} of {scenario.Steps.Count}");
+            StartCoroutine(ResumeRun(from));
+        }
+
+        IEnumerator ResumeRun(int from)
+        {
+            for (int i = 0; i < 5; i++) { Beat(); yield return new WaitForSeconds(1f); }
+            yield return StartCoroutine(EnterGame(false));
+            if (enterError != null)
+            {
+                Finish("reloadgame: " + enterError);
+                yield break;
+            }
+            Log($"reloadgame: game ready again after {lastLoadSeconds:0.0} s");
+            yield return StartCoroutine(RunSteps(scenario.Steps.Skip(from).ToList(), from));
+            Finish(null);
         }
 
         void Update()
@@ -78,57 +122,15 @@ namespace MOPR.TestBot
                 yield return StartCoroutine(RunSteps(scenario.MenuSteps));
             }
 
-            // 1. Main menu: press Continue.
-            yield return new WaitForSeconds(3f);
-            int attempts = 0;
-            while (ModLoader.CurrentScene == CurrentScene.MainMenu && attempts < 6)
+            // 1-2. Main menu: press Continue, wait until the player is controllable.
+            yield return StartCoroutine(EnterGame(true));
+            if (enterError != null)
             {
-                Beat();
-                attempts++;
-                Log("pressing Continue (attempt " + attempts + ")");
-                yield return StartCoroutine(PressContinue());
-                for (int i = 0; i < 20 && ModLoader.CurrentScene == CurrentScene.MainMenu; i++)
-                    yield return new WaitForSeconds(1f);
-            }
-
-            if (ModLoader.CurrentScene == CurrentScene.MainMenu)
-            {
-                Finish("could not leave the main menu");
+                Finish(enterError);
                 yield break;
             }
 
-            // 2. Wait for the game scene and for the player to become controllable (MOP's load screen).
-            float loadStart = Time.realtimeSinceStartup;
-            float controllableSince = -1f;
-            float nextLoadShot = loadStart + scenario.LoadShotInterval;
-            int loadShots = 0;
-            while (true)
-            {
-                Beat();
-                if (scenario.LoadShotInterval > 0f && Time.realtimeSinceStartup >= nextLoadShot && loadShots < 40 && controllableSince < 0f)
-                {
-                    nextLoadShot = Time.realtimeSinceStartup + scenario.LoadShotInterval;
-                    loadShots++;
-                    Application.CaptureScreenshot(Path.Combine(TestBotMod.Folder, $"shot_load_{loadShots:00}.png"));
-                }
-                if (Time.realtimeSinceStartup - loadStart > scenario.LoadTimeoutSeconds)
-                {
-                    Finish("timeout while loading the game");
-                    yield break;
-                }
-
-                bool ready = ModLoader.CurrentScene == CurrentScene.Game && PlayerControllable();
-                if (ready)
-                {
-                    if (controllableSince < 0f) controllableSince = Time.realtimeSinceStartup;
-                    if (Time.realtimeSinceStartup - controllableSince >= 5f) break;
-                }
-                else controllableSince = -1f;
-
-                yield return new WaitForSeconds(0.5f);
-            }
-
-            report.LoadSeconds = Time.realtimeSinceStartup - loadStart;
+            report.LoadSeconds = lastLoadSeconds;
             report.MoprPresent = ModLoader.IsModPresent("MOPR");
             report.MoprVersion = ModLoader.GetModVersionByID("MOPR");
             report.Mods = ModLoader.LoadedMods.Where(m => !m.ID.StartsWith("MSCLoader_")).Select(m => m.ID + " " + m.Version + (m.isDisabled ? " (disabled)" : "")).ToList();
@@ -141,14 +143,16 @@ namespace MOPR.TestBot
             }
 
             // 3. Steps.
-            yield return StartCoroutine(RunSteps(scenario.Steps));
-            Finish(null);
+            yield return StartCoroutine(RunSteps(scenario.Steps, 0));
+            Finish(null); // no-op after "reloadgame" handed the run over
         }
 
-        IEnumerator RunSteps(List<Step> steps)
+        /// <param name="baseIndex">Index of steps[0] in scenario.Steps; -1 for other lists (menu steps).</param>
+        IEnumerator RunSteps(List<Step> steps, int baseIndex = -1)
         {
-            foreach (Step step in steps)
+            for (int stepIndex = 0; stepIndex < steps.Count; stepIndex++)
             {
+                Step step = steps[stepIndex];
                 Beat();
                 string op = (step.Op ?? "").ToLowerInvariant();
                 Log($"step: {op} {step.Label}");
@@ -314,6 +318,33 @@ namespace MOPR.TestBot
                             string dump = GameOps.MoprState(out string summary);
                             WriteArtifact("mopstate_" + (step.Label ?? "x") + ".txt", dump);
                             Log($"mopstate {step.Label}: {summary}");
+                        }
+                        break;
+                    case "reloadgame":
+                        if (baseIndex < 0)
+                        {
+                            Log("reloadgame: only possible in Steps, skipped");
+                            break;
+                        }
+                        // Back to the main menu WITHOUT saving: the scene is replaced directly, the game's save FSMs
+                        // never run (MOP's own automatic restart does the same). MSCLoader then destroys this object
+                        // and sets the mods up again; TestBotMod continues the run with the next step.
+                        resumeScenario = scenario;
+                        resumeReport = report;
+                        resumeSnapshots = snapshots;
+                        resumeStep = baseIndex + stepIndex + 1;
+                        resumeStartTime = startTime;
+                        finished = true; // this instance is done: no watchdog, no Finish
+                        Log("reloadgame: loading the main menu without saving; the run continues after MSCLoader's reload");
+                        Application.LoadLevel(1);
+                        yield break;
+                    case "fsmcache":
+                        {
+                            // MOP's cached FSM variables (static fields of Text, default MOP.FSM.FsmManager): live = they
+                            // belong to an FSM of the current scene, STALE = left over from an earlier load.
+                            string dump = GameOps.FsmCache(string.IsNullOrEmpty(step.Text) ? "MOP.FSM.FsmManager" : step.Text, out string summary);
+                            WriteArtifact("fsmcache_" + (step.Label ?? "x") + ".txt", dump);
+                            Log($"fsmcache {step.Label}: {summary}");
                         }
                         break;
                     case "dumpsettings":
@@ -773,6 +804,69 @@ namespace MOPR.TestBot
         }
 
         // ----- Steps ----------------------------------------------------------------------------------
+
+        string enterError;       // set by EnterGame: null = the game is loaded and the player controllable
+        float lastLoadSeconds;
+
+        /// <summary>
+        /// Main menu -> Continue -> waits until the game scene is loaded and the player has been controllable for 5 s.
+        /// Load screenshots (LoadShotInterval) only for the first load.
+        /// </summary>
+        IEnumerator EnterGame(bool first)
+        {
+            enterError = null;
+            yield return new WaitForSeconds(3f);
+            int attempts = 0;
+            while (ModLoader.CurrentScene == CurrentScene.MainMenu && attempts < 6)
+            {
+                Beat();
+                attempts++;
+                Log("pressing Continue (attempt " + attempts + ")");
+                yield return StartCoroutine(PressContinue());
+                for (int i = 0; i < 20 && ModLoader.CurrentScene == CurrentScene.MainMenu; i++)
+                {
+                    Beat();
+                    yield return new WaitForSeconds(1f);
+                }
+            }
+
+            if (ModLoader.CurrentScene == CurrentScene.MainMenu)
+            {
+                enterError = "could not leave the main menu";
+                yield break;
+            }
+
+            float loadStart = Time.realtimeSinceStartup;
+            float controllableSince = -1f;
+            float nextLoadShot = loadStart + scenario.LoadShotInterval;
+            int loadShots = 0;
+            while (true)
+            {
+                Beat();
+                if (first && scenario.LoadShotInterval > 0f && Time.realtimeSinceStartup >= nextLoadShot && loadShots < 40 && controllableSince < 0f)
+                {
+                    nextLoadShot = Time.realtimeSinceStartup + scenario.LoadShotInterval;
+                    loadShots++;
+                    Application.CaptureScreenshot(Path.Combine(TestBotMod.Folder, $"shot_load_{loadShots:00}.png"));
+                }
+                if (Time.realtimeSinceStartup - loadStart > scenario.LoadTimeoutSeconds)
+                {
+                    enterError = "timeout while loading the game";
+                    yield break;
+                }
+
+                bool ready = ModLoader.CurrentScene == CurrentScene.Game && PlayerControllable();
+                if (ready)
+                {
+                    if (controllableSince < 0f) controllableSince = Time.realtimeSinceStartup;
+                    if (Time.realtimeSinceStartup - controllableSince >= 5f) break;
+                }
+                else controllableSince = -1f;
+
+                yield return new WaitForSeconds(0.5f);
+            }
+            lastLoadSeconds = Time.realtimeSinceStartup - loadStart;
+        }
 
         IEnumerator PressContinue()
         {

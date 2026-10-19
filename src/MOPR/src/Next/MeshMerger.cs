@@ -136,7 +136,7 @@ namespace MOP.Next
         readonly Dictionary<string, int> skipped = new Dictionary<string, int>();     // last observation, by reason
         readonly List<string> dynamicNames = new List<string>();                        // first moving parts (diagnostics)
 
-        /// <summary>The first parts that were found moving relative to the body (console: mop render).</summary>
+        /// <summary>The first parts that were found moving relative to the body (console: mopr render).</summary>
         public string MovingSample() => dynamicNames.Count == 0 ? "-" : string.Join(", ", dynamicNames.ToArray());
 
         State state = State.Idle;

@@ -82,6 +82,10 @@ namespace MOP
         void OnMenuLoad()
         {
             menuLoaded = true;
+            // MOP - REVIVAL 5.1 (fix): only the pre-save switched this off. Back in the menu without a save through
+            // MOP (death, MOP's own scene restart, a scene change by another mod) it stayed on, and during the next
+            // load Hypervisor.Update ran before MOP was set up: about 200 NullReferenceExceptions in the log.
+            MopSettings.IsModActive = false;
             if (modConfigPath == null)
                 modConfigPath = ModLoader.GetModSettingsFolder(this);
 
@@ -206,8 +210,6 @@ namespace MOP
             mop.AddComponent<Hypervisor>();
             mop.AddComponent<RenderOptimizer>();
             mop.AddComponent<VehicleMeshMerge>();
-
-            SaveManager.AddSaveFlag();
 
             // The mode the world is set up with (buildings, sectors, item LODs are built for it at load).
             MopSettings.LoadedMode = MopSettings.Mode;

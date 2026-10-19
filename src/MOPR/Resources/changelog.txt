@@ -9,7 +9,7 @@
 -NEW: The 43 built-in rule files live inside the DLL (no copies in the settings folder, always up to date); old .mopconfig files and Custom.txt still work
 -NEW: Rules apply at every game load (no need to reload them in the menu); the settings page shows which rules are active and can create your own file
 -NEW: Console commands "mopr rules", "mopr rules why <object>", "mopr rules export <ModID>", "mopr rules convert <file>"
--The console command is now "mopr" ("mop" still works)
+-The console command is now "mopr"
 -The 4.0.x mod icon is back; the mod description in the mod list follows the chosen language
 -Fixed the "don't destroy empty bottles" rule (bottle recycling mods) never having an effect
 -Settings page restyled like MOPR 4.x, with simpler explanations under every setting
@@ -25,6 +25,15 @@
 -Fixed Safe mode chosen in game applying only after a game restart instead of after quitting to the main menu
 -Fixed the Satsuma's interior lamp showing through the roof (game model bug)
 -Removed per-frame garbage in MOP's own loops
+-Fixed the walkers of the 2023 game update (Kale, Julli and others) never appearing
+-Fixed rules for objects without a renderer (BetterMSC, LoppeHouse...) making MOP skip about 20 world objects
+-Fixed MOP reading old values after quitting to the main menu and loading again
+-Fixed the kilju bucket lid coming off and spilling on load
+-Save check: removed the bolt check that could undo your own work (rear bumper, halfshafts, battery terminal) and the item counter fix that spawned duplicate items
+-The "MSCEditor" warning no longer appears for a car that simply has few bolts tightened
+-Fixed errors with modded house doors (fridge), the combine and a few silent errors in item handling
+-Fixed food spoiling three times slower than in the game while MOP had it switched off
+-GifuPump rule: only the truck's tank mesh stays on, the rest of the GIFU is optimized again
 
 ### 5.0.0 "Reborn"
 -Rebuilt on the original, battle-tested MOP 3.10.4 code instead of a rewrite

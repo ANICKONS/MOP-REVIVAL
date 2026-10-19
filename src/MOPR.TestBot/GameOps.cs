@@ -7,6 +7,8 @@
 //   path|Fsm|@state      active state name of the FSM
 //   path|#Component.member  public or private field / property of a component (by type name)
 //   path|@active         activeInHierarchy
+//   path|@self           activeSelf
+//   path|@parent         hierarchy path of the parent ("(root)" at the scene root)
 //   path|@pos            world position
 //   |@player             distance of the player to path (path given before the bar)
 //   global|Var           global FSM variable
@@ -703,6 +705,68 @@ namespace MOPR.TestBot
             return null;
         }
 
+        // ----- MOP's cached FSM variables ---------------------------------------------------------------
+
+        /// <summary>
+        /// Every static field of typeName (in the MOPR assembly) that holds an FSM variable or a GameObject:
+        /// "live" if it belongs to an FSM of the current scene (or the globals), "STALE" if not (left over from an
+        /// earlier load: reading it returns old values), "null" if not cached yet.
+        /// </summary>
+        public static string FsmCache(string typeName, out string summary)
+        {
+            Assembly mop = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "MOPR");
+            Type type = mop?.GetType(typeName, false);
+            if (type == null) { summary = "type not found: " + typeName; return summary + "\n"; }
+
+            // Reference set of every variable object of the current scene's FSMs (active or not) and the globals.
+            HashSet<object> live = new HashSet<object>(new ReferenceComparer());
+            void AddVars(FsmVariables v)
+            {
+                if (v == null) return;
+                foreach (NamedVariable n in v.FloatVariables) live.Add(n);
+                foreach (NamedVariable n in v.IntVariables) live.Add(n);
+                foreach (NamedVariable n in v.BoolVariables) live.Add(n);
+                foreach (NamedVariable n in v.StringVariables) live.Add(n);
+                foreach (NamedVariable n in v.GameObjectVariables) live.Add(n);
+                foreach (NamedVariable n in v.Vector3Variables) live.Add(n);
+            }
+            AddVars(FsmVariables.GlobalVariables);
+            foreach (PlayMakerFSM fsm in Resources.FindObjectsOfTypeAll<PlayMakerFSM>())
+                if (fsm != null && fsm.hideFlags == HideFlags.None) AddVars(fsm.FsmVariables);
+
+            int nLive = 0, nStale = 0, nNull = 0;
+            List<string> lines = new List<string>();
+            foreach (FieldInfo f in type.GetFields(AnyStatic).OrderBy(x => x.Name, StringComparer.Ordinal))
+            {
+                if (f.IsLiteral) continue;
+                bool isVar = typeof(NamedVariable).IsAssignableFrom(f.FieldType);
+                bool isUnity = typeof(UnityEngine.Object).IsAssignableFrom(f.FieldType);
+                if (!isVar && !isUnity) continue;
+
+                object value = f.GetValue(null);
+                string state;
+                if (value == null) { state = "null"; nNull++; }
+                else if (isUnity)
+                {
+                    // Unity's == null is true for objects destroyed with their scene.
+                    bool alive = (UnityEngine.Object)value != null;
+                    state = alive ? "live" : "STALE (destroyed)";
+                    if (alive) nLive++; else nStale++;
+                }
+                else if (live.Contains(value)) { state = "live = " + Format(ValueOf((NamedVariable)value)); nLive++; }
+                else { state = "STALE = " + Format(ValueOf((NamedVariable)value)); nStale++; }
+                lines.Add($"{f.Name}\t{f.FieldType.Name}\t{state}");
+            }
+            summary = $"{nLive} live, {nStale} stale, {nNull} not cached ({type.Name})";
+            return summary + "\n" + string.Join("\n", lines.ToArray()) + "\n";
+        }
+
+        sealed class ReferenceComparer : IEqualityComparer<object>
+        {
+            public new bool Equals(object a, object b) => ReferenceEquals(a, b);
+            public int GetHashCode(object o) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(o);
+        }
+
         // ----- What MOP manages -------------------------------------------------------------------------
 
         /// <summary>
@@ -1037,6 +1101,8 @@ namespace MOPR.TestBot
                     switch (parts[1])
                     {
                         case "@active": return go.activeInHierarchy ? "1" : "0";
+                        case "@self": return go.activeSelf ? "1" : "0";
+                        case "@parent": return go.transform.parent != null ? BotRunner.PathOf(go.transform.parent) : "(root)";
                         case "@pos": return Format(go.transform.position);
                         case "@player": return player != null ? Vector3.Distance(player.position, go.transform.position).ToString("0.0", CultureInfo.InvariantCulture) : "?";
                     }

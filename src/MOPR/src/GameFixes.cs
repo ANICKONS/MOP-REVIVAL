@@ -194,16 +194,30 @@ namespace MOP
             }
 
             // Toggle Humans (apart from Farmer and Fighter2).
+            // MOP - REVIVAL 5.1 (fixes, original MOP bugs):
+            // - "Randomizer" (the walkers of the December 2023 update: Kale, Julli, Kristian, Unto, Rauno, Alpo) is
+            //   left alone. It sits at (0, 0, 0), so MOP only enabled it within 150 m of that point, i.e. at home,
+            //   where MOP switches the whole HUMANS off: the walkers never appeared anywhere. Each walker's own
+            //   FSM already checks its distance to the player.
+            // - One try per human: one failure (e.g. a rule for an object without a renderer) skipped the rest.
             try
             {
                 GameObject humans = GameObject.Find("HUMANS");
-                foreach (Transform t in GameObject.Find("HUMANS").GetComponentsInChildren<Transform>().Where(t => t.parent == humans.transform))
+                foreach (Transform t in humans.GetComponentsInChildren<Transform>().Where(t => t.parent == humans.transform))
                 {
-                    if (t.gameObject.name.EqualsAny("HUMANS", "Fighter2", "Farmer", "FighterPub"))
+                    if (t.gameObject.name.EqualsAny("HUMANS", "Fighter2", "Farmer", "FighterPub", "Randomizer"))
                         continue;
 
-                    var human = WorldObjectManager.Instance.Add(t.gameObject, DisableOn.Distance);
-                    human.MinimumToggleDistance = 150;
+                    try
+                    {
+                        var human = WorldObjectManager.Instance.Add(t.gameObject, DisableOn.Distance);
+                        if (human != null)
+                            human.MinimumToggleDistance = 150;
+                    }
+                    catch (Exception ex)
+                    {
+                        ExceptionManager.New(ex, false, "HUMANS_ERROR | " + t.gameObject.name);
+                    }
                 }
             }
             catch (Exception ex)
@@ -480,12 +494,12 @@ namespace MOP
         /// <summary>
         /// Fixes hood popping out of the car on game load.
         /// </summary>
-        public void HoodFix(Transform hoodPivot, Transform batteryPivot, Transform batteryTrigger)
+        public void HoodFix(Transform hoodPivot)
         {
-            StartCoroutine(HoodFixCoroutine(hoodPivot, batteryPivot, batteryTrigger));
+            StartCoroutine(HoodFixCoroutine(hoodPivot));
         }
 
-        IEnumerator HoodFixCoroutine(Transform hoodPivot, Transform batteryPivot, Transform batteryTrigger)
+        IEnumerator HoodFixCoroutine(Transform hoodPivot)
         {
             yield return new WaitForSeconds(2);
 
@@ -563,12 +577,9 @@ namespace MOP
             if (hood.gameObject.GetComponent<SatsumaCustomHoodUse>() == null)
                 hood.gameObject.AddComponent<SatsumaCustomHoodUse>();
 
-            // Fix for battery popping out.
-            if (FsmManager.IsBatteryInstalled() && batteryPivot.parent == null)
-            {
-                batteryTrigger.gameObject.SetActive(true);
-                batteryTrigger.gameObject.GetComponent<PlayMakerFSM>().SendEvent("ASSEMBLE");
-            }
+            // MOP - REVIVAL 5.1: the "battery popping out" fix of MOP 3.10 is removed. Satsuma.cs passed the battery
+            // trigger and pivot in swapped order, so its condition (trigger_battery.parent == null) was never true
+            // and it never ran. Made to run, its ASSEMBLE event resets the battery bolts (found in MOPR 4.x).
 
             HoodFixDone = true;
         }

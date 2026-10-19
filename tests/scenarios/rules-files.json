@@ -22,7 +22,7 @@
     { "Op": "mopstate", "Label": "load" },
     { "Op": "console", "Text": "mopr rules" },
     { "Op": "console", "Text": "mopr rules why Hatch" },
-    { "Op": "console", "Text": "mop help rules" },
+    { "Op": "console", "Text": "mopr help rules" },
     { "Op": "quit" }
   ]
 }

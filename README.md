@@ -1,93 +1,128 @@
-# MOP - REVIVAL 5 "Reborn"
+# MOP - REVIVAL
 
-Modern Optimization Plugin for **My Summer Car** (MSCLoader 1.4+).
+[![](https://img.shields.io/github/downloads/ANICKONS/MOP-REVIVAL/total?style=for-the-badge)](https://github.com/ANICKONS/MOP-REVIVAL/releases)
+[![](https://img.shields.io/github/v/release/ANICKONS/MOP-REVIVAL?include_prereleases&style=for-the-badge)](https://github.com/ANICKONS/MOP-REVIVAL/releases)
+[![](https://img.shields.io/github/license/ANICKONS/MOP-REVIVAL?style=for-the-badge)](LICENSE.md)
 
-Version 5 is a fresh start. Instead of another rewrite, it is built **on top of the original,
-battle-tested MOP 3.10.4 source** by Konrad Figura (Athlon), ported to the current MSCLoader and the
-current game (v.250908), and extended with new layers that are safe by construction.
+<img align="right" src="docs/images/icon.png" alt="MOP - REVIVAL icon" width="128" />
 
-## What it does
+MOP - REVIVAL is the continuation of **MOP (Modern Optimization Plugin)**, the performance mod for My Summer Car.
+More FPS without any setup: install the mod and it's ready to go.
 
-* **Distance-based loading** of world objects, places, vehicles and items — the original MOP engine,
-  with all of its years of game-specific fixes kept intact.
-* **Automatic restart guard (new).** When MOP disables an object, PlayMaker state machines inside it
-  that would re-read your *last save* on re-enable (and silently reset paint, fluids, doors, bolts…)
-  are paused instead of reset — only for MOP's own disable/enable window. This generalises the dozens
-  of hand-written fixes MOP needed to find one bug report at a time.
-* **Render optimizer (new, purely visual).** Never enables, disables or moves anything:
-  * smart small-object culling — per-layer camera cull distances computed from real object sizes,
-    so nothing bigger than 1–4 px on screen is ever culled;
-  * shadow LOD — small objects stop casting shadows when far away;
-  * distant lamps stop rendering real-time shadows.
-  Everything it changes is recorded and restored before saving.
-* **Satsuma mesh merger (new in 5.1, purely visual).** The assembled car is ~550 separate draw calls and
-  costs FPS even behind a wall. While nobody drives it, ~440 parts are drawn as 33 meshes merged by
-  material; every frame each merged part is checked, and any change draws the original parts again in that
-  same frame. In tests: about −0.45…−0.55 ms per frame (+5–8.5% FPS) with the car in view, pixel-identical
-  picture.
-* **Experimental tier (new in 5.1, off by default)** for things that are measured but not provably exact:
-  a shared mouse ray (one ray per layer per frame instead of ~100 for the Satsuma's parts; −0.3…−0.9 ms near
-  and in the car, 0 differences in 1.28 million verified answers), car mirrors at most 60 FPS (−0.25…−1.1 ms
-  while seated or driving) and not drawing the engine from the driver's seat while the hood is closed.
-* **PlayMaker engine optimizations (new in 5.1).** Idle state machines, reflection-based property
-  actions and settings the game re-saves every frame are skipped — only when MOP can prove from the live
-  state that nothing would change; otherwise the game code runs unchanged. A verify mode runs the original
-  code anyway and reports any difference. In tests: about +10% FPS and 60% less garbage.
-* **English and Russian interface (new in 5.1)**, switchable live in the mod settings.
-* **Bundled compatibility rules** for popular mods — no dead rule servers, no network access.
-* **`satsuma_ignore`** rule for full Satsuma overhauls (e.g. Satsuma LX).
-* Diagnostics: `mopr audit`, `mopr guard`, `mopr render`, `mopr engine`, `mopr rules` (see `mopr help`;
-  `mop` still works as an alias).
-* **Rules** for other mods: JSON, built into the DLL for 43 known mods; your own files go into
-  `Mods/Config/Mod Settings/MOPR/Rules` (settings page: *Create your own rule file*). Old `.mopconfig`
-  files and `Custom.txt` still work.
+It is built on the original MOP 3.10.4 by Athlon, ported to the current game and MSCLoader 1.4, with the old bugs
+fixed and new optimizations on top. Every change is measured in the game before it ships.
 
-## Install
+Interface in English and Russian.
 
-1. Install [MSCLoader](https://github.com/piotrulos/MSCModLoader/releases) 1.4.2 or newer.
-2. Copy `MOPR.dll` into your `Mods` folder. Remove the original `MOP.dll` if you have it (they conflict).
-3. Back up your save. Start the game.
+**Results may vary!**
 
-Leftover `Mods\References\MOPRNET.dll` from MOPR 4.x is no longer needed.
+## Features
 
-## Build
+- **The original MOP engine.** Places, vehicles, items and world objects far away from you are switched off.
+- **Restart guard.** Game logic that would re-read your last save when MOP switches it back on (paint, fluids,
+  bolts, doors) is paused instead of reset.
+- **Render optimizer.** Small far-away objects and their shadows are not drawn. Visual only, nothing is moved.
+- **Satsuma mesh merger.** The parked car is drawn as 33 meshes instead of ~440 parts: +5–8% FPS with the car in view.
+- **PlayMaker engine optimizations.** Idle game logic is skipped only when nothing would change: about +10% FPS.
+- **Fixed bugs of the original MOP.** Walkers that never appeared, a save check that undid your work, food spoiling
+  three times slower, the kilju bucket spilling on load and more. See the [changelog](CHANGELOG.md).
+- **Built-in compatibility rules** for 43 mods. No rule servers, no internet access.
 
-Requirements: Windows, PowerShell, any .NET SDK ≥ 6. Visual Studio is not needed.
+## Requirements
+
+- **Latest LEGAL COPY** of My Summer Car
+- [MSCLoader](https://github.com/piotrulos/MSCModLoader/releases) 1.4.2 or newer
+
+## Installation
+
+1. Download `MOPR.dll` from [Releases](https://github.com/ANICKONS/MOP-REVIVAL/releases).
+2. Put it into your Mods folder (e.g. `C:\Steam\steamapps\common\My Summer Car\Mods`).
+3. Remove `MOP.dll` of the original MOP, if you have it. The two can't run together.
+4. Profit!
+
+Coming from MOPR 4.x? `Mods\References\MOPRNET.dll` is no longer needed and can be deleted.
+
+## Mod compatibility
+
+Rules for these mods are built in and apply while the mod is installed:
+
+<details>
+<summary>43 mods</summary>
+
+ActualMop, AthlonsTweaksPack, BetterMSC, BodyPillow, BottleRecycling, CallYourCousin, CDPlayer, ColorfulGauges3,
+dazyWoodDash, DonnerTech_ECU_Mod, DrivableBus, DriveableSvoboda, Expanded_Winter_Features, FishingMod, FURY, g_Box,
+GAZ24, GifuPump, GlassesBox, GT_Interior, HayosikoColorfulGauges, JetSky, JONNEZ_Basket, KekmetAddons,
+KekmetBeaconV2, LiquorStore, LoppeHouse, Manual_Ferndale, MSCStill, OffroadHayosiko, Partition, Police_Ferndale,
+Projector_Headlights, PsychovanzRentApartment, Repairable_Ruscko, Roofless, Satsuma_LX, SatsumaDigidash,
+SatsumaTurboCharger, SecondFerndale, SuperchargerForSatsuma, TangerinePickup, VHSPlayer
+
+</details>
+
+Your own rules go into `Mods\Config\Mod Settings\MOPR\Rules` (JSON). The settings page has a button that creates a
+commented template. Rule files of the original MOP (`.mopconfig`, `Custom.txt`) still work.
+
+Not compatible: the original MOP, KruFPS, ImproveFPS, OptimizeMSC and DisableAll. Use one optimization mod at a time.
+
+## Questions and bugs
+
+Found a bug? Use the **Report bug** button of MOP - REVIVAL in MSCLoader's mod list (the logs are attached for you),
+or open an [issue](https://github.com/ANICKONS/MOP-REVIVAL/issues). Console commands: `mopr help`.
+
+## Building from source
+
+Windows, PowerShell and any .NET SDK 6 or newer. Visual Studio is not needed.
 
 ```powershell
 .\scripts\build.ps1                 # Release build -> dist\MOPR.dll
 .\scripts\build.ps1 -Mode deploy    # build and copy into the game's Mods folder
 ```
 
-The script finds the game through Steam. With the game installed the mod is compiled against the
-**real** game assemblies; MSCLoader is taken from the game or, for a vanilla install, from the official
-MSCLoader release (downloaded to `refs/cache`).
+With the game installed, the mod is compiled against the real game assemblies. Without it (CI),
+`.\scripts\check-stubs.ps1` compiles against compile-only stubs; such builds are for checking the code only.
+Design notes and the test plan are in [docs/DESIGN.ru.md](docs/DESIGN.ru.md) (Russian).
 
-Without the game (CI), `.\scripts\check-stubs.ps1` compiles against **compile-only stubs** generated by
-`tools/RefStubGen` from the metadata of two public binaries that were compiled against the real game
-(original MOP 3.10.4 and MSCLoader 1.4.2). Stub builds are for code checking only; Release builds
-refuse stubs unless `-p:AllowStubBuild=true` is passed.
-
-## Layout
+<details>
+<summary>Repository layout</summary>
 
 ```
 src/MOPR/src/        original MOP engine (ported) + Next/ (restart guard, render optimizer, engine lab,
                      diagnostics), Localization/ (EN/RU), MopMenu.cs (settings page)
-src/MOPR/Rules/      bundled .mopconfig rule files
+src/MOPR/Rules/      built-in rules (JSON, embedded into the DLL)
 src/MOPR.TestBot/    development-only automation mod (never ship it)
 tests/scenarios/     TestBot scenarios, run with scripts\test-run.ps1
+tests/rules/         rule fixtures (old .mopconfig files, user files for test runs)
 refs/                stub overlay + scripts (generated/ and cache/ are not committed)
 tools/RefStubGen/    reference stub generator
-scripts/             build, deploy, stub check
+tools/RulesCheck/    offline rule checks (scripts\rules-check.ps1)
+scripts/             build, deploy, stub check, in-game test runner
 docs/                design notes and in-game test plan (Russian)
 ```
 
-## Credits and license
+</details>
 
-* **Konrad Figura (Athlon)** — original Modern Optimization Plugin; most of the game logic in this repo.
-* **Krutonium** and contributors (RedJohn260, EPS) — original KruFPS.
-* **ANICKON** — Revival.
-* Contains AI-assisted code (disclosed as requested by MSCLoader).
+## License
 
-Distributed under the GNU General Public License v3 (see `LICENSE.md`). Changes against MOP 3.10.4 are
-marked with `MOP - REVIVAL` comments in the source.
+This program is distributed under the GNU General Public License v3, like the original MOP. Feel free to use its
+source code as long as you mention the authors and state the changes. Changes against MOP 3.10.4 are marked with
+`MOP - REVIVAL` comments in the source. For more, see the [LICENSE](LICENSE.md) file.
+
+## Credits
+
+- **ANICKON** - MOP - REVIVAL
+- [Konrad Figura (Athlon)](https://github.com/Athlon007) - the original [MOP](https://github.com/Athlon007/MOP);
+  most of the game logic in this repository is his
+- [Krutonium](https://github.com/Krutonium) - original [KruFPS](https://github.com/Krutonium/KruFPS) creator, and the
+  KruFPS contributors:
+  - RedJohn260
+  - EPS
+- Est_Nbmstr - for the name of the original MOP
+- FESilencer - for helping Athlon figure out how PlayMaker actions work
+
+### Testers of the original MOP
+
+- DoritoMan
+- CatAtTheDesert
+- Slavic_Dude001
+- DJ Ötzi
+
+Contains AI-assisted code (disclosed as requested by MSCLoader).

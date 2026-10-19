@@ -25,13 +25,20 @@ namespace MOP.FSM
 {
     static class FsmManager
     {
+        /// <summary>
+        /// Forgets every cached FSM variable and object (called in the main menu, before the next load).
+        /// </summary>
         public static void ResetAll()
         {
-            FieldInfo[] fields = typeof(FsmManager).GetFields();
-            // Loop through fields
-            foreach (var field in fields)
+            // MOP - REVIVAL 5.1 (fix, original MOP bug): GetFields() without flags only returns PUBLIC fields, and
+            // every cache below is private, so nothing was ever reset. After "quit to menu -> Continue" MOP kept
+            // reading the variables of the destroyed scene: frozen old values (hood and battery bolts, trailer,
+            // Hayosiko key, combine, the Suski phone call, the clock).
+            FieldInfo[] fields = typeof(FsmManager).GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            foreach (FieldInfo field in fields)
             {
-                field.SetValue(field, null);
+                if (field.IsLiteral || field.IsInitOnly || field.FieldType.IsValueType) continue;
+                field.SetValue(null, null);
             }
         }
 
@@ -104,8 +111,16 @@ namespace MOP.FSM
         /// <returns></returns>
         public static bool IsCombineAvailable()
         {
+            // MOP - REVIVAL 5.1 (fix): no null checks before; while the farm job object or its JobStage variable
+            // can't be found, every MOP tick threw (VEHICLE_TOGGLE_ERROR_9). Not found = not available yet: MOP
+            // leaves the combine alone and looks again on the next tick.
             if (farmJobStage == null)
-                farmJobStage = GameObject.Find("JOBS/Farm/Job").GetComponent<PlayMakerFSM>().FsmVariables.GetFsmInt("JobStage");
+            {
+                GameObject job = GameObject.Find("JOBS/Farm/Job");
+                PlayMakerFSM fsm = job != null ? job.GetComponent<PlayMakerFSM>() : null;
+                farmJobStage = fsm != null ? fsm.FsmVariables.FindFsmInt("JobStage") : null;
+                if (farmJobStage == null) return false;
+            }
 
             return farmJobStage.Value >= 3;
         }
@@ -155,19 +170,6 @@ namespace MOP.FSM
                 kekmetTrailerRemove = VehicleManager.Instance.GetVehicle(VehiclesTypes.Kekmet).transform.Find("Trailer/Remove").gameObject;
 
             return kekmetTrailerRemove.activeSelf;
-        }
-
-        static FsmFloat battery1;
-        static FsmFloat battery2;
-        public static bool IsBatteryInstalled()
-        {
-            if (battery1 == null)
-                battery1 = GameObject.Find("Database/PartsStatus/Battery").GetComponent<PlayMakerFSM>().FsmVariables.GetFsmFloat("Bolt1");
-
-            if (battery2 == null)
-                battery2 = GameObject.Find("Database/PartsStatus/Battery").GetComponent<PlayMakerFSM>().FsmVariables.GetFsmFloat("Bolt2");
-
-            return battery1.Value > 0 || battery2.Value > 0;
         }
 
         static FsmBool playerHelmet;

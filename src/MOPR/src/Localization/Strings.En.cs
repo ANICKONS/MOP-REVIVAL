@@ -179,8 +179,9 @@ namespace MOP.Localization
             { "msg.open_link", "This will open the following link:\n<color=yellow>{0}</color>\n\nAre you sure you want to continue?" },
             { "msg.safe_mode_on_later", "Safe Mode will be enabled after you quit to the Main Menu." },
             { "msg.safe_mode_off_later", "Safe Mode will be disabled after you quit to the Main Menu." },
-            { "msg.msceditor", "MSCEditor (or another third-party software) has been used to assemble the car. " +
-                               "This might cause MOP to not work as intended." },
+            { "msg.msceditor", "The engine block is saved as bolted, but some of its bolts are not tightened at all. " +
+                               "The game does not do that by itself; it usually comes from editing the save (MSCEditor or similar).\n\n" +
+                               "MOP skips its check whether the Satsuma loaded completely for this load. You can keep playing." },
             { "msg.satsuma_not_loaded", "Satsuma has not been fully loaded by the game!\n\n" +
                                         "Consider restarting the game in order to avoid any issues." },
             { "msg.no_logs_folder", "Logs folder doesn't exist." },
@@ -205,11 +206,7 @@ namespace MOP.Localization
             { "save.backup_note", "Your save file has been backed up into <color=yellow>defaultES2File.txt.mopbackup</color> and <color=yellow>items.txt.mopbackup</color>." },
             { "save.bug.bucket_seats", "Bucket seats: only one of the pair is purchased" },
             { "save.bug.flatbed", "Flatbed trailer is saved as attached, but it is far from the tractor" },
-            { "save.bug.halfshaft_fl", "Halfshaft (FL): mismatched bolt stages" },
-            { "save.bug.halfshaft_fr", "Halfshaft (FR): mismatched bolt stages" },
-            { "save.bug.battery_minus", "Battery terminal minus bolt is not tightened." },
             { "save.bug.fuel_line", "Fuel Line tightness is not a correct value.\n\nValue is <b>{0}</b>.\n<b>{1}</b> is expected" },
-            { "save.bug.item_count", "{0} is not a correct value.\nExpected: {1}. Actual: {2}\n" },
 
             // === Loading screen ===
             { "load.waiting_mods", "Waiting for other mods" },

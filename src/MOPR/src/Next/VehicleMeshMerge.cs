@@ -97,7 +97,7 @@ namespace MOP.Next
             }
         }
 
-        // Cost of the per-frame validation while merged (reported by "mop render"): [0] body still, [1] body moved.
+        // Cost of the per-frame validation while merged (reported by "mopr render"): [0] body still, [1] body moved.
         readonly long[] validateTicks = new long[2];
         readonly int[] validateFrames = new int[2];
 

@@ -1,0 +1,14 @@
+{
+  "Name": "reload-smoke",
+  "SettleSeconds": 5,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Second load of one session: load, back to the menu without saving, load again. Count NullReferenceExceptions in output_log.txt (MOP stayed 'active' in the menu before 5.1) and check MOP's FSM caches." },
+    { "Op": "fsmcache", "Label": "first" },
+    { "Op": "reloadgame" },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "fsmcache", "Label": "second" },
+    { "Op": "mopstate", "Label": "second" },
+    { "Op": "quit" }
+  ]
+}

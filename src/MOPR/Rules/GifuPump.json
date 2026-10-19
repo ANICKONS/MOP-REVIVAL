@@ -1,8 +1,10 @@
 // MOPR rules for the "GifuPump" mod.
-// Note (from the old file): only "GIFU(750/450psi)" is excluded; the words between it and fullignore have no effect
+// The old file said "ignore:GIFU(750/450psi) MESH fullignore". MOP 3.10 read only the first name of it, so the
+// whole truck was excluded. Meant was the truck's MESH (the tank the pump sits on): it stays on while MOP
+// switches the parked truck off; the rest of the GIFU is managed as usual (5.1).
 {
   "mod": "GifuPump",
-  "exclude": [
-    "GIFU(750/450psi)"
-  ]
+  "keepActiveIn": {
+    "GIFU(750/450psi)": [ "MESH" ]
+  }
 }

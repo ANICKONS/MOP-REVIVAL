@@ -64,9 +64,15 @@ namespace RulesCheck
 
         // ----- verify ---------------------------------------------------------------------------------
 
+        // Built-in files that deliberately say something else than their old .mopconfig (still checked for errors).
+        static readonly Dictionary<string, string> Deliberate = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["GifuPump"] = "5.1: only the truck's MESH stays on (MOP 3.10 misread the old line and excluded the whole GIFU)",
+        };
+
         static int Verify(string legacyDir, string jsonDir)
         {
-            int ok = 0, bad = 0;
+            int ok = 0, bad = 0, deliberate = 0;
             List<RuleSet> all = new List<RuleSet>();
             HashSet<string> seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (string path in Directory.GetFiles(legacyDir, "*" + LegacyRules.Extension).OrderBy(p => p, StringComparer.OrdinalIgnoreCase))
@@ -79,7 +85,13 @@ namespace RulesCheck
                 RuleSet json = RuleJson.Read(File.ReadAllText(jsonPath), Path.GetFileName(jsonPath), RuleSource.Bundled);
                 string a = RuleJson.Write(legacy), b = RuleJson.Write(json);
                 List<RuleIssue> errors = json.Issues.Where(i => i.IsError).ToList();
-                if (a != b || errors.Count > 0 || !string.Equals(json.Mod, legacy.Mod, StringComparison.Ordinal))
+                if (a != b && errors.Count == 0 && string.Equals(json.Mod, legacy.Mod, StringComparison.Ordinal) &&
+                    Deliberate.TryGetValue(legacy.Mod, out string why))
+                {
+                    Console.WriteLine("DELIBERATE " + legacy.Mod + ": " + why + "\n--- legacy\n" + a + "--- json\n" + b);
+                    deliberate++;
+                }
+                else if (a != b || errors.Count > 0 || !string.Equals(json.Mod, legacy.Mod, StringComparison.Ordinal))
                 {
                     Console.WriteLine("DIFFERENT " + legacy.Mod);
                     foreach (RuleIssue i in errors) Console.WriteLine("  " + i);
@@ -93,7 +105,10 @@ namespace RulesCheck
                 if (!seen.Contains(Path.GetFileNameWithoutExtension(path))) { Console.WriteLine("NO LEGACY SOURCE " + path); bad++; }
 
             RuleBook book = RuleBook.Compile(all, null);
-            Console.WriteLine($"verify: {ok} identical, {bad} different; compiled {book.Active.Count} sets, {book.RuleCount} rules, " +
+            foreach (string mod in Deliberate.Keys)
+                if (!seen.Contains(mod)) { Console.WriteLine("DELIBERATE CHANGE WITHOUT A FILE " + mod); bad++; }
+
+            Console.WriteLine($"verify: {ok} identical, {deliberate} deliberately changed, {bad} different; compiled {book.Active.Count} sets, {book.RuleCount} rules, " +
                               $"{book.Manage.Count} managed, {book.Reparent.Count} reparent, {book.Sectors.Count} sectors, " +
                               $"satsuma exclude={book.SatsumaExclude} keepRenderers={book.SatsumaKeepRenderers}");
             return bad == 0 ? 0 : 1;

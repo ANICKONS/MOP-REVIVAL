@@ -1,0 +1,26 @@
+{
+  "Name": "spoil",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Food spoiling with MOP. 1) active at home: the game's own rate. 2) player far away: MOP disables the items - does Condition still change while they are off? 3) back: how much MOP subtracts on enable (OnEnable: elapsed * SpoilingRate * factor)." },
+    { "Op": "watch", "Label": "active", "Seconds": 60, "Interval": 10, "Probes": [
+      "milk=ITEMS/milk(itemx)|Use|Condition", "milkAct=ITEMS/milk(itemx)|@self", "milkRate=ITEMS/milk(itemx)|Use|SpoilingRate", "milkDist=ITEMS/milk(itemx)|@player",
+      "milkFridgeDist=ITEMS/milk(itemx)|Use|Distance", "milkState=ITEMS/milk(itemx)|Use|@state", "milkInFridge=static|MOP.Places.Yard.Instance",
+      "saus=name:sausages(itemx)|Use|Condition", "sausAct=name:sausages(itemx)|@self", "sausPos=name:sausages(itemx)|@pos", "sausFridgeDist=name:sausages(itemx)|Use|Distance",
+      "minutes=MAP/SUN/Pivot/SUN|Clock|Minutes", "playerPos=PLAYER|@pos" ] },
+    { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [6.0, 1.0, 0.0] },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "watch", "Label": "away", "Seconds": 180, "Interval": 30, "Probes": [
+      "milk=ITEMS/milk(itemx)|Use|Condition", "milkAct=ITEMS/milk(itemx)|@self", "milkDist=ITEMS/milk(itemx)|@player",
+      "saus=name:sausages(itemx)|Use|Condition", "sausAct=name:sausages(itemx)|@self",
+      "minutes=MAP/SUN/Pivot/SUN|Clock|Minutes" ] },
+    { "Op": "teleport", "Path": "ITEMS/milk(itemx)", "Pos": [0.0, 1.2, 0.0] },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "watch", "Label": "back", "Seconds": 30, "Interval": 10, "Probes": [
+      "milk=ITEMS/milk(itemx)|Use|Condition", "milkAct=ITEMS/milk(itemx)|@self", "milkDist=ITEMS/milk(itemx)|@player",
+      "saus=name:sausages(itemx)|Use|Condition", "sausAct=name:sausages(itemx)|@self",
+      "minutes=MAP/SUN/Pivot/SUN|Clock|Minutes" ] },
+    { "Op": "quit" }
+  ]
+}

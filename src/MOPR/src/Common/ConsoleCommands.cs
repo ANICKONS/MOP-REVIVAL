@@ -29,9 +29,8 @@ namespace MOP.Common
 {
     class ConsoleCommands : ConsoleCommand
     {
-        // MOP - REVIVAL 5.1: "mopr" (the mod ID); "mop" still works for old guides and habits.
+        // MOP - REVIVAL 5.1: "mopr" (the mod ID). The old "mop" is gone, so it can't clash with the original MOP.
         public override string Name => "mopr";
-        public override string Alias => "mop";
         public override string Help => "Use \"mopr help\" to see command list!";
         public override bool ShowInHelp => true;
 

@@ -3,12 +3,14 @@
   "SettleSeconds": 10,
   "LoadTimeoutSeconds": 600,
   "MenuSteps": [
-    { "Op": "log", "Text": "Rules A/B: every rule file applies (reload all), then what MOP manages is dumped. Old: -MoprDll <5.1 build before the rules rewrite> -ModConfig tests\\rules\\legacy. New: no -ModConfig (built-in JSON), or -ModConfig tests\\rules\\no-satsuma-lx against the legacy files without Satsuma_LX. The mopstate files must be identical." },
+    { "Op": "log", "Text": "Rules A/B: every rule file applies (reload all), then what MOP manages is dumped. Old: -MoprDll <5.1 build before the rules rewrite> -ModConfig tests\\rules\\legacy. New: no -ModConfig (built-in JSON), or -ModConfig tests\\rules\\no-satsuma-lx against the legacy files without Satsuma_LX. The mopstate files must be identical. Builds before the rename only know 'mop', newer ones only 'mopr': both are sent, each build ignores the other." },
+    { "Op": "console", "Text": "mopr reload all" },
     { "Op": "console", "Text": "mop reload all" },
     { "Op": "wait", "Seconds": 2 }
   ],
   "Steps": [
     { "Op": "mopstate", "Label": "load" },
+    { "Op": "console", "Text": "mopr rules" },
     { "Op": "console", "Text": "mop rules" },
     { "Op": "quit" }
   ]

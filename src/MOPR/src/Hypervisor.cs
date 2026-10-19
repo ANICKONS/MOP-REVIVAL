@@ -257,6 +257,29 @@ namespace MOP
             return mods * 2 + 10;
         }
 
+        /// <summary>
+        /// MOP - REVIVAL 5.1 (fix, original MOP bug): adds one world object in its own try. MOP 3.10 added each list
+        /// in a single try, so the first failure skipped every object after it (WORLD_OBJECTS_1/2_INITIALIZAITON_FAIL):
+        /// an object a rule excludes came back as null and setting its MinimumToggleDistance threw, and so did a
+        /// keepActive object without a renderer. With BetterMSC or LoppeHouse about 20 world objects (PERAJARVI,
+        /// DANCEHALL, AIRPORT, RAILROAD...) were then never managed.
+        /// </summary>
+        GenericObject AddWorldObject(string name, DisableOn disableOn, int distance = 200, int minimumToggleDistance = 0, bool silent = false)
+        {
+            try
+            {
+                GenericObject obj = worldObjectManager.Add(name, disableOn, distance, silent: silent);
+                if (obj != null && minimumToggleDistance > 0)
+                    obj.MinimumToggleDistance = minimumToggleDistance;
+                return obj;
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.New(ex, false, "WORLD_OBJECT_ERROR | " + name);
+                return null;
+            }
+        }
+
         void Initialize()
         {
             ModConsole.Log("[MOPR] Loading MOP...");
@@ -286,33 +309,28 @@ namespace MOP
             VehicleManager.Instance.Initialize();
 
             // World Objects
+            // MOP - REVIVAL 5.1: one try per object (AddWorldObject), see there.
+            AddWorldObject("CABIN", DisableOn.Distance, 200, 300);
+            AddWorldObject("COTTAGE", DisableOn.Distance, 400, 400);
+            AddWorldObject("DANCEHALL", DisableOn.Distance, 500);
+            AddWorldObject("PERAJARVI", DisableOn.Distance | DisableOn.IgnoreInQualityMode, 600, 600);
+            AddWorldObject("SOCCER", DisableOn.Distance);
+            AddWorldObject("WATERFACILITY", DisableOn.Distance, 300, 300);
+            AddWorldObject("StrawberryField", DisableOn.Distance, 400);
+            AddWorldObject("MAP/Buildings/DINGONBIISI", DisableOn.Distance | DisableOn.IgnoreInBalancedAndAbove, 400);
+            AddWorldObject("RALLY/PartsSalesman", DisableOn.Distance, 400);
+            AddWorldObject("LakeSmallBottom1", DisableOn.Distance, 500);
+            AddWorldObject("machine", DisableOn.Distance, 200, silent: true);
             try
             {
-                var cabin = worldObjectManager.Add("CABIN", DisableOn.Distance);
-                cabin.MinimumToggleDistance = 300;
-                var cottage = worldObjectManager.Add("COTTAGE", DisableOn.Distance, 400);
-                cottage.MinimumToggleDistance = 400;
-                worldObjectManager.Add("DANCEHALL", DisableOn.Distance, 500);
-                var perajarvi = worldObjectManager.Add("PERAJARVI", DisableOn.Distance | DisableOn.IgnoreInQualityMode, 600);
-                perajarvi.MinimumToggleDistance = 600;
-                worldObjectManager.Add("SOCCER", DisableOn.Distance);
-                var waterfacility = worldObjectManager.Add("WATERFACILITY", DisableOn.Distance, 300);
-                waterfacility.MinimumToggleDistance = 300;
-                worldObjectManager.Add("StrawberryField", DisableOn.Distance, 400);
-                worldObjectManager.Add("MAP/Buildings/DINGONBIISI", DisableOn.Distance | DisableOn.IgnoreInBalancedAndAbove, 400);
-                worldObjectManager.Add("RALLY/PartsSalesman", DisableOn.Distance, 400);
-                worldObjectManager.Add("LakeSmallBottom1", DisableOn.Distance, 500);
-                worldObjectManager.Add("machine", DisableOn.Distance, 200, silent: true);
-
                 SkidmarkObject skidmark = new SkidmarkObject(GameObject.Find("Skidmarks"), 0);
                 worldObjectManager.Add(skidmark);
-
-                ModConsole.Log("[MOPR] World objects (1) loaded");
             }
             catch (Exception ex)
             {
-                ExceptionManager.New(ex, false, "WORLD_OBJECTS_1_INITIALIZAITON_FAIL");
+                ExceptionManager.New(ex, false, "WORLD_OBJECT_ERROR | Skidmarks");
             }
+            ModConsole.Log("[MOPR] World objects (1) loaded");
 
             // Initialize places.
             placeManager = new PlaceManager();
@@ -321,39 +339,31 @@ namespace MOP
             GameFixes.Instance.MainFixes();
 
             //Things that should be enabled when out of proximity of the house
-            try
-            {
-                worldObjectManager.Add("NPC_CARS", DisableOn.PlayerInHome);
-                worldObjectManager.Add("TRAFFIC", DisableOn.PlayerInHome);
-                worldObjectManager.Add("VehiclesHighway", DisableOn.PlayerInHome | DisableOn.DoNotEnableWhenLeavingHome);
-                worldObjectManager.Add("VehiclesDirtRoad", DisableOn.PlayerInHome);
-                worldObjectManager.Add("TRAIN", DisableOn.PlayerInHome | DisableOn.IgnoreInQualityMode);
-                worldObjectManager.Add("Buildings", DisableOn.PlayerInHome);
-                worldObjectManager.Add("TrafficSigns", DisableOn.PlayerInHome);
-                worldObjectManager.Add("StreetLights", DisableOn.PlayerInHome);
-                worldObjectManager.Add("HUMANS", DisableOn.PlayerInHome);
-                worldObjectManager.Add("TRACKFIELD", DisableOn.PlayerInHome);
-                worldObjectManager.Add("SkijumpHill", DisableOn.PlayerInHome | DisableOn.IgnoreInQualityMode);
-                worldObjectManager.Add("Factory", DisableOn.PlayerInHome);
-                worldObjectManager.Add("WHEAT", DisableOn.PlayerInHome);
-                worldObjectManager.Add("RAILROAD", DisableOn.PlayerInHome);
-                worldObjectManager.Add("AIRPORT", DisableOn.PlayerInHome);
-                worldObjectManager.Add("RAILROAD_TUNNEL", DisableOn.PlayerInHome);
-                worldObjectManager.Add("PierDancehall", DisableOn.PlayerInHome);
-                worldObjectManager.Add("PierRiver", DisableOn.PlayerInHome);
-                worldObjectManager.Add("PierStore", DisableOn.PlayerInHome);
-                worldObjectManager.Add("BRIDGE_dirt", DisableOn.PlayerInHome);
-                worldObjectManager.Add("BRIDGE_highway", DisableOn.PlayerInHome);
-                worldObjectManager.Add("BirdTower", DisableOn.Distance, 400);
-                worldObjectManager.Add("RYKIPOHJA", DisableOn.PlayerInHome);
-                worldObjectManager.Add("COMPUTER", DisableOn.PlayerAwayFromHome, silent: true);
-
-                ModConsole.Log("[MOPR] World objects (2) loaded");
-            }
-            catch (Exception ex)
-            {
-                ExceptionManager.New(ex, false, "WORLD_OBJECTS_2_INITIALIZAITON_FAIL");
-            }
+            AddWorldObject("NPC_CARS", DisableOn.PlayerInHome);
+            AddWorldObject("TRAFFIC", DisableOn.PlayerInHome);
+            AddWorldObject("VehiclesHighway", DisableOn.PlayerInHome | DisableOn.DoNotEnableWhenLeavingHome);
+            AddWorldObject("VehiclesDirtRoad", DisableOn.PlayerInHome);
+            AddWorldObject("TRAIN", DisableOn.PlayerInHome | DisableOn.IgnoreInQualityMode);
+            AddWorldObject("Buildings", DisableOn.PlayerInHome);
+            AddWorldObject("TrafficSigns", DisableOn.PlayerInHome);
+            AddWorldObject("StreetLights", DisableOn.PlayerInHome);
+            AddWorldObject("HUMANS", DisableOn.PlayerInHome);
+            AddWorldObject("TRACKFIELD", DisableOn.PlayerInHome);
+            AddWorldObject("SkijumpHill", DisableOn.PlayerInHome | DisableOn.IgnoreInQualityMode);
+            AddWorldObject("Factory", DisableOn.PlayerInHome);
+            AddWorldObject("WHEAT", DisableOn.PlayerInHome);
+            AddWorldObject("RAILROAD", DisableOn.PlayerInHome);
+            AddWorldObject("AIRPORT", DisableOn.PlayerInHome);
+            AddWorldObject("RAILROAD_TUNNEL", DisableOn.PlayerInHome);
+            AddWorldObject("PierDancehall", DisableOn.PlayerInHome);
+            AddWorldObject("PierRiver", DisableOn.PlayerInHome);
+            AddWorldObject("PierStore", DisableOn.PlayerInHome);
+            AddWorldObject("BRIDGE_dirt", DisableOn.PlayerInHome);
+            AddWorldObject("BRIDGE_highway", DisableOn.PlayerInHome);
+            AddWorldObject("BirdTower", DisableOn.Distance, 400);
+            AddWorldObject("RYKIPOHJA", DisableOn.PlayerInHome);
+            AddWorldObject("COMPUTER", DisableOn.PlayerAwayFromHome, silent: true);
+            ModConsole.Log("[MOPR] World objects (2) loaded");
 
             // Adding area check if Satsuma is in the inspection's area
             try
@@ -445,10 +455,11 @@ namespace MOP
             // Logwalls
             try
             {
+                // MOP - REVIVAL 5.1: Add returns null for an object a rule excludes (here and below).
                 foreach (GameObject wall in Resources.FindObjectsOfTypeAll<GameObject>().Where(g => g.name == "LogwallLarge"))
                 {
                     var logWall = worldObjectManager.Add(wall, DisableOn.Distance, 300);
-                    logWall.MinimumToggleDistance = 200;
+                    if (logWall != null) logWall.MinimumToggleDistance = 200;
                 }
             }
             catch (Exception ex)
@@ -466,7 +477,7 @@ namespace MOP
                     GameObject churchLOD = church.transform.Find("LOD").gameObject;
                     church.GetComponent<PlayMakerFSM>().enabled = false;
                     var churchObject = worldObjectManager.Add(churchLOD, DisableOn.Distance, 300);
-                    churchObject.MinimumToggleDistance = 200;
+                    if (churchObject != null) churchObject.MinimumToggleDistance = 200;
                 }
             }
             catch (Exception ex)
@@ -494,7 +505,7 @@ namespace MOP
                 foreach (var f in vehiclesHighway.GetComponentsInChildren<Transform>(true).Where(f => f.parent == vehiclesHighway))
                 {
                     var traffic = worldObjectManager.Add(f.gameObject, DisableOn.Distance, 600, ToggleModes.MultipleRenderers);
-                    traffic.MinimumToggleDistance = 400;
+                    if (traffic != null) traffic.MinimumToggleDistance = 400;
                 }
 
                 // Also we gonna fix the lag on initial traffic load.
@@ -509,7 +520,7 @@ namespace MOP
             try
             {
                 var fittan = worldObjectManager.Add(GameObject.Find("TRAFFIC").transform.Find("VehiclesDirtRoad/Rally/FITTAN").gameObject, DisableOn.Distance, 600, ToggleModes.MultipleRenderers);
-                fittan.MinimumToggleDistance = 400;
+                if (fittan != null) fittan.MinimumToggleDistance = 400;
             }
             catch (Exception ex)
             {

@@ -1,0 +1,11 @@
+// Test fixture (tests/scenarios/batch1.json), copied into Mod Settings/MOPR for one run only.
+// No "mod": always active.
+// - keepActive on world roots without a renderer of their own (COTTAGE in the first world-object list,
+//   TrafficSigns in the second): MOP 3.10.4 threw there and skipped the rest of the list.
+// - the GifuPump rule of 5.1 (that mod is not installed here).
+{
+  "keepActive": [ "COTTAGE", "TrafficSigns" ],
+  "keepActiveIn": {
+    "GIFU(750/450psi)": [ "MESH" ]
+  }
+}

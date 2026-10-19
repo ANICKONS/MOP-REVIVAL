@@ -58,12 +58,9 @@ namespace MOP.Managers
         /// <param name="silent">Skips the error message.</param>
         public GenericObject Add(string gameObjectName, DisableOn disableOn, int distance = 200, ToggleModes toggleMode = ToggleModes.Simple, bool silent = false)
         {
-            // Rules: "exclude" - not managed; "keepActive" - only its renderers are switched.
-            ObjectRule rule = RulesManager.Book.Object(gameObjectName);
-            if (rule == ObjectRule.Exclude)
+            // Rules: "exclude" - not managed (no need to look for it); "keepActive" is decided below, per object.
+            if (RulesManager.Book.Object(gameObjectName) == ObjectRule.Exclude)
                 return null;
-            if (rule == ObjectRule.KeepActive)
-                toggleMode = ToggleModes.Renderer;
 
             GameObject gm = GameObject.Find(gameObjectName);
 
@@ -98,11 +95,20 @@ namespace MOP.Managers
                 throw new NullReferenceException($"WorldObjectManager: gameObject is null.");
             }
 
+            // Rules: "exclude" - not managed; "keepActive" - the object is never switched off, only renderers are.
             ObjectRule rule = RulesManager.Book.Object(gameObject.name);
             if (rule == ObjectRule.Exclude)
                 return null;
-            if (rule == ObjectRule.KeepActive)
+            if (rule == ObjectRule.KeepActive && toggleMode == ToggleModes.Simple)
+            {
+                // MOP - REVIVAL 5.1 (fix, regression of MOP 3.10.4): a keepActive object without a renderer of its
+                // own (COTTAGE, HUMANS, most of the world roots) threw "Couldn't find the renderer of X" here, and
+                // with it every object after it in the same batch was skipped. There is nothing to hide on such an
+                // object, so MOP leaves it alone. Renderer-only modes already keep the object on: they stay.
+                if (gameObject.GetComponent<Renderer>() == null)
+                    return null;
                 toggleMode = ToggleModes.Renderer;
+            }
 
             GenericObject obj;
 

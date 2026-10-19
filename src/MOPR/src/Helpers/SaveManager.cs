@@ -18,10 +18,8 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using MSCLoader;
-using Newtonsoft.Json;
 using HutongGames.PlayMaker;
 
 using MOP.Common;
@@ -43,9 +41,6 @@ namespace MOP.Helpers
         static string mopSavePath => Path.Combine(Application.persistentDataPath, "MopSave.json");
         static bool SaveFileExists => File.Exists(mopSavePath);
 
-        // Minimum percentage of bolts, that must be screwed in,
-        // in order for MOP to assume the save hasn't been tampered with.
-        const double MSCEditorLikelihoodRatio = 0.15;
         // Minimum number of parts that must be installed to the car,
         // in order to check for MSCEditor save tampering.
         const int MinimumNumberOfPartsToCheckMSCEditorTampering = 40;
@@ -251,105 +246,15 @@ namespace MOP.Helpers
                 ExceptionManager.New(ex, false, "VERIFY_SAVE_FLATBED");
             }
 
-            MopSaveFileData save = ReadData();
-            if (satsumaManaged && save != null && save.version == MOP.ModVersion)
-            {
-                try
-                {
-                    // This one applies fix quietly, as it happens so often,
-                    // it would be annoying to nag player about that error.
-                    bool bumperRearInstalled = ReadBoolean("bumper rear(Clone)Installed");
-                    float bumperTightness = ReadFloat("Bumper_RearTightness");
-                    if (bumperRearInstalled && bumperTightness != save.rearBumperTightness)
-                    {
-                        WriteSaveTag("Bumper_RearTightness", save.rearBumperTightness);
-                        WriteSaveTag("Bumper_RearBolts", save.rearBumperBolts);
-                    }
-                }
-                catch
-                {
-                    ModConsole.LogSilentError("[MOPR] MOP");
-                }
-
-                try
-                {
-                    if (!IsSaveTagPresent("Halfshaft_FLTightness"))
-                    {
-                        ModConsole.Log("[MOPR] Save Verification: Halfshaft_FLTightness hasn't been found. Halfshaft FR mismatch won't be checked...");
-                    }
-                    else
-                    {
-                        bool halfshaft_FLInstalled = ReadBoolean("halfshaft_flInstalled");
-                        float halfshaft_FLTightness = ReadFloat("Halfshaft_FLTightness");
-                        if (halfshaft_FLInstalled && halfshaft_FLTightness != save.halfshaft_FLTightness)
-                        {
-                            saveBugs.Add(new SaveBugs(Loc.T("save.bug.halfshaft_fl"), () =>
-                            {
-                                WriteSaveTag("Halfshaft_FLTightness", save.halfshaft_FLTightness);
-                                WriteSaveTag("Halfshaft_FLBolts", save.halfshaft_FLBolts);
-                            }));
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ExceptionManager.New(ex, false, "VERIFY_HALFSHAFT_FL");
-                }
-
-                try 
-                {
-                    if (!IsSaveTagPresent("Halfshaft_FRTightness"))
-                    {
-                        ModConsole.Log("[MOPR] Save Verification: Halfshaft_FRTightness hasn't been found. Halfshaft FR mismatch won't be checked...");
-                    }
-                    else
-                    {
-                        bool halfshaft_FRInstalled = ReadBoolean("halfshaft_frInstalled");
-                        float halfshaft_FRTightness = ReadFloat("Halfshaft_FRTightness");
-                        if (halfshaft_FRInstalled && halfshaft_FRTightness != save.halfshaft_FRTightness)
-                        {
-                            saveBugs.Add(new SaveBugs(Loc.T("save.bug.halfshaft_fr"), () =>
-                            {
-                                WriteSaveTag("Halfshaft_FRTightness", save.halfshaft_FRTightness);
-                                WriteSaveTag("Halfshaft_FRBolts", save.halfshaft_FRBolts);
-                            }));
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ExceptionManager.New(ex, false, "VERIFY_HALFSHAFT_FR");
-                }
-
-                try
-                {
-                    if (!IsSaveTagPresent("WiringBatteryMinusTightness"))
-                    {
-                        ModConsole.Log("[MOPR] Save Verification: WiringBatteryMinusTightness hasn't been found. Battery terminal minus tightness won't be checked...");
-                    }
-                    else
-                    {
-                        bool wiringBatteryMinusInstalled = ReadBoolean("battery_terminal_minus(xxxxx)Installed");
-                        float wiringBatteryMinusTightness = ReadFloat("WiringBatteryMinusTightness");
-                        if (wiringBatteryMinusInstalled && wiringBatteryMinusTightness != save.wiringBatteryMinusTightness)
-                        {
-                            saveBugs.Add(new SaveBugs(Loc.T("save.bug.battery_minus"), () =>
-                            {
-                                WriteSaveTag("WiringBatteryMinusTightness", save.wiringBatteryMinusTightness);
-                                WriteSaveTag("WiringBatteryMinusBolts", save.wiringBatteryMinusBolts);
-                            }));
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ExceptionManager.New(ex, false, "VERIFY_BATTERY_TERMINAL_MINUS");
-                }
-            }
-            else
-            {
-                ReleaseSave();
-            }
+            // MOP - REVIVAL 5.1 (fix, original MOP bug): the bolt "check" against MopSave.json is removed. At every load
+            // MOP wrote the rear bumper, both halfshafts and the battery minus terminal from the save into
+            // MopSave.json; it was deleted on a save through MOP. If it was still there at the next start (the game
+            // closed without saving through MOP, another save slot, a crash), the save was "fixed" back to those
+            // load-time values: the rear bumper silently, the others after asking. That undid what the player had
+            // done in the session (or wrote another slot's values), and after "Fix" the car would not start or its
+            // wheels did not turn (about 30 reports). Comparing with a save the game has not written since gives
+            // nothing to fix, so nothing is left of the check. A MopSave.json of an older version is deleted.
+            ReleaseSave();
 
             if (satsumaManaged)
             try
@@ -376,11 +281,10 @@ namespace MOP.Helpers
                 ExceptionManager.New(ex, false, "VERIFY_FUELLINE_TIGHTNESS");
             }
 
-            var dictionaryDb = ReadItemCounterToTransformDictionary();
-            if (dictionaryDb != null)
-            {
-                FixItemsSaveFile(dictionaryDb);
-            }
+            // MOP - REVIVAL 5.1 (fix, original MOP bug): the item counter "fix" is removed. It counted the
+            // "<item><n>Transform" tags in items.txt and offered to raise the game's item count to that number. But
+            // the game keeps the tags of items that were eaten, drunk or thrown away, so the count went up and the
+            // game spawned those items again at the next load (duplicate purchases at the store).
 
             if (saveBugs.Count > 0)
             {
@@ -402,58 +306,6 @@ namespace MOP.Helpers
             else
             {
                 ModConsole.Log("[MOPR] " + MoprColors.Success("Save check: no problems found :)"));
-            }
-        }
-
-        private static void FixItemsSaveFile(Dictionary<string, string> db)
-        {
-            foreach (KeyValuePair<string, string> entry in db)
-            {
-                try
-                {
-                    string key = entry.Key;
-                    // Sometimes the items are saved in "itemnamex" format, instead of "itemname".
-                    string xVariant = key.Split(new string[] { "ID" }, StringSplitOptions.None)[0] + "xID";
-                    bool useXVariant = false;
-                    if (!IsItemTagPresent(key))
-                    {
-                        key = xVariant;
-                        if (!IsItemTagPresent(key))
-                        {
-                            continue;
-                        }
-
-                        useXVariant = true;
-                    }
-                    string value = entry.Value;
-                    if (useXVariant)
-                    {
-                        value += "x";
-                    }
-
-                    int savedItemCount = ReadItemInt(key);
-                    int counter = 1;
-                    while (IsItemTagPresent($"{value}{counter}Transform"))
-                    {
-                        counter++;
-                    }
-
-                    if (counter > 0)
-                    {
-                        counter--;
-                    }
-
-                    if (savedItemCount < counter)
-                    {
-                        saveBugs.Add(new SaveBugs(Loc.F("save.bug.item_count", key, counter, savedItemCount), 
-                            () => WriteItemTag(key, counter)));
-                    }
-
-                }
-                catch (Exception ex)
-                {
-                    ExceptionManager.New(ex, false, $"VERIFY_ITEMS_COUNTER_{entry.Key}/{entry.Value}");
-                }
             }
         }
 
@@ -494,28 +346,9 @@ namespace MOP.Helpers
         /// <summary>MOP - REVIVAL: false when the "satsuma_ignore" rule hands the Satsuma to another mod.</summary>
         static bool IsSatsumaManaged => !RulesManager.Book.SatsumaExclude;
 
-        internal static void AddSaveFlag()
-        {
-            if (!IsSatsumaManaged) return;
-
-            if (IsSaveTagPresent("Bumper_RearTightness") && IsSaveTagPresent("Bumper_RearBolts"))
-            {
-                MopSaveFileData save = new MopSaveFileData
-                {
-                    version = MOP.ModVersion,
-                    rearBumperTightness = ReadFloat("Bumper_RearTightness"),
-                    rearBumperBolts = ReadStringList("Bumper_RearBolts"),
-                    halfshaft_FLTightness = ReadFloat("Halfshaft_FLTightness"),
-                    halfshaft_FLBolts = ReadStringList("Halfshaft_FLBolts"),
-                    halfshaft_FRTightness = ReadFloat("Halfshaft_FRTightness"),
-                    halfshaft_FRBolts = ReadStringList("Halfshaft_FRBolts"),
-                    wiringBatteryMinusTightness = ReadFloat("WiringBatteryMinusTightness"),
-                    wiringBatteryMinusBolts = ReadStringList("WiringBatteryMinusBolts")
-                };
-                WriteData(save);
-            }
-        }
-
+        /// <summary>
+        /// Deletes the MopSave.json that MOP 3.10 - 5.0 wrote at every load (see VerifySave). MOPR 5.1 writes none.
+        /// </summary>
         internal static void ReleaseSave()
         {
             try
@@ -593,35 +426,6 @@ namespace MOP.Helpers
             return true;
         }
 
-        public static string GetMopSavePath()
-        {
-            return mopSavePath;
-        }
-
-        static MopSaveFileData ReadData()
-        {
-            MopSaveFileData mopSaveData = null;
-            if (SaveFileExists)
-            {
-                StreamReader reader = new StreamReader(mopSavePath);
-                string json = reader.ReadToEnd();
-                reader.Close();
-
-                mopSaveData = JsonConvert.DeserializeObject<MopSaveFileData>(json);
-            }
-
-            return mopSaveData;
-        }
-
-        static void WriteData(MopSaveFileData data)
-        {
-            string json = JsonConvert.SerializeObject(data);
-
-            StreamWriter writer = new StreamWriter(mopSavePath);
-            writer.Write(json);
-            writer.Close();
-        }
-
         /// <summary>
         /// Returns true, if the save file is post permadeath.
         /// </summary>
@@ -656,10 +460,20 @@ namespace MOP.Helpers
             ModConsole.Log($"[MOPR] {((1d - percentageOfPartsBolted) * 100):0.00}% of Satsuma parts are installed, but not bolted.\n" +
                            $"{boltedCount}/{installedCount} parts are bolted and installed.");
 
-            if (percentageOfPartsBolted <= MSCEditorLikelihoodRatio)
-                return true;
-
-            return IsEngineStupidlyAssembled();
+            // MOP - REVIVAL 5.1 (fix, original MOP bug): "15% or fewer of the installed parts bolted" no longer counts
+            // as MSCEditor. A car the player is still assembling (or taking apart) looks exactly like that: players
+            // who never ran MSCEditor got the warning, and with it MOP skipped its "Satsuma loaded completely" check.
+            // Only a state the game itself can't produce is left: the engine block saved as bolted (and not in the
+            // hoist) while some of its bolts are not tightened at all.
+            try
+            {
+                return IsEngineStupidlyAssembled();
+            }
+            catch (Exception ex)
+            {
+                ModConsole.Log("[MOPR] Engine block check skipped: " + ex.Message);
+                return false;
+            }
         }
 
 
@@ -682,33 +496,6 @@ namespace MOP.Helpers
                     }
                 }
             }
-        }
-
-        private static Dictionary<string, string> ReadItemCounterToTransformDictionary()
-        {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            string resourceName = assembly.GetManifestResourceNames().SingleOrDefault(str => str.EndsWith("itemcounter_to_transform.csv"));
-
-            if (string.IsNullOrEmpty(resourceName))
-            {
-                return new Dictionary<string, string>();
-            }
-
-            Dictionary<string, string> keyValuePairs = new Dictionary<string, string>();
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    while (!reader.EndOfStream)
-                    {
-                        string line = reader.ReadLine();
-                        string[] arr = line.Split(',');
-                        keyValuePairs.Add(arr[0], arr[1]);
-                    }
-                }
-            }
-
-            return keyValuePairs;
         }
 
         private static void ShowReport()

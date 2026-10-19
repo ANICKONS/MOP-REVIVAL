@@ -366,6 +366,12 @@ namespace UnityEngine
         public Vector3 InverseTransformPoint(Vector3 position) { throw null; }
     }
 
+    // ----- Item toggle errors (5.1, Items/ItemBehaviour.cs): written to output_log.txt only. -----
+    public sealed partial class Debug
+    {
+        public static void Log(object message) { throw null; }
+    }
+
     // ----- Localization (5.1): first-start language detection. -----
     public partial class Application
     {

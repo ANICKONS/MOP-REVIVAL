@@ -33,6 +33,17 @@ namespace MOPR.TestBot
         void OnMenuLoad()
         {
             Folder = ModLoader.GetModSettingsFolder(this);
+
+            // A "reloadgame" step went back to the menu: MSCLoader destroyed the runner and set the mods up again.
+            if (BotRunner.HasResume)
+            {
+                if (BotRunner.Instance != null) Object.Destroy(BotRunner.Instance.gameObject);
+                GameObject resumed = new GameObject("MOPR_TestBot");
+                Object.DontDestroyOnLoad(resumed);
+                resumed.AddComponent<BotRunner>().Resume();
+                return;
+            }
+
             if (BotRunner.Instance != null) return; // persistent across scene loads
 
             string run = Path.Combine(Folder, "run.json");

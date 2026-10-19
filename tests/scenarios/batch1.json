@@ -1,0 +1,61 @@
+{
+  "Name": "batch1",
+  "SettleSeconds": 15,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Original MOP bugs, batch 1. Run with -ModConfig tests\\rules\\batch1; once with the build before the fixes (-MoprDll), once with the new one. A1 walkers (HUMANS/Randomizer), A2 FsmManager caches after a second load, A3 keepActive without a renderer, A9 combine, GifuPump rule (GIFU MESH stays on), data for B8 (kilju can trigger, food spoiling FSM)." },
+    { "Op": "mopstate", "Label": "load" },
+    { "Op": "log", "Text": "B8 spoiling: the real rate of an active food item at home (MOP compensates disabled items with elapsed * rate * 0.33). A5: MopSave.json written at load?" },
+    { "Op": "watch", "Label": "spoil", "Seconds": 120, "Interval": 10, "Probes": [
+      "milkCond=ITEMS/milk(itemx)|Use|Condition", "milkRate=ITEMS/milk(itemx)|Use|SpoilingRate", "milkFridge=ITEMS/milk(itemx)|Use|SpoilingRateFridge",
+      "milkAct=ITEMS/milk(itemx)|@active", "milkState=ITEMS/milk(itemx)|Use|@state", "milkDist=ITEMS/milk(itemx)|@player",
+      "sausCond=name:sausages(itemx)|Use|Condition", "sausRate=name:sausages(itemx)|Use|SpoilingRate", "sausAct=name:sausages(itemx)|@active",
+      "clock=MAP/SUN/Pivot/SUN|Clock|Hours", "minutes=MAP/SUN/Pivot/SUN|Clock|Minutes",
+      "mopSave=static|MOP.Helpers.SaveManager.SaveFileExists" ] },
+    { "Op": "watch", "Label": "home", "Seconds": 0, "Probes": [
+      "humans=HUMANS|@self", "rand=HUMANS/Randomizer|@self", "randAct=HUMANS/Randomizer|@active",
+      "cottage=COTTAGE|@self", "signs=TrafficSigns|@self", "signsRenderer=TrafficSigns|#MeshRenderer.enabled", "cottageRenderer=COTTAGE|#MeshRenderer.enabled",
+      "gifu=GIFU(750/450psi)|@self", "gifuDist=GIFU(750/450psi)|@player",
+      "meshParent=MOP_GIFU(750/450psi)/MESH|@parent", "meshParent2=GIFU(750/450psi)/MESH|@parent", "meshAct=GIFU(750/450psi)/MESH|@active",
+      "lod=name:MOP_Dumb-GIFU(750/450psi)|@self",
+      "farmJob=JOBS/Farm/Job|@active", "combineAvailable=static|MOP.FSM.FsmManager.IsCombineAvailable",
+      "hour=static|MOP.FSM.FsmManager.Hour" ] },
+    { "Op": "tree", "Label": "farm", "Path": "JOBS/Farm", "Max": 1 },
+    { "Op": "tree", "Label": "gifu", "Path": "GIFU(750/450psi)", "Max": 1 },
+    { "Op": "fsmcache", "Label": "first_home" },
+
+    { "Op": "log", "Text": "away from home, next to the GIFU: HUMANS on, the walkers should run (A1), the GIFU switches on and MESH goes back under it" },
+    { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [6.0, 1.0, 0.0] },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "watch", "Label": "town", "Seconds": 30, "Interval": 5, "Probes": [
+      "humans=HUMANS|@self", "rand=HUMANS/Randomizer|@self", "randAct=HUMANS/Randomizer|@active",
+      "kale=HUMANS/Randomizer/Walkers/Kale|@active", "kalePos=HUMANS/Randomizer/Walkers/Kale|@pos", "kaleDist=HUMANS/Randomizer/Walkers/Kale|@player",
+      "julli=HUMANS/Randomizer/Walkers/Julli|@active", "julliPos=HUMANS/Randomizer/Walkers/Julli|@pos",
+      "gifu=GIFU(750/450psi)|@self", "meshParent=GIFU(750/450psi)/MESH|@parent", "meshAct=GIFU(750/450psi)/MESH|@active",
+      "lod=name:MOP_Dumb-GIFU(750/450psi)|@self" ] },
+    { "Op": "fsmcache", "Label": "first_town" },
+
+    { "Op": "find", "Label": "food", "Text": "milk(itemx),sausages(itemx),macaron box(itemx),pizza(itemx),potato chips(itemx),juice(itemx),yeast(itemx),sugar(itemx),beer case(itemx),mosquito spray(itemx),coffee(itemx)", "Max": 60 },
+    { "Op": "dumpfsm", "Label": "food", "Text": "milk(itemx),sausages(itemx),macaron box(itemx),pizza(itemx),potato chips(itemx)", "Max": 3 },
+    { "Op": "dumpfsm", "Label": "cantrigger", "Text": "CanTrigger", "Recursive": true },
+    { "Op": "watch", "Label": "cantrigger", "Seconds": 0, "Probes": [
+      "pos=JOBS/HouseDrunk/BeerCampOld/BeerCamp/KiljuBuyer/CanTrigger|@pos",
+      "box=JOBS/HouseDrunk/BeerCampOld/BeerCamp/KiljuBuyer/CanTrigger|#BoxCollider.size",
+      "center=JOBS/HouseDrunk/BeerCampOld/BeerCamp/KiljuBuyer/CanTrigger|#BoxCollider.center",
+      "sphere=JOBS/HouseDrunk/BeerCampOld/BeerCamp/KiljuBuyer/CanTrigger|#SphereCollider.radius",
+      "scale=JOBS/HouseDrunk/BeerCampOld/BeerCamp/KiljuBuyer/CanTrigger|#Transform.lossyScale",
+      "children=JOBS/HouseDrunk/BeerCampOld/BeerCamp/KiljuBuyer/CanTrigger|#Transform.childCount" ] },
+    { "Op": "find", "Label": "cans", "Text": "kilju,empty plastic can,emptyca", "Max": 40 },
+
+    { "Op": "log", "Text": "A2: back to the menu without saving, load again: no FsmManager field may point into the first scene" },
+    { "Op": "reloadgame" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "fsmcache", "Label": "second" },
+    { "Op": "watch", "Label": "second", "Seconds": 0, "Probes": [
+      "hour=static|MOP.FSM.FsmManager.Hour", "clock=MAP/SUN/Pivot/SUN|Clock|Hours",
+      "combineAvailable=static|MOP.FSM.FsmManager.IsCombineAvailable", "gifu=GIFU(750/450psi)|@self" ] },
+    { "Op": "fsmcache", "Label": "second_after_reads" },
+    { "Op": "mopstate", "Label": "second" },
+    { "Op": "quit" }
+  ]
+}

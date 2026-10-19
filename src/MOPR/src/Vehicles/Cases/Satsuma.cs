@@ -303,9 +303,7 @@ namespace MOP.Vehicles.Cases
             // Apply hood fix.
             try
             {
-                GameFixes.Instance.HoodFix(transform.Find("Body/pivot_hood"),
-                                           transform.Find("MiscParts/trigger_battery"),
-                                           transform.Find("MiscParts/pivot_battery"));
+                GameFixes.Instance.HoodFix(transform.Find("Body/pivot_hood"));
             }
             catch (System.Exception ex)
             {

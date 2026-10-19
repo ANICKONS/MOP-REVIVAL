@@ -229,7 +229,7 @@ namespace MOP.Next.Engine
             return sb.ToString().TrimEnd();
         }
 
-        /// <summary>Console: mop engine [on|off|shadow|stats|reset|detail].</summary>
+        /// <summary>Console: mopr engine [on|off|shadow|stats|reset|detail].</summary>
         public static void Command(string[] args)
         {
             string sub = args.Length > 1 ? args[1].ToLowerInvariant() : "stats";

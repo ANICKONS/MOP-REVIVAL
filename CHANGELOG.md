@@ -11,7 +11,7 @@
   Measured with the in-game TestBot (interleaved A/B): about +10% FPS at the spawn and at home, about 60% less
   managed garbage. Setting: *PlayMaker engine optimizations* (on by default).
 - **Verify mode** for the engine optimizations: the original code runs anyway and every difference is
-  reported (`mop engine`). About 25 million checks, 0 differences.
+  reported (`mopr engine`). About 25 million checks, 0 differences.
 - **English and Russian interface** (`src/Localization/`). The language dropdown in the mod settings switches
   the whole page live; the first start follows the system language. Console messages and logs stay English.
 - **New loading screen** without an asset bundle: animated logo, the real loading step (waiting for mods →
@@ -34,7 +34,7 @@
   −0.43…−0.54 ms per frame at 6.5 m in front and at 8 m with the car behind the house wall (+5–8.5% FPS, five
   runs); at 3.5 m with physics on between 0 and −0.63 ms (the check costs 0.3–0.36 ms there). Screenshots merged
   vs original: the car is pixel-identical; hiding the hood while merged is drawn correctly in the very next
-  frame. Setting: *Merge the parked Satsuma* (on). Report: `mop render`.
+  frame. Setting: *Merge the parked Satsuma* (on). Report: `mopr render`.
 - **Experimental tier** (5.1, every option off by default, in its own settings section). Measured and, where
   possible, verified, but MOP cannot prove for every frame that the game behaves exactly as without them:
   - *Shared mouse ray* (`Next/Engine/SharedMouseRay.cs`). Every Satsuma part asks every frame whether the mouse
@@ -102,7 +102,7 @@
     files managing the same vehicle created it
     twice; "Delete unused rules" changed a list while iterating it; rule files are read as UTF-8 (a file
     without a BOM was read in the system code page).
-- The console command is **`mopr`** (the mod ID). `mop` still works as an alias.
+- The console command is **`mopr`** (the mod ID). The old `mop` is gone.
 - The mod icon of MOPR 4.0.x is back (the figure with the mop). The short description in MSCLoader's mod list
   follows the interface language, also while the list is open.
 
@@ -157,6 +157,57 @@
   LateUpdate, before any camera renders. Before the fix: 72 of 783 renderers on but never drawn after four
   door cycles (all four tyres among them); after it: 0, and with the merger switched off every renderer
   matches the baseline (state, mesh, material, visibility).
+
+- **Bugs of the original MOP 3.10.4** (collected from Nexus, Reddit and Steam reports, then confirmed in the code;
+  checked in game with the TestBot, `tests/scenarios/batch1.json`, against the build before these fixes):
+  - The walkers of the December 2023 game update (Kale, Julli, Kristian, Unto, Rauno, Alpo) never appeared.
+    Their spawner `HUMANS/Randomizer` sits at (0, 0, 0), so MOP only enabled it within 150 m of that point -
+    at home, where MOP switches all of `HUMANS` off. MOP leaves it alone now; each walker checks its own
+    distance to the player.
+  - A `keepActive` rule on an object without a renderer of its own (`COTTAGE`, `HUMANS`, ... - BetterMSC,
+    LoppeHouse and others have such rules) threw "Couldn't find the renderer", and every world object after it
+    in the same list was skipped (`WORLD_OBJECTS_1/2_INITIALIZAITON_FAIL`). There is nothing to hide on such an
+    object, so MOP leaves it alone; every world object (and every human) is now added in its own try, and a
+    rule-excluded object no longer breaks the list either.
+  - `FsmManager.ResetAll()` reset nothing (`GetFields()` without flags does not see private fields). After
+    quitting to the menu and loading again, MOP read the FSM variables of the destroyed scene: frozen old
+    values for the hood, the trailer, the Hayosiko key, the combine, the Suski phone call and the clock.
+  - The bucket lid came off and the kilju spilled on load: MOP switched the lid's `Removal` FSM off and on
+    again, and a re-enabled PlayMaker FSM restarts from its first state ("lid removed"). The lid's FSM is the
+    game's again (as in MOPR 4.0.3b).
+  - Save check: the bolt "check" against `MopSave.json` is removed. MOP wrote the rear bumper, halfshaft and
+    battery terminal bolts at every load and, if that file was still there at the next start (no save through
+    MOP, another save slot, a crash), "fixed" the save back to those load-time values - the rear bumper
+    silently. That undid the player's own work and left cars that would not start or drive.
+  - Save check: the item counter "fix" is removed. The game keeps the tags of eaten and thrown-away items, so
+    raising the count to the number of tags made the game spawn those items again.
+  - "MSCEditor has been used" no longer fires for a car that simply has few bolts tightened (15% or less);
+    with it MOP also skipped its "Satsuma loaded completely" check. Only the state the game can't produce
+    (engine block saved as bolted with untightened bolts) is reported, worded as what it is.
+  - Door handles of the house are set up one by one: a door without an FSM (the fridge of BetterMSC) stopped
+    the rest (`FRIDGE_DOORHANDLE_ERROR`). The garage doors and the sauna are checked the same way.
+  - The combine check (`JOBS/Farm/Job`) had no null check: while it could not be found, every MOP tick threw
+    (`VEHICLE_TOGGLE_ERROR_9`).
+  - Removed the "battery popping out" fix: its arguments were passed in swapped order, so it never ran; made
+    to run, its ASSEMBLE event resets the battery bolts.
+  - Item toggling no longer swallows every error silently (two `catch { }`): errors go to `output_log.txt`,
+    once per item and method. The two known causes (a loose battery, an empty package lying in the world) are
+    handled on purpose.
+  - Food that MOP had switched off spoiled three times slower than in the game. The game's "Use" FSM takes
+    `SpoilingRate` (`SpoilingRateFridge` in the fridge) off once per real second; MOP made up for the time off
+    with scaled level time "* 0.33". Measured (`tests/scenarios/spoil.json`): milk in the fridge loses 0.0010 per
+    second while active; after about 190 s switched off MOP took off 0.063 instead of about 0.19. Now real time,
+    factor 1. (Food handled by the FridgeAPI mod, e.g. sausages with its `SpoilableFood`, keeps its own value:
+    MOP's correction is overwritten there, and such food does not spoil while switched off - a FridgeAPI matter.)
+- Back in the main menu without a save through MOP (death, MOP's own scene restart), MOP stayed "active", and
+  during the next load `Hypervisor.Update` ran before MOP was set up: about 200 `NullReferenceException`s in
+  the log (seen with the TestBot's new `reloadgame` step, also in the build before these fixes).
+- **GifuPump rule**: only the truck's `MESH` stays on while MOP switches the parked GIFU off (`keepActiveIn`).
+  The old rule line was misread by MOP 3.10, which excluded the whole truck.
+
+- TestBot: `reloadgame` (back to the main menu without saving, then Continue; the run survives MSCLoader's reset
+  of all mods in the menu), `fsmcache` (MOP's cached FSM variables: live or left over from an earlier scene),
+  probes `@self` and `@parent`.
 
 ### Checked
 - **Gifu septic pump** (reported against MOPR 4.0.x): reproduced the job in game with the TestBot

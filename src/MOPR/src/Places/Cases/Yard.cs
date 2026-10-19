@@ -74,17 +74,15 @@ namespace MOP.Places
             RemoveComputerFromHome();
             FixGarageDoors();
 
-            try
+            // MOP - REVIVAL 5.1 (fix, original MOP bug; fixed in 4.0.1b, back with the 3.10 code): every door is
+            // checked on its own. A door handle without an FSM (the fridge of BetterMSC) threw for the whole loop
+            // (FRIDGE_DOORHANDLE_ERROR) and the doors after it kept resetting when MOP re-enabled the house.
+            foreach (Transform door in transform.GetComponentsInChildren<Transform>().Where(t => t.root == transform && t.gameObject.name.Contains("Door") && t.Find("Pivot") != null).ToArray())
             {
-                foreach (Transform door in transform.GetComponentsInChildren<Transform>().Where(t => t.root == transform && t.gameObject.name.Contains("Door") && t.Find("Pivot") != null).ToArray())
-                {
-                    if (door.Find("Pivot/Handle") != null)
-                        door.Find("Pivot/Handle").gameObject.GetComponent<PlayMakerFSM>().Fsm.RestartOnEnable = false;
-                }
-            }
-            catch (Exception ex)
-            {
-                ExceptionManager.New(ex, false, "FRIDGE_DOORHANDLE_ERROR");
+                Transform handle = door.Find("Pivot/Handle");
+                PlayMakerFSM handleFsm = handle != null ? handle.GetComponent<PlayMakerFSM>() : null;
+                if (handleFsm != null)
+                    handleFsm.Fsm.RestartOnEnable = false;
             }
 
             GameObjectBlackList.AddRange(blackList);
@@ -141,9 +139,19 @@ namespace MOP.Places
             GameObject garageDoors = GameObject.Find("GarageDoors");
             if (garageDoors)
             {
-                garageDoors.transform.Find("DoorLeft/Coll").GetComponent<PlayMakerFSM>().Fsm.RestartOnEnable = false;
-                garageDoors.transform.Find("DoorRight/Coll").GetComponent<PlayMakerFSM>().Fsm.RestartOnEnable = false;
+                // MOP - REVIVAL 5.1: each door checked on its own (a throw here stopped the whole YARD setup).
+                StopRestart(garageDoors.transform, "DoorLeft/Coll");
+                StopRestart(garageDoors.transform, "DoorRight/Coll");
             }
+        }
+
+        /// <summary>RestartOnEnable = false for the first FSM of root/path, if both exist.</summary>
+        static void StopRestart(Transform root, string path)
+        {
+            Transform t = root.Find(path);
+            PlayMakerFSM fsm = t != null ? t.GetComponent<PlayMakerFSM>() : null;
+            if (fsm != null)
+                fsm.Fsm.RestartOnEnable = false;
         }
 
         private static void RemoveComputerFromHome()
@@ -170,10 +178,10 @@ namespace MOP.Places
         {
             if (transform.Find("Building/SAUNA") != null)
             {
-                transform.Find("Building/SAUNA/Sauna/Kiuas/ButtonPower").GetComponent<PlayMakerFSM>().Fsm.RestartOnEnable = false;
-                transform.Find("Building/SAUNA/Sauna/Kiuas/ButtonTime").GetComponent<PlayMakerFSM>().Fsm.RestartOnEnable = false;
-                transform.Find("Building/SAUNA/Sauna/Kiuas/StoveTrigger").GetComponent<PlayMakerFSM>().Fsm.RestartOnEnable = false;
-                transform.Find("Building/SAUNA/Sauna/Simulation").GetComponent<PlayMakerFSM>().Fsm.RestartOnEnable = false;
+                StopRestart(transform, "Building/SAUNA/Sauna/Kiuas/ButtonPower");
+                StopRestart(transform, "Building/SAUNA/Sauna/Kiuas/ButtonTime");
+                StopRestart(transform, "Building/SAUNA/Sauna/Kiuas/StoveTrigger");
+                StopRestart(transform, "Building/SAUNA/Sauna/Simulation");
             }
         }
 
@@ -202,7 +210,8 @@ namespace MOP.Places
 
             if (sauna != null)
             {
-                if (saunaStoveHeat.Value > StoveOnSimulationPoint)
+                // MOP - REVIVAL 5.1: saunaStoveHeat stays null if the sauna has no simulation (a modded house).
+                if (saunaStoveHeat != null && saunaStoveHeat.Value > StoveOnSimulationPoint)
                 {
                     sauna.SetActive(true);
                     saumaSimulation.SetActive(true);
@@ -210,7 +219,8 @@ namespace MOP.Places
                 else
                 {
                     sauna.SetActive(enabled);
-                    saumaSimulation.SetActive(enabled);
+                    if (saumaSimulation != null)
+                        saumaSimulation.SetActive(enabled);
                 }
             }
         }

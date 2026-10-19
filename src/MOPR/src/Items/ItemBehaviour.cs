@@ -99,8 +99,6 @@ namespace MOP.Items
 
         bool isObjectOnGrill;
 
-        PlayMakerFSM removalFSM;
-
         private EventSounds eventSound;
 
         private LodObject dummy;
@@ -130,8 +128,6 @@ namespace MOP.Items
             renderer = GetComponent<Renderer>();
 
             position = transform.position;
-
-            removalFSM = gameObject.GetPlayMaker("Removal");
 
             // Fixes a bug which would prevent player from putting on the helmet, after taking it off.
             if (this.gameObject.name == "helmet(itemx)")
@@ -169,7 +165,7 @@ namespace MOP.Items
                 }
             }
             
-            timeDisabled = Time.timeSinceLevelLoad;
+            timeDisabled = Time.realtimeSinceStartup;
 
             if (!gameObject.name.EqualsAny("empty bottle(Clone)", "empty pack(Clone)", "empty cup(Clone)", "coffee cup(Clone)", "empty glass(Clone)"))
             {
@@ -227,9 +223,13 @@ namespace MOP.Items
             {
                 float currentSpoil = condition.Value;
                 float currentSpoilRate = Yard.Instance.IsItemInFridge(this.gameObject) ? spoilRateFridge.Value : spoilRate.Value;
-                // Apparently MSC uses some weird way of calculating time that has barely anything to do with Time.deltaTime...
-                // Making the value 1/3 of the currentSpoil somehow makes it closer to what it should've been
-                currentSpoil -= (Time.timeSinceLevelLoad - timeDisabled) * currentSpoilRate * 0.33f; 
+                // MOP - REVIVAL 5.1 (fix, original MOP bug): the game's "Use" FSM subtracts SpoilingRate (SpoilingRateFridge
+                // in the fridge) once per second of real time (Wait 1 s, realTime). MOP 3.10 used scaled level time and
+                // "* 0.33" ("MSC uses some weird way of calculating time"), so food MOP had switched off spoiled three
+                // times slower than in the game. Measured with the TestBot (tests/scenarios/spoil.json): milk in the
+                // fridge loses 0.0010 per second while active; switched off for about 190 s, MOP took off 0.063
+                // instead of about 0.19.
+                currentSpoil -= (Time.realtimeSinceStartup - timeDisabled) * currentSpoilRate;
                 condition.Value = currentSpoil;
             }
         }
@@ -243,7 +243,7 @@ namespace MOP.Items
 
             if (spoilRate != null)
             {
-                timeDisabled = Time.timeSinceLevelLoad;
+                timeDisabled = Time.realtimeSinceStartup;
             }
         }
 
@@ -308,7 +308,11 @@ namespace MOP.Items
                     // Fix for batteries popping out of the car.
                     case "battery(Clone)":
                         // Don't toggle if battery is left on charger.
-                        if (gameObject.transform.parent.gameObject.name == "pivot_battery" || (!enabled && batteryOnCharged.Value))
+                        // MOP - REVIVAL 5.1: a loose battery (no parent) and a missing OnCharged variable threw here
+                        // and the empty catch below swallowed it, so MOP never switched such a battery. Same result,
+                        // now on purpose and without the exception.
+                        if (transform.parent == null || transform.parent.gameObject.name == "pivot_battery" ||
+                            (!enabled && (batteryOnCharged == null || batteryOnCharged.Value)))
                             return;
                         break;
                     // Don't disable the helmet, if player has put it on.
@@ -339,11 +343,10 @@ namespace MOP.Items
                         }
                         break;
                     case "bucket lid(itemx)":
-                        if (!enabled)
-                        {
-                            removalFSM.enabled = false;
-                        }
-
+                        // MOP - REVIVAL 5.1 (fix, original MOP bug; found in MOPR 4.0.3b): MOP no longer switches the
+                        // lid's "Removal" FSM off here and on again in ToggleChangeFix. A PlayMaker FSM restarts from
+                        // its first state when it is enabled, which replayed "lid removed": the lid came off and the
+                        // kilju spilled on load. The FSM is the game's again. A lid on its bucket stays on, as before.
                         if (transform.parent != null && transform.parent.gameObject.name == "PivotLid") return;
                         break;
                 }
@@ -376,7 +379,21 @@ namespace MOP.Items
                     StartCoroutine(ToggleEventSound(true));
                 }
             }
-            catch { }
+            catch (System.Exception ex)
+            {
+                LogToggleError("ToggleActive", ex);
+            }
+        }
+
+        // MOP - REVIVAL 5.1: the two toggle methods ended in "catch { }", which hid every failure. Still never fatal,
+        // but now written to output_log.txt, once per method, item name and exception type.
+        static readonly HashSet<string> toggleErrors = new HashSet<string>();
+
+        void LogToggleError(string method, System.Exception ex)
+        {
+            string key = method + "|" + gameObject.name + "|" + ex.GetType().Name;
+            if (!toggleErrors.Add(key)) return;
+            Debug.Log($"[MOPR] {method} failed for {gameObject.Path()}: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
         }
 
         void TogglePhysicsOnly(bool enabled)
@@ -389,7 +406,10 @@ namespace MOP.Items
                         transform.position = position;
                 }
 
-                if (MopMenu.DisableEmptyItems.GetValue() && this.gameObject.name == "empty(itemx)" && this.gameObject.transform.parent.gameObject.name != "ItemPivot")
+                // MOP - REVIVAL 5.1: an empty package lying in the world (no parent) threw here, i.e. nothing was done
+                // at all. Not in the player's hand (ItemPivot) now means hidden, as in ToggleActive.
+                if (MopMenu.DisableEmptyItems.GetValue() && this.gameObject.name == "empty(itemx)" &&
+                    (transform.parent == null || transform.parent.gameObject.name != "ItemPivot"))
                 {
                     enabled = !MopSettings.IsModActive;
                 }
@@ -415,7 +435,8 @@ namespace MOP.Items
                 }
 
                 // Fix for batteries popping out of the car.
-                if (this.gameObject.name == "battery(Clone)" && this.gameObject.transform.parent.gameObject.name == "pivot_battery")
+                // MOP - REVIVAL 5.1: a loose battery threw here (swallowed); it is left alone on purpose now.
+                if (this.gameObject.name == "battery(Clone)" && (transform.parent == null || transform.parent.gameObject.name == "pivot_battery"))
                 {
                     return;
                 }
@@ -443,7 +464,7 @@ namespace MOP.Items
                         return;
                 }
 
-                if (enabled && this.gameObject.name == "battery(Clone)" && !batteryOnCharged.Value)
+                if (enabled && this.gameObject.name == "battery(Clone)" && batteryOnCharged != null && !batteryOnCharged.Value)
                 {
                     Toggle = ToggleActive;
                 }
@@ -476,7 +497,10 @@ namespace MOP.Items
                 }
 
             }
-            catch { }
+            catch (System.Exception ex)
+            {
+                LogToggleError("TogglePhysicsOnly", ex);
+            }
         }
 
         void FsmFixes()
@@ -678,17 +702,8 @@ namespace MOP.Items
         /// </summary>
         internal void ToggleChangeFix()
         {
-            // Fixes bucket lid detaching itself while player's away
-            // MOP - REVIVAL: the parent check (no allocation) runs first; GameObject.name allocates a string and
-            // this runs for every item on every MOP tick. Same condition, evaluated in a cheaper order.
-            if (transform.parent != null && gameObject.name == "bucket lid(itemx)")
-            {
-                if (transform.parent.gameObject.name == "PivotLid")
-                {
-                    removalFSM.enabled = true;
-                    transform.localEulerAngles = Vector3.zero;
-                }
-            }
+            // MOP - REVIVAL 5.1: the bucket lid fix of MOP 3.10 (Removal FSM on again, rotation zeroed, every tick
+            // while the lid sat on its bucket) is gone, see the "bucket lid(itemx)" case in ToggleActive.
 
             if (Toggle != ToggleActive) return;
 

@@ -75,7 +75,6 @@
     <EmbeddedResource Include="Resources\loadScreen1.png"><LogicalName>MOPR.Resources.loadScreen1.png</LogicalName></EmbeddedResource>
     <EmbeddedResource Include="Resources\loadScreen2.png"><LogicalName>MOPR.Resources.loadScreen2.png</LogicalName></EmbeddedResource>
     <EmbeddedResource Include="Resources\changelog.txt"><LogicalName>MOPR.Resources.changelog.txt</LogicalName></EmbeddedResource>
-    <EmbeddedResource Include="Resources\itemcounter_to_transform.csv"><LogicalName>MOPR.Resources.itemcounter_to_transform.csv</LogicalName></EmbeddedResource>
     <!-- Built-in rules: Rules\<ModID>.json -> MOPR.Rules.<ModID>.json (checked by scripts\rules-check.ps1). -->
     <EmbeddedResource Include="Rules\*.json"><LogicalName>MOPR.Rules.%(Filename)%(Extension)</LogicalName></EmbeddedResource>
   </ItemGroup>
