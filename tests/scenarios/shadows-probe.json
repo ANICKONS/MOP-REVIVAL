@@ -1,0 +1,27 @@
+{
+  "Name": "shadows-probe",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Shadow 'staircase swimming'. The camera turns in 0.05 degree steps (the picture of every step is mapped back onto the previous one, so only shadow that moved over the geometry counts), and the sun takes the game's own step (0.4 degrees every 5 s)." },
+    { "Op": "shadowinfo", "Label": "load" },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.5, 20.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "movecar", "Target": "SATSUMA(557kg, 248)", "Pos": [0.0, 0.3, 13.0] },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-5.0, 1.7, 3.0], "Target": "SATSUMA(557kg, 248)", "Pitch": 15 },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "shadowsweep", "Label": "yaw", "Text": "yaw", "Probes": [ "game:", "close: projection=close", "dist100: distance=100", "split: split4=0.04,0.12,0.4" ] },
+    { "Op": "shadowsweep", "Label": "yaw_big", "Text": "yaw", "Seconds": 1.0, "Max": 20, "Probes": [ "game:", "close: projection=close" ] },
+    { "Op": "shadowsweep", "Label": "pitch", "Text": "pitch", "Probes": [ "game:", "close: projection=close" ] },
+    { "Op": "shadowsweep", "Label": "sunstep", "Text": "sun", "Seconds": 0.4, "Max": 4, "Probes": [ "game:", "dist100: distance=100", "dist60: distance=60", "split: split4=0.04,0.12,0.4", "cascades2: cascades=2" ] },
+
+    { "Op": "log", "Text": "--- a low view along the car's shadow, the edges at a grazing angle ---" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 0.9, -4.0], "Target": "SATSUMA(557kg, 248)", "Pitch": 10 },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "shadowsweep", "Label": "low_yaw_big", "Text": "yaw", "Seconds": 1.0, "Max": 20, "Probes": [ "game:", "close: projection=close" ] },
+    { "Op": "shadowsweep", "Label": "low_sunstep", "Text": "sun", "Seconds": 0.4, "Max": 4, "Probes": [ "game:", "dist100: distance=100", "dist60: distance=60", "split: split4=0.04,0.12,0.4" ] },
+    { "Op": "quit" }
+  ]
+}

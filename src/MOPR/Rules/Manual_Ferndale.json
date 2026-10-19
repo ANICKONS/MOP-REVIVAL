@@ -1,0 +1,7 @@
+// MOPR rules for the "Manual_Ferndale" mod.
+{
+  "mod": "Manual_Ferndale",
+  "exclude": [
+    "FERNDALE(1630kg)"
+  ]
+}

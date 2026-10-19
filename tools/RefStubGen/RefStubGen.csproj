@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    RefStubGen: generates compile-only reference stubs (UnityEngine, PlayMaker, Assembly-CSharp, ...)
+    from the metadata of already compiled, known-good binaries (original MOP.dll, MSCLoader.dll).
+    Stubs are used ONLY when the real game DLLs are not available (CI / machines without the game).
+    Release builds must always be compiled against the real game assemblies.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>12</LangVersion>
+  </PropertyGroup>
+
+</Project>

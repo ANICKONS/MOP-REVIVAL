@@ -1,0 +1,5 @@
+// MOPR rules for the "BottleRecycling" mod.
+{
+  "mod": "BottleRecycling",
+  "keepEmptyBottles": true
+}

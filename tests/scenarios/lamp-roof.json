@@ -1,0 +1,21 @@
+{
+  "Name": "lamp-roof",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Satsuma interior lamp seen through the roof (vanilla, merger off): which renderer draws it, and how far it sticks out." },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "renderMergeVehicles", "Value": "false" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.5, 20.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "movecar", "Target": "SATSUMA(557kg, 248)", "Pos": [0.0, 0.3, 13.0] },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-4.5, 1.6, 0.5], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "camshot", "Label": "who", "Text": "who", "Seconds": 0.3, "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Pos": [-0.35, 0.3, 0.1], "Max": 30 },
+    { "Op": "camshot", "Label": "who_front", "Text": "who", "Seconds": 0.3, "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Pos": [0.0, 0.35, 0.5], "Max": 30 },
+    { "Op": "meshclip", "Label": "cowl", "Path": "SATSUMA(557kg, 248)/Body/cowl_parts", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Light/light", "Seconds": 0.08 },
+    { "Op": "meshclip", "Label": "masse", "Path": "SATSUMA(557kg, 248)/Body/car body masse(xxxxx)", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Light/light", "Seconds": 0.08 },
+    { "Op": "rendstate", "Label": "after", "Path": "SATSUMA(557kg, 248)/Body" },
+    { "Op": "quit" }
+  ]
+}

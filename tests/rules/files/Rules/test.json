@@ -1,0 +1,7 @@
+// test file
+{
+  "keepActive": [ "YARD TV" ],
+  "keepActiveIn": { "YARD": [ "Hatch" ] },
+  "keepactiv": [ "typo" ],
+  "manage": { "item": [ "x" ] }
+}

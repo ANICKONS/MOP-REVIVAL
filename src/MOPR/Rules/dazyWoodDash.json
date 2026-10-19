@@ -1,0 +1,5 @@
+// MOPR rules for the "dazyWoodDash" mod.
+{
+  "mod": "dazyWoodDash",
+  "satsuma": "keepRenderers"
+}

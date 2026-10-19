@@ -1,0 +1,9 @@
+// MOPR rules for the "Roofless" mod.
+{
+  "mod": "Roofless",
+  "keepActiveIn": {
+    "SATSUMA(557kg, 248)": [
+      "InteriorLight"
+    ]
+  }
+}

@@ -1,0 +1,47 @@
+// MOPR rules for the "PsychovanzRentApartment" mod.
+{
+  "mod": "PsychovanzRentApartment",
+  "exclude": [
+    "COMPUTER",
+    "tableHall(Clone)"
+  ],
+  "keepActive": [
+    "tv remote control(itemx)"
+  ],
+  "keepActiveIn": {
+    "YARD": [
+      "ElectricityBills",
+      "MurdererSpawn",
+      "PerajarviMap",
+      "Rally",
+      "Handle",
+      "UseHandle",
+      "TV",
+      "Lens",
+      "Hatch",
+      "Use",
+      "TVScreen",
+      "SmokeHomeTV",
+      "Name"
+    ]
+  },
+  "sectors": [
+    {
+      "position": [ -1285.5, 0.43, 1078.3 ],
+      "size": [ 7, 1, 8 ],
+      "rotation": [ 0, 32, 0 ],
+      "keepVisible": [
+        "PERAJARVI",
+        "TRACKFIELD",
+        "SOCCER",
+        "LakeNice",
+        "LakeSimple",
+        "TREES_MEDIUM3",
+        "TREES_SMALL1",
+        "LAKE_VEGETATION",
+        "Buildings",
+        "ELEC_POLES_COLL"
+      ]
+    }
+  ]
+}

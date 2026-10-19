@@ -1,0 +1,10 @@
+{
+  "Name": "rules-none",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Rules baseline: only the rules of installed mods (none here). What MOP manages is dumped, to show that the rules A/B dump reacts to rules." },
+    { "Op": "mopstate", "Label": "load" },
+    { "Op": "quit" }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "Name": "humans-probe",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "What is under HUMANS (MOP manages HUMANS/Randomizer by distance from its own position) and what its FSMs do; is it active at home." },
+    { "Op": "tree", "Label": "humans", "Path": "HUMANS", "Max": 2 },
+    { "Op": "dumpfsm", "Label": "randomizer", "Path": "HUMANS/Randomizer", "Recursive": true },
+    { "Op": "watch", "Label": "home", "Seconds": 0, "Probes": [ "humans=HUMANS|@active", "rand=HUMANS/Randomizer|@active", "randPos=HUMANS/Randomizer|@pos", "randDist=HUMANS/Randomizer|@player" ] },
+    { "Op": "quit" }
+  ]
+}

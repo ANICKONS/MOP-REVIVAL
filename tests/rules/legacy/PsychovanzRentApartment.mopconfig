@@ -1,0 +1,19 @@
+min_ver:2.10
+ignore:YARD ElectricityBills
+ignore:YARD MurdererSpawn
+ignore:YARD PerajarviMap
+ignore:YARD Rally
+ignore:YARD Handle
+ignore:YARD UseHandle
+ignore:YARD MurdererSpawn
+ignore:YARD TV
+ignore:YARD Lens
+ignore:YARD Hatch
+ignore:YARD Use
+ignore:YARD TVScreen
+ignore:YARD SmokeHomeTV
+ignore:YARD Name
+ignore:tv%20remote%20control(itemx)
+ignore:COMPUTER fullignore
+ignore:tableHall(Clone) fullignore
+sector: -1285.5,0.43,1078.3 7,1,8 0,32,0 PERAJARVI TRACKFIELD SOCCER LakeNice LakeSimple TREES_MEDIUM3 TREES_SMALL1 LAKE_VEGETATION Buildings ELEC_POLES_COLL

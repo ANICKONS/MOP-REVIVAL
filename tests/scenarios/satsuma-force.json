@@ -1,0 +1,25 @@
+{
+  "Name": "satsuma-force",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Does MOP's per-frame Satsuma.ForceRotation (re-writes the parked car's transform every frame) cost frame time? Interleaved A/B, looking away from the car." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [15.0, 3.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "watch", "Label": "state15", "Seconds": 0, "Probes": [ "dist=SATSUMA(557kg, 248)|@player", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic", "cd=SATSUMA(557kg, 248)|#CarDynamics.enabled" ] },
+    { "Op": "abtoggle", "Label": "15m-away-forcerotation", "Var": "skipmethod", "Path": "MOP.Vehicles.Cases.Satsuma:ForceRotation", "Seconds": 30 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.5, -9.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "abtoggle", "Label": "9m-look-forcerotation", "Var": "skipmethod", "Path": "MOP.Vehicles.Cases.Satsuma:ForceRotation", "Seconds": 24 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [40.0, 4.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "abtoggle", "Label": "40m-away-forcerotation", "Var": "skipmethod", "Path": "MOP.Vehicles.Cases.Satsuma:ForceRotation", "Seconds": 24 },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.5, -9.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "setmember", "Path": "SATSUMA(557kg, 248)", "Var": "Transform.hasChanged", "Value": "false" },
+    { "Op": "watch", "Label": "root_changed", "Seconds": 2, "Interval": 0.5, "Probes": [ "changed=SATSUMA(557kg, 248)|#Transform.hasChanged", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic" ] },
+    { "Op": "actiontypes", "Label": "satsuma", "Path": "SATSUMA(557kg, 248)" },
+    { "Op": "quit" }
+  ]
+}

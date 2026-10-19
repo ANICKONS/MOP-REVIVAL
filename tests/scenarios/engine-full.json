@@ -1,0 +1,32 @@
+{
+  "Name": "engine-full",
+  "SettleSeconds": 20,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Engine Lab full check: shadow verification of every patch, interleaved A/B, allocation profile, GC frequency" },
+
+    { "Op": "engine", "Mode": "shadow", "Detail": true },
+    { "Op": "wait", "Seconds": 25 },
+    { "Op": "enginestats", "Label": "shadow-spawn" },
+    { "Op": "ab", "Label": "spawn", "A": "off", "B": "on", "Seconds": 40, "Block": 1 },
+    { "Op": "engine", "Mode": "on" },
+    { "Op": "profile", "Label": "spawn-on", "Seconds": 12, "Detail": true, "Alloc": true },
+
+    { "Op": "teleport", "Pos": [ -7.0, 0.5, 10.0 ], "Yaw": 0 },
+    { "Op": "engine", "Mode": "off" },
+    { "Op": "wait", "Seconds": 20 },
+    { "Op": "engine", "Mode": "shadow", "Detail": true },
+    { "Op": "wait", "Seconds": 20 },
+    { "Op": "enginestats", "Label": "shadow-home" },
+    { "Op": "ab", "Label": "home", "A": "off", "B": "on", "Seconds": 40, "Block": 1 },
+    { "Op": "engine", "Mode": "on" },
+    { "Op": "profile", "Label": "home-on", "Seconds": 12, "Detail": true, "Alloc": true },
+
+    { "Op": "engine", "Mode": "on" },
+    { "Op": "measure", "Label": "gc-on", "Seconds": 60 },
+    { "Op": "engine", "Mode": "off" },
+    { "Op": "measure", "Label": "gc-off", "Seconds": 60 },
+
+    { "Op": "quit" }
+  ]
+}

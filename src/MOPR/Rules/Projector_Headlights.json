@@ -1,0 +1,8 @@
+// MOPR rules for the "Projector_Headlights" mod.
+{
+  "mod": "Projector_Headlights",
+  "keepActive": [
+    "SATSUMA(557kg, 248)"
+  ],
+  "satsuma": "keepRenderers"
+}

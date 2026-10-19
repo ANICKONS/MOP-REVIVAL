@@ -1,0 +1,18 @@
+// MOPR rules for the "LoppeHouse" mod.
+{
+  "mod": "LoppeHouse",
+  "keepActive": [
+    "COTTAGE"
+  ],
+  "keepActiveIn": {
+    "YARD": [
+      "PerajarviMap",
+      "Handle",
+      "UseHandle",
+      "Hatch",
+      "Name",
+      "Use",
+      "MurdererSpawn"
+    ]
+  }
+}

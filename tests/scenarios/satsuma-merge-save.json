@@ -1,0 +1,31 @@
+{
+  "Name": "satsuma-merge-save",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "MOPR mesh merger and saving: merged car, then MOP's PreSave. Every original renderer must be back on and the merged meshes gone before the game writes the save." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.5, 6.5], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "watch", "Label": "before_save", "Seconds": 0, "Probes": [
+      "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged",
+      "hood=SATSUMA(557kg, 248)/Body/pivot_hood/hood(Clone)|#MeshRenderer.enabled",
+      "merged0=name:MOP_Merged_Satsuma_0|@active",
+      "report=static|MOP.Next.VehicleMeshMerge.Report" ] },
+    { "Op": "call", "Text": "MOP.Hypervisor:Instance.PreSaveGame" },
+    { "Op": "watch", "Label": "after_presave", "Seconds": 0, "Probes": [
+      "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged",
+      "hood=SATSUMA(557kg, 248)/Body/pivot_hood/hood(Clone)|#MeshRenderer.enabled",
+      "report=static|MOP.Next.VehicleMeshMerge.Report" ] },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "watch", "Label": "after_presave_1s", "Seconds": 0, "Probes": [
+      "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged",
+      "hood=SATSUMA(557kg, 248)/Body/pivot_hood/hood(Clone)|#MeshRenderer.enabled",
+      "merged0=name:MOP_Merged_Satsuma_0|@active" ] },
+    { "Op": "screenshot", "Label": "after_presave" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "watch", "Label": "later", "Seconds": 0, "Probes": [
+      "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged",
+      "report=static|MOP.Next.VehicleMeshMerge.Report" ] },
+    { "Op": "quit" }
+  ]
+}

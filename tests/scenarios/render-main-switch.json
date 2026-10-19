@@ -1,0 +1,45 @@
+{
+  "Name": "render-main-switch",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Render main switch in game: off must unmerge the Satsuma and bring every renderer back exactly as with the section off from the start; on again must merge again." },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "renderOptimizer", "Value": "false" },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.5, 20.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "movecar", "Target": "SATSUMA(557kg, 248)", "Pos": [0.0, 0.3, 13.0] },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-4.5, 1.6, 0.5], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "watch", "Label": "base", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged", "merge=static|MOP.Next.VehicleMeshMerge.Report" ] },
+    { "Op": "rendstate", "Label": "base", "Path": "SATSUMA(557kg, 248)" },
+    { "Op": "screenshot", "Label": "base" },
+
+    { "Op": "log", "Text": "--- main switch on: the merger may work ---" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "renderOptimizer", "Value": "true" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "watch", "Label": "on1", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged", "merge=static|MOP.Next.VehicleMeshMerge.Report" ] },
+    { "Op": "screenshot", "Label": "on1" },
+
+    { "Op": "log", "Text": "--- main switch off: unmerged, renderers as in base ---" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "renderOptimizer", "Value": "false" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "watch", "Label": "off", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged", "merge=static|MOP.Next.VehicleMeshMerge.Report" ] },
+    { "Op": "rendstate", "Label": "off", "Path": "SATSUMA(557kg, 248)" },
+    { "Op": "screenshot", "Label": "off" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "watch", "Label": "off_later", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged" ] },
+    { "Op": "rendstate", "Label": "off_later", "Path": "SATSUMA(557kg, 248)" },
+
+    { "Op": "log", "Text": "--- main switch on again ---" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "renderOptimizer", "Value": "true" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "watch", "Label": "on2", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged", "merge=static|MOP.Next.VehicleMeshMerge.Report" ] },
+    { "Op": "screenshot", "Label": "on2" },
+
+    { "Op": "rendcompare", "A": "base", "B": "off" },
+    { "Op": "rendcompare", "A": "base", "B": "off_later" },
+    { "Op": "quit" }
+  ]
+}

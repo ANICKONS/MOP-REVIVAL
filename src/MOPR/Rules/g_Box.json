@@ -1,0 +1,10 @@
+// MOPR rules for the "g_Box" mod.
+{
+  "mod": "g_Box",
+  "exclude": [
+    "box(itemx)"
+  ],
+  "keepActive": [
+    "box(Clone)"
+  ]
+}

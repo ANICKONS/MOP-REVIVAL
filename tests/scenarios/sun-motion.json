@@ -1,0 +1,13 @@
+{
+  "Name": "sun-motion",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "How the game moves the sun: the SUN light's world rotation (quaternion, 6 decimals) every 0.1 s for 3 s and every second for 20 s, and the FSMs on the sun objects." },
+    { "Op": "watch", "Label": "sun_fast", "Seconds": 3, "Interval": 0.1, "Probes": [ "sun=MAP/SUN/Pivot/SUN|#Transform.rotation", "pivot=MAP/SUN/Pivot|#Transform.rotation" ] },
+    { "Op": "watch", "Label": "sun_slow", "Seconds": 20, "Interval": 1.0, "Probes": [ "sun=MAP/SUN/Pivot/SUN|#Transform.rotation", "pivot=MAP/SUN/Pivot|#Transform.rotation" ] },
+    { "Op": "tree", "Label": "sun", "Path": "MAP/SUN", "Max": 3 },
+    { "Op": "dumpfsm", "Label": "sun", "Path": "MAP/SUN", "Recursive": true },
+    { "Op": "quit" }
+  ]
+}

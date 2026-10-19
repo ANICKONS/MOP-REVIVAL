@@ -1,0 +1,112 @@
+{
+  "Name": "gifu-pump",
+  "SettleSeconds": 8,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Gifu septic pump repro: engine on, hydraulic pump on, hose end in the HouseShit2 well trigger. Player near (3 m) vs far (9 m, MOP freezes the truck physics) vs 40 m; engine lab off at 9 m. The shrunken trigger follows the falling shit level, so each phase pumps for about 11 s (0.15 level units at idle) until the hose end leaves it; the trigger is re-aligned before every phase." },
+
+    { "Op": "watch", "Label": "initial", "Seconds": 0, "Probes": [
+      "gifuPos=GIFU(750/450psi)|@pos", "dist=GIFU(750/450psi)|@player", "waste=GIFU(750/450psi)/ShitTank|Waste|Waste",
+      "level=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|Level|ShitLevel",
+      "levelState=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|Level|@state",
+      "starter=GIFU(750/450psi)/Simulation/Starter|Starter|@state", "temp=GIFU(750/450psi)/Simulation/Cooling|Cooling|EngineTemp" ] },
+
+    { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [3.0, 1.0, 0.0] },
+    { "Op": "wait", "Seconds": 2 },
+
+    { "Op": "fsmset", "Path": "GIFU(750/450psi)/ShitTank", "Fsm": "Waste", "Var": "Waste", "Value": "1000" },
+    { "Op": "fsmset", "Path": "JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger", "Fsm": "Level", "Var": "ShitLevel", "Value": "3" },
+    { "Op": "activate", "Path": "GIFU(750/450psi)/LOD/ShitTank/shit_tank_hoses", "Active": false },
+    { "Op": "activate", "Path": "GIFU(750/450psi)/HOSE", "Active": true },
+    { "Op": "wait", "Seconds": 3 },
+
+    { "Op": "log", "Text": "engine start: ACC on, wait for the glow plugs, then crank" },
+    { "Op": "fsmset", "Path": "GIFU(750/450psi)/Simulation/Starter", "Fsm": "Starter", "Var": "ACC", "Value": "true" },
+    { "Op": "watch", "Label": "glow", "Seconds": 22, "Interval": 2, "Probes": [
+      "starter=GIFU(750/450psi)/Simulation/Starter|Starter|@state", "plug=GIFU(750/450psi)/Simulation/Starter|Starter|PlugHeat" ] },
+    { "Op": "fsmset", "Path": "GIFU(750/450psi)/Simulation/Starter", "Fsm": "Starter", "Var": "Starting", "Value": "true" },
+    { "Op": "watch", "Label": "crank", "Seconds": 6, "Interval": 0.5, "Probes": [
+      "starter=GIFU(750/450psi)/Simulation/Starter|Starter|@state", "rpm=GIFU(750/450psi)|#Drivetrain.rpm",
+      "dtOn=GIFU(750/450psi)|#Drivetrain.enabled" ] },
+    { "Op": "fsmset", "Path": "GIFU(750/450psi)/Simulation/Starter", "Fsm": "Starter", "Var": "Starting", "Value": "false" },
+    { "Op": "fsmset", "Path": "GIFU(750/450psi)/Dashboard/Knobs/Hydraulics", "Fsm": "Use", "Var": "On", "Value": "true" },
+    { "Op": "wait", "Seconds": 2 },
+
+    { "Op": "watch", "Label": "trigger_shape", "Seconds": 0, "Probes": [ "size=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|#BoxCollider.size", "center=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|#BoxCollider.center", "scale=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|#Transform.lossyScale" ] },
+    { "Op": "setmember", "Path": "JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger", "Var": "BoxCollider.center", "Value": "0,0,0" },
+    { "Op": "setmember", "Path": "JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger", "Var": "Transform.localScale", "Value": "1,1,1" },
+    { "Op": "setmember", "Path": "JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger", "Var": "BoxCollider.size", "Value": "0.15,0.15,0.15" },
+    { "Op": "watch", "Label": "trigger_shape_after", "Seconds": 0, "Probes": [ "size=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|#BoxCollider.size", "scale=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|#Transform.lossyScale" ] },
+    { "Op": "log", "Text": "phase A: player 3 m from the truck (MOP keeps the truck physics on)" },
+    { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [3.0, 1.0, 0.0] },
+    { "Op": "align", "Path": "JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger",
+      "Target": "GIFU(750/450psi)/HOSE/hose coupler(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)" },
+    { "Op": "watch", "Label": "A_near", "Seconds": 16, "Interval": 1, "Probes": [
+      "dist=GIFU(750/450psi)|@player", "kin=GIFU(750/450psi)|#Rigidbody.isKinematic", "cd=GIFU(750/450psi)|#CarDynamics.enabled",
+      "rpm=GIFU(750/450psi)|#Drivetrain.rpm", "tach=GIFU(750/450psi)/LOD/Dashboard/Gauges/Tachometer|RPM|RPM",
+      "hyd=GIFU(750/450psi)/Dashboard/Knobs/Hydraulics|Pump|@state", "pump=GIFU(750/450psi)/ShitTank|Pump|@state",
+      "running=GIFU(750/450psi)/ShitTank|Pump|PumpRunning", "inShit=GIFU(750/450psi)/ShitTank|Pump|HoseInShit",
+      "attached=GIFU(750/450psi)/ShitTank|Pump|HoseAttached", "lps=GIFU(750/450psi)/ShitTank|Pump|LitresPerSecond",
+      "trig=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|Trigger|@state", "trigCol=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|Trigger|Collider",
+      "level=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|Level|ShitLevel",
+      "waste=GIFU(750/450psi)/ShitTank|Waste|Waste" ] },
+
+    { "Op": "log", "Text": "phase B: player 9 m from the truck (MOP turns the truck physics off at 5 m)" },
+    { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [9.0, 1.0, 0.0] },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "align", "Path": "JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger",
+      "Target": "GIFU(750/450psi)/HOSE/hose coupler(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)" },
+    { "Op": "watch", "Label": "B_far", "Seconds": 20, "Interval": 1, "Probes": [
+      "dist=GIFU(750/450psi)|@player", "kin=GIFU(750/450psi)|#Rigidbody.isKinematic", "cd=GIFU(750/450psi)|#CarDynamics.enabled",
+      "rpm=GIFU(750/450psi)|#Drivetrain.rpm", "tach=GIFU(750/450psi)/LOD/Dashboard/Gauges/Tachometer|RPM|RPM",
+      "hyd=GIFU(750/450psi)/Dashboard/Knobs/Hydraulics|Pump|@state", "pump=GIFU(750/450psi)/ShitTank|Pump|@state",
+      "running=GIFU(750/450psi)/ShitTank|Pump|PumpRunning", "inShit=GIFU(750/450psi)/ShitTank|Pump|HoseInShit",
+      "attached=GIFU(750/450psi)/ShitTank|Pump|HoseAttached", "lps=GIFU(750/450psi)/ShitTank|Pump|LitresPerSecond",
+      "trig=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|Trigger|@state", "trigCol=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|Trigger|Collider",
+      "level=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|Level|ShitLevel",
+      "waste=GIFU(750/450psi)/ShitTank|Waste|Waste" ] },
+
+    { "Op": "log", "Text": "phase C: player 40 m from the truck" },
+    { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [40.0, 1.0, 0.0] },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "align", "Path": "JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger",
+      "Target": "GIFU(750/450psi)/HOSE/hose coupler(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)" },
+    { "Op": "watch", "Label": "C_40m", "Seconds": 15, "Interval": 1, "Probes": [
+      "dist=GIFU(750/450psi)|@player", "kin=GIFU(750/450psi)|#Rigidbody.isKinematic", "lod=GIFU(750/450psi)/LOD|@active",
+      "rpm=GIFU(750/450psi)|#Drivetrain.rpm", "tach=GIFU(750/450psi)/LOD/Dashboard/Gauges/Tachometer|RPM|RPM",
+      "hyd=GIFU(750/450psi)/Dashboard/Knobs/Hydraulics|Pump|@state", "pump=GIFU(750/450psi)/ShitTank|Pump|@state",
+      "inShit=GIFU(750/450psi)/ShitTank|Pump|HoseInShit",
+      "level=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|Level|ShitLevel",
+      "waste=GIFU(750/450psi)/ShitTank|Waste|Waste" ] },
+
+    { "Op": "log", "Text": "phase D: 9 m again, PlayMaker engine optimizations off" },
+    { "Op": "engine", "Mode": "off" },
+    { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [9.0, 1.0, 0.0] },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "align", "Path": "JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger",
+      "Target": "GIFU(750/450psi)/HOSE/hose coupler(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)/Hose(xxxxx)" },
+    { "Op": "watch", "Label": "D_far_engineoff", "Seconds": 15, "Interval": 1, "Probes": [
+      "dist=GIFU(750/450psi)|@player", "kin=GIFU(750/450psi)|#Rigidbody.isKinematic",
+      "rpm=GIFU(750/450psi)|#Drivetrain.rpm", "hyd=GIFU(750/450psi)/Dashboard/Knobs/Hydraulics|Pump|@state",
+      "pump=GIFU(750/450psi)/ShitTank|Pump|@state", "inShit=GIFU(750/450psi)/ShitTank|Pump|HoseInShit",
+      "level=JOBS/HouseShit2/WasteWell_2000litre/Shit/Level2/ShitLevelTrigger|Level|ShitLevel",
+      "waste=GIFU(750/450psi)/ShitTank|Waste|Waste" ] },
+    { "Op": "engine", "Mode": "on" },
+
+    { "Op": "log", "Text": "item save test: a physics-only item (bucket) that the game made gravity-less is moved A -> B, then MOP's pre-save runs. Expected: it stays at B." },
+    { "Op": "find", "Label": "physicsonly", "Text": "bucket(itemx),fish trap(itemx),pike(itemx),fuel tank(Clone)" },
+    { "Op": "dumpfsm", "Label": "hand", "Path": "PLAYER/Pivot/AnimPivot/Camera/FPSCamera/1Hand_Assemble/Hand", "Recursive": false },
+    { "Op": "teleport", "Path": "name:bucket(itemx)", "Pos": [2.0, 1.0, 0.0] },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "watch", "Label": "item_A", "Seconds": 0, "Probes": [
+      "pos=name:bucket(itemx)|@pos", "grav=name:bucket(itemx)|#Rigidbody.useGravity", "kin=name:bucket(itemx)|#Rigidbody.isKinematic",
+      "coll=name:bucket(itemx)|#Rigidbody.detectCollisions", "frozen=name:bucket(itemx)|#ItemBehaviour.physicsFrozenByMop" ] },
+    { "Op": "setmember", "Path": "name:bucket(itemx)", "Var": "Rigidbody.useGravity", "Value": "false" },
+    { "Op": "place", "Path": "name:bucket(itemx)", "Pos": [1.5, 1.0, 1.5] },
+    { "Op": "watch", "Label": "item_B", "Seconds": 1, "Interval": 0.5, "Probes": [ "pos=name:bucket(itemx)|@pos", "grav=name:bucket(itemx)|#Rigidbody.useGravity" ] },
+    { "Op": "call", "Text": "MOP.Hypervisor:Instance.PreSaveGame" },
+    { "Op": "watch", "Label": "item_after_presave", "Seconds": 3, "Interval": 0.5, "Probes": [
+      "pos=name:bucket(itemx)|@pos", "grav=name:bucket(itemx)|#Rigidbody.useGravity", "kin=name:bucket(itemx)|#Rigidbody.isKinematic" ] },
+    { "Op": "quit" }
+  ]
+}

@@ -1,0 +1,25 @@
+// MOPR rules for the "BodyPillow" mod.
+{
+  "mod": "BodyPillow",
+  "exclude": [
+    "Body Pillow(Clone)"
+  ],
+  "keepActive": [
+    "Sleep Pillow",
+    "SatsumaPivot",
+    "SatBelt(Clone)",
+    "HayosikoPivot",
+    "HayosikoPivotJR",
+    "RusckoPivot",
+    "RusckoPivotJR",
+    "FerndalePivot",
+    "FerndalePivotJR",
+    "GifuPivot",
+    "GifuPivotJR",
+    "seat passenger(Clone)",
+    "FERNDALE(1630kg)",
+    "RCO_RUSCKO12(270)",
+    "GIFU(750/450psi)",
+    "SATSUMA(557kg, 248)"
+  ]
+}

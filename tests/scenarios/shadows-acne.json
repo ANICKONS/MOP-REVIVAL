@@ -1,0 +1,26 @@
+{
+  "Name": "shadows-acne",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Shadow bands ('staircase') on surfaces the sun grazes: shadow edge pixels and flips for the game's bias, larger biases and other quality levels; at the house wall and at the car." },
+    { "Op": "shadowinfo", "Label": "load" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.5, 20.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "movecar", "Target": "SATSUMA(557kg, 248)", "Pos": [0.0, 0.3, 13.0] },
+    { "Op": "wait", "Seconds": 4 },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 0.9, -4.0], "Target": "SATSUMA(557kg, 248)", "Pitch": 10 },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "shadowsweep", "Label": "wall_sun", "Text": "sun", "Seconds": 0.4, "Max": 4,
+      "Probes": [ "game:", "nb1: normalBias=1", "nb2: normalBias=2", "b015: bias=0.15", "q3: quality=3", "q4: quality=4" ] },
+    { "Op": "shadowsweep", "Label": "wall_yaw", "Text": "yaw", "Seconds": 1.0, "Max": 10,
+      "Probes": [ "game:", "nb1: normalBias=1", "nb2: normalBias=2", "b015: bias=0.15", "q3: quality=3", "q4: quality=4" ] },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-5.0, 1.7, 3.0], "Target": "SATSUMA(557kg, 248)", "Pitch": 15 },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "shadowsweep", "Label": "car_sun", "Text": "sun", "Seconds": 0.4, "Max": 4,
+      "Probes": [ "game:", "nb1: normalBias=1", "nb2: normalBias=2", "b015: bias=0.15", "q3: quality=3", "q4: quality=4" ] },
+    { "Op": "quit" }
+  ]
+}

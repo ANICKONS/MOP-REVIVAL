@@ -1,0 +1,31 @@
+{
+  "Name": "engine-verify",
+  "SettleSeconds": 20,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Engine Lab: GC probe, shadow verification, interleaved A/B with allocation rates, action profile with the engine on" },
+    { "Op": "gcprobe" },
+
+    { "Op": "engine", "Mode": "shadow", "Detail": false },
+    { "Op": "wait", "Seconds": 20 },
+    { "Op": "enginestats", "Label": "shadow-spawn" },
+    { "Op": "engine", "Mode": "off" },
+    { "Op": "measure", "Label": "spawn-off", "Seconds": 20 },
+    { "Op": "engine", "Mode": "on" },
+    { "Op": "measure", "Label": "spawn-on", "Seconds": 20 },
+    { "Op": "enginestats", "Label": "on-spawn" },
+    { "Op": "ab", "Label": "spawn", "A": "off", "B": "on", "Seconds": 40, "Block": 1 },
+    { "Op": "engine", "Mode": "on" },
+    { "Op": "profile", "Label": "spawn-on", "Seconds": 8, "Detail": true },
+
+    { "Op": "teleport", "Pos": [ -7.0, 0.5, 10.0 ], "Yaw": 0 },
+    { "Op": "engine", "Mode": "off" },
+    { "Op": "wait", "Seconds": 20 },
+    { "Op": "engine", "Mode": "shadow" },
+    { "Op": "wait", "Seconds": 15 },
+    { "Op": "enginestats", "Label": "shadow-home" },
+    { "Op": "ab", "Label": "home", "A": "off", "B": "on", "Seconds": 40, "Block": 1 },
+
+    { "Op": "quit" }
+  ]
+}

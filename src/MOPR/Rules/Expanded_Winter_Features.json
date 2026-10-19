@@ -1,0 +1,8 @@
+// MOPR rules for the "Expanded_Winter_Features" mod.
+// Expanded_Winter_Features
+{
+  "mod": "Expanded_Winter_Features",
+  "exclude": [
+    "WHEAT"
+  ]
+}

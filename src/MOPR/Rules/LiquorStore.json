@@ -1,0 +1,8 @@
+// MOPR rules for the "LiquorStore" mod.
+{
+  "mod": "LiquorStore",
+  "exclude": [
+    "spirit(Clone)",
+    "booze(Clone)"
+  ]
+}

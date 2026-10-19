@@ -1,0 +1,38 @@
+{
+  "Name": "satsuma-fps",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "FPS near the assembled Satsuma: looking at it vs looking away, at 3, 8, 15 and 40 m. Profiles split rendering from logic." },
+    { "Op": "watch", "Label": "satsuma", "Seconds": 0, "Probes": [ "pos=SATSUMA(557kg, 248)|@pos", "dist=SATSUMA(557kg, 248)|@player" ] },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [40.0, 4.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "measure", "Label": "40m-look", "Seconds": 8 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [40.0, 4.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "measure", "Label": "40m-away", "Seconds": 8 },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [15.0, 3.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "measure", "Label": "15m-look", "Seconds": 8 },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [8.0, 2.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "measure", "Label": "8m-look", "Seconds": 8 },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [3.0, 1.5, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "measure", "Label": "3m-look", "Seconds": 8 },
+    { "Op": "profile", "Label": "3m-look", "Seconds": 8, "Detail": true, "Extended": true },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [3.0, 1.5, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "measure", "Label": "3m-away", "Seconds": 8 },
+    { "Op": "profile", "Label": "3m-away", "Seconds": 8, "Detail": true, "Extended": true },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [40.0, 4.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "profile", "Label": "40m-away", "Seconds": 8, "Detail": true, "Extended": true },
+    { "Op": "quit" }
+  ]
+}

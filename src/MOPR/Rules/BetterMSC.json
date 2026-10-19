@@ -1,0 +1,39 @@
+// MOPR rules for the "BetterMSC" mod.
+{
+  "mod": "BetterMSC",
+  "keepActive": [
+    "COMPUTER",
+    "HUMANS",
+    "Randomizer",
+    "Walkers",
+    "Kale",
+    "Julli",
+    "Kristian",
+    "Unto",
+    "Rauno",
+    "Alpo"
+  ],
+  "keepActiveIn": {
+    "YARD": [
+      "TV"
+    ]
+  },
+  "manage": {
+    "items": [
+      "Scale(itemx)",
+      "Alarm clock(itemx)",
+      "Sponge(itemx)",
+      "Tool cart(itemx)",
+      "mattress(itemx)",
+      "Lamp cover(itemx)",
+      "Lamp shade(Clon1)",
+      "Lamp shade(Clon2)",
+      "Lamp shade(itemx)",
+      "Lamp shade(item1)",
+      "Lamp shade(item2)",
+      "Lamp shade(item3)",
+      "Lamp shade(item4)",
+      "Lamp shade(item5)"
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+// MOPR rules for the "FishingMod" mod.
+{
+  "mod": "FishingMod",
+  "exclude": [
+    "BOAT"
+  ]
+}

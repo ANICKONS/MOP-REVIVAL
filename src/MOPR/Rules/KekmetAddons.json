@@ -1,0 +1,7 @@
+// MOPR rules for the "KekmetAddons" mod.
+{
+  "mod": "KekmetAddons",
+  "keepActive": [
+    "KEKMET(350-400psi)"
+  ]
+}

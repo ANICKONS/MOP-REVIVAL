@@ -1,0 +1,7 @@
+// MOPR rules for the "JetSky" mod.
+{
+  "mod": "JetSky",
+  "exclude": [
+    "BOAT"
+  ]
+}

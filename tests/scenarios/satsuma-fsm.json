@@ -1,0 +1,19 @@
+{
+  "Name": "satsuma-fsm",
+  "SettleSeconds": 8,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "What the Satsuma's running FSMs do every frame, at 8 m and at 30 m; engine lab counters near the car." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [8.0, 2.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "fsmhist", "Label": "satsuma_8m", "Path": "SATSUMA(557kg, 248)", "Max": 80 },
+    { "Op": "fsmhist", "Label": "all_roots_8m_yard", "Path": "YARD", "Max": 30 },
+    { "Op": "engine", "Mode": "on", "Detail": true },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "enginestats", "Label": "8m" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [30.0, 4.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "fsmhist", "Label": "satsuma_30m", "Path": "SATSUMA(557kg, 248)", "Max": 80 },
+    { "Op": "quit" }
+  ]
+}

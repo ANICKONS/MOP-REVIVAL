@@ -1,0 +1,8 @@
+// MOPR rules for the "SatsumaTurboCharger" mod.
+{
+  "mod": "SatsumaTurboCharger",
+  "keepActive": [
+    "SATSUMA(557kg, 248)"
+  ],
+  "satsuma": "keepRenderers"
+}

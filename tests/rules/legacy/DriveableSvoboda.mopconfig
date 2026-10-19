@@ -1,0 +1,12 @@
+# DriveableSvoboda.mopconfig
+# Compatibility rules for the "Driveable Svoboda" mod.
+#   * SVOBODA(855kg) is a regular UnityCar vehicle (CarDynamics/Axles/Drivetrain/Rigidbody).
+#     Only its car physics is paused when far away (vehicle_physics); the object itself is never
+#     disabled, so the mod's scripts and FSMs keep running.
+#   * The mod has two dashboard gauge objects ("l dashboard gauges(Clone)" in the drivable car and
+#     "ls dashboard gauges(Clone)" in the wreck). Their names match MOP's item scanner ("dashboard"
+#     + "(Clone)"), so they would be handled as loose items and vanish at distance: fully ignored.
+min_ver: 4.0.0
+toggle: SVOBODA(855kg) vehicle_physics
+ignore: l%20dashboard%20gauges(Clone) fullignore
+ignore: ls%20dashboard%20gauges(Clone) fullignore

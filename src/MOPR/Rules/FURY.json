@@ -1,0 +1,14 @@
+// MOPR rules for the "FURY" mod.
+{
+  "mod": "FURY",
+  "keepActiveIn": {
+    "REPAIRSHOP": [
+      "Vehicle"
+    ]
+  },
+  "manage": {
+    "vehiclePhysics": [
+      "FURY(1630kg)"
+    ]
+  }
+}

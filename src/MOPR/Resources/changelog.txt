@@ -1,0 +1,39 @@
+### 5.1.0 "Engine"
+-NEW: PlayMaker engine optimizations - idle state machines, property actions and per-frame settings writes are skipped only when MOP can prove nothing would change (+10% FPS, -60% garbage in tests)
+-NEW: Verify mode for the engine optimizations (runs the original code and reports any difference)
+-NEW: Interface in English and Russian, switchable in the mod settings (applies right away)
+-NEW: Loading screen without an asset bundle: animated logo, real loading steps, progress bar and tips
+-NEW: Satsuma mesh merger - while nobody drives the car, ~440 of its parts are drawn as 33 merged meshes (about +5-8% FPS with the car in view; any change to a part brings the originals back in the same frame)
+-NEW: Experimental section (everything off by default): shared mouse ray (fewer raycasts near and in the Satsuma), car mirrors at most 60 FPS, engine not drawn from the driver's seat while the hood is closed
+-NEW: Rule system rewritten. Rules are JSON files (Mod Settings/MOPR/Rules) with one meaning per key (exclude, keepActive, keepActiveIn, manage...); a wrong line is reported with its line number and skipped instead of breaking the whole file
+-NEW: The 43 built-in rule files live inside the DLL (no copies in the settings folder, always up to date); old .mopconfig files and Custom.txt still work
+-NEW: Rules apply at every game load (no need to reload them in the menu); the settings page shows which rules are active and can create your own file
+-NEW: Console commands "mopr rules", "mopr rules why <object>", "mopr rules export <ModID>", "mopr rules convert <file>"
+-The console command is now "mopr" ("mop" still works)
+-The 4.0.x mod icon is back; the mod description in the mod list follows the chosen language
+-Fixed the "don't destroy empty bottles" rule (bottle recycling mods) never having an effect
+-Settings page restyled like MOPR 4.x, with simpler explanations under every setting
+-Render optimization has a real main switch: off hides and turns off everything in the section, the Satsuma merger included; the FPS limit slider shows only while the limit is on
+-Fixed the load distance label overlapping its value and an empty row above it on the settings page
+-Console messages use the [MOPR] tag and colors; a short summary is shown when the game is ready
+-Fixed physics-only items (bucket, fish trap, fuel tank...) jumping back to an old position on save when the game had turned their gravity off
+-Fixed one broken save point aborting the hooks of all save points after it
+-Fixed the item backup of the save integrity check copying the wrong file
+-Fixed "Delete all logs" throwing an error when the logs folder did not exist
+-Fixed Satsuma parts (body, tires, front seat backs) vanishing after a door was opened with the mesh merger on
+-Settings changed in game apply at once (dynamic draw distance switched off, the mesh merger); a mode change notes what follows at the next load
+-Fixed Safe mode chosen in game applying only after a game restart instead of after quitting to the main menu
+-Fixed the Satsuma's interior lamp showing through the roof (game model bug)
+-Removed per-frame garbage in MOP's own loops
+
+### 5.0.0 "Reborn"
+-Rebuilt on the original, battle-tested MOP 3.10.4 code instead of a rewrite
+-Ported to MSCLoader 1.4 (no obsolete APIs, no Mod Loader Pro code)
+-NEW: Automatic restart guard - state machines that would reload your last save when MOP re-enables an object are paused instead
+-NEW: Render optimizer - smart small object culling, shadow LOD for small objects, distant lamp shadows (visual only)
+-NEW: Compatibility rules are bundled with the mod, no rule servers needed
+-NEW: satsuma_ignore rule for full Satsuma overhaul mods (e.g. Satsuma LX)
+-NEW: "mop audit", "mop guard" and "mop render" console commands
+-Fixed MOP writing the same error to the log on every loop tick
+-Fixed MOP crashing on MSCLoader 1.3.6+ because of the removed Ionic.Zip library
+-Rule files now accept '#' comments and UTF-8 BOM

@@ -1,0 +1,92 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    MOP - REVIVAL 5 ("Reborn")
+    Built on the original, battle-tested MOP 3.10.x source (Konrad Figura / Athlon, GPLv3),
+    ported to MSCLoader 1.4.x and extended with new safety and rendering layers.
+
+    References:
+      * If $(ManagedDir) points to a real "mysummercar_Data\Managed" folder, the REAL game assemblies are used.
+        This is the only configuration allowed for public releases.
+      * Otherwise compile-only stubs from refs\generated\bin are used (run refs\build-stubs.ps1 first).
+        Such builds are tagged "+stubs" in the informational version and warn at runtime.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net35</TargetFramework>
+    <AssemblyName>MOPR</AssemblyName>
+    <RootNamespace>MOP</RootNamespace>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <OutputType>Library</OutputType>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Deterministic>true</Deterministic>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <!-- CS0618: MSCLoader marks some MSC APIs obsolete for parity with the MWC branch; they still work on MSC. -->
+    <NoWarn>$(NoWarn);CS0618;CS0612;CS1591</NoWarn>
+    <DefineConstants>$(DefineConstants);MSC</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <StubsDir>$(MSBuildThisFileDirectory)..\..\refs\generated\bin</StubsDir>
+    <LoaderCacheDir>$(MSBuildThisFileDirectory)..\..\refs\cache\MSCLoader</LoaderCacheDir>
+
+    <!-- Game assemblies (UnityEngine, PlayMaker, Assembly-CSharp, ES2): real game or stubs. -->
+    <UseRealGameAssemblies Condition=" '$(ManagedDir)' != '' And Exists('$(ManagedDir)\UnityEngine.dll') And Exists('$(ManagedDir)\PlayMaker.dll') ">true</UseRealGameAssemblies>
+    <UseRealGameAssemblies Condition=" '$(UseRealGameAssemblies)' == '' ">false</UseRealGameAssemblies>
+    <RefDir Condition=" '$(UseRealGameAssemblies)' == 'true' ">$(ManagedDir)</RefDir>
+    <RefDir Condition=" '$(UseRealGameAssemblies)' != 'true' ">$(StubsDir)</RefDir>
+    <DefineConstants Condition=" '$(UseRealGameAssemblies)' != 'true' ">$(DefineConstants);STUB_REFERENCES</DefineConstants>
+
+    <!-- Loader assemblies (MSCLoader, Newtonsoft.Json): installed MSCLoader, else the cached official release. -->
+    <LoaderRefDir Condition=" '$(ManagedDir)' != '' And Exists('$(ManagedDir)\MSCLoader.dll') ">$(ManagedDir)</LoaderRefDir>
+    <LoaderRefDir Condition=" '$(LoaderRefDir)' == '' And Exists('$(LoaderCacheDir)\MSCLoader.dll') ">$(LoaderCacheDir)</LoaderRefDir>
+    <LoaderRefDir Condition=" '$(LoaderRefDir)' == '' ">$(StubsDir)</LoaderRefDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net35" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Game / loader assemblies. Never copied to the output (Private=false). -->
+  <ItemGroup>
+    <Reference Include="UnityEngine"><HintPath>$(RefDir)\UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.UI"><HintPath>$(RefDir)\UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="PlayMaker"><HintPath>$(RefDir)\PlayMaker.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Assembly-CSharp"><HintPath>$(RefDir)\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="ES2"><HintPath>$(RefDir)\ES2.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="MSCLoader"><HintPath>$(LoaderRefDir)\MSCLoader.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>$(LoaderRefDir)\Newtonsoft.Json.dll</HintPath><Private>false</Private></Reference>
+    <!-- Harmony 1.2 ships with MSCLoader (Managed\0Harmony.dll); used by the Engine Lab only. -->
+    <Reference Include="0Harmony"><HintPath>$(LoaderRefDir)\0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System.Core" />
+  </ItemGroup>
+
+  <!-- Embedded resources (read through Properties/Resources.cs). -->
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\icon"><LogicalName>MOPR.Resources.icon</LogicalName></EmbeddedResource>
+    <!-- Loading screen logo (two animation frames, drawn by Common\LoadScreen.cs). -->
+    <EmbeddedResource Include="Resources\loadScreen1.png"><LogicalName>MOPR.Resources.loadScreen1.png</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Resources\loadScreen2.png"><LogicalName>MOPR.Resources.loadScreen2.png</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Resources\changelog.txt"><LogicalName>MOPR.Resources.changelog.txt</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Resources\itemcounter_to_transform.csv"><LogicalName>MOPR.Resources.itemcounter_to_transform.csv</LogicalName></EmbeddedResource>
+    <!-- Built-in rules: Rules\<ModID>.json -> MOPR.Rules.<ModID>.json (checked by scripts\rules-check.ps1). -->
+    <EmbeddedResource Include="Rules\*.json"><LogicalName>MOPR.Rules.%(Filename)%(Extension)</LogicalName></EmbeddedResource>
+  </ItemGroup>
+
+  <Target Name="ReportReferenceMode" BeforeTargets="CoreCompile">
+    <Message Importance="high" Text="[MOPR] Using REAL game assemblies from $(ManagedDir)" Condition=" '$(UseRealGameAssemblies)' == 'true' " />
+    <Message Importance="high" Text="[MOPR] Using MSCLoader from $(LoaderRefDir)" />
+    <Warning Text="[MOPR] Building against compile-only STUBS ($(StubsDir)). Do not publish this build; rebuild with -p:ManagedDir=&lt;game&gt;\mysummercar_Data\Managed." Condition=" '$(UseRealGameAssemblies)' != 'true' " />
+    <!-- A Release build must come from the real game assemblies; CI checks pass -p:AllowStubBuild=true explicitly. -->
+    <Error Text="[MOPR] Release builds require the real game assemblies. Pass -p:ManagedDir=&lt;game&gt;\mysummercar_Data\Managed (or -p:AllowStubBuild=true for a compile check)." Condition=" '$(UseRealGameAssemblies)' != 'true' And '$(Configuration)' == 'Release' And '$(AllowStubBuild)' != 'true' " />
+    <Error Text="[MOPR] Stubs not found. Run refs\build-stubs.ps1 or pass -p:ManagedDir=&lt;game&gt;\mysummercar_Data\Managed." Condition=" '$(UseRealGameAssemblies)' != 'true' And !Exists('$(StubsDir)\UnityEngine.dll') " />
+  </Target>
+
+</Project>

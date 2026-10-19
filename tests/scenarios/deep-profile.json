@@ -1,0 +1,25 @@
+{
+  "Name": "deep-profile",
+  "SettleSeconds": 20,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Action-level profile + engine shadow check + interleaved A/B, at the saved position and at home" },
+
+    { "Op": "profile", "Label": "spawn", "Seconds": 10, "Detail": true },
+    { "Op": "engine", "Mode": "shadow", "Detail": true },
+    { "Op": "wait", "Seconds": 20 },
+    { "Op": "enginestats", "Label": "shadow-spawn" },
+    { "Op": "ab", "Label": "spawn", "A": "off", "B": "on", "Seconds": 40, "Block": 1 },
+
+    { "Op": "teleport", "Pos": [ -7.0, 0.5, 10.0 ], "Yaw": 0 },
+    { "Op": "engine", "Mode": "off" },
+    { "Op": "wait", "Seconds": 20 },
+    { "Op": "profile", "Label": "home", "Seconds": 10, "Detail": true },
+    { "Op": "engine", "Mode": "shadow", "Detail": true },
+    { "Op": "wait", "Seconds": 15 },
+    { "Op": "enginestats", "Label": "shadow-home" },
+    { "Op": "ab", "Label": "home", "A": "off", "B": "on", "Seconds": 40, "Block": 1 },
+
+    { "Op": "quit" }
+  ]
+}

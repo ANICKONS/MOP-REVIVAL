@@ -1,0 +1,21 @@
+{
+  "Name": "ui-check",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "LoadShotInterval": 1.5,
+  "Steps": [
+    { "Op": "log", "Text": "UI check: loading screen frames were captured during the load; now the MOPR settings page in both languages" },
+    { "Op": "dumpsettings", "Text": "MOPR", "Label": "closed" },
+    { "Op": "opensettings", "Text": "MOPR" },
+    { "Op": "dumpsettings", "Text": "MOPR", "Label": "open_initial" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "0" },
+    { "Op": "dumpsettings", "Text": "MOPR", "Label": "open_en" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "1" },
+    { "Op": "dumpsettings", "Text": "MOPR", "Label": "open_ru" },
+    { "Op": "closesettings" },
+    { "Op": "opensettings", "Text": "MOPR" },
+    { "Op": "dumpsettings", "Text": "MOPR", "Label": "reopened_ru" },
+    { "Op": "closesettings" },
+    { "Op": "quit" }
+  ]
+}

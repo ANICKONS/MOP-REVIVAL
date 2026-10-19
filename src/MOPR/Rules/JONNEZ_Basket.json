@@ -1,0 +1,7 @@
+// MOPR rules for the "JONNEZ_Basket" mod.
+{
+  "mod": "JONNEZ_Basket",
+  "keepActive": [
+    "Basket(Clone)"
+  ]
+}

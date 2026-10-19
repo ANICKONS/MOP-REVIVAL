@@ -1,0 +1,7 @@
+// MOPR rules for the "MSCStill" mod.
+{
+  "mod": "MSCStill",
+  "exclude": [
+    "BOAT"
+  ]
+}

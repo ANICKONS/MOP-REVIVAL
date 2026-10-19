@@ -1,0 +1,8 @@
+// MOPR rules for the "Partition" mod.
+{
+  "mod": "Partition",
+  "keepActive": [
+    "Roman266PARTITC1",
+    "Roman266PARTITC2"
+  ]
+}

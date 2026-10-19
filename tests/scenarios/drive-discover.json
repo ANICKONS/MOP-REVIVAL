@@ -1,0 +1,15 @@
+{
+  "Name": "drive-discover",
+  "SettleSeconds": 5,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Discovery for a driving benchmark: Satsuma entry trigger, ignition/starter FSMs, AI traffic waypoints, mirror cameras." },
+    { "Op": "find", "Label": "drivetrigger", "Text": "DriveTrigger,PlayerTrigger" },
+    { "Op": "find", "Label": "ignition", "Text": "Ignition,ignition,Starter,starter,Key,key,Gear,gear" , "Max": 300 },
+    { "Op": "find", "Label": "waypoints", "Text": "Waypoint,waypoint,WayPoint,Route,route,Path,path" , "Max": 600 },
+    { "Op": "find", "Label": "cameras", "Text": "Camera,camera,Mirror,mirror" , "Max": 300 },
+    { "Op": "dumpfsm", "Label": "satsuma_trigger", "Path": "SATSUMA(557kg, 248)/PlayerTrigger", "Recursive": true },
+    { "Op": "dumpfsm", "Label": "satsuma_root", "Path": "SATSUMA(557kg, 248)", "Recursive": false },
+    { "Op": "quit" }
+  ]
+}

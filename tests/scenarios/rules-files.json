@@ -1,0 +1,28 @@
+{
+  "Name": "rules-files",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "MenuSteps": [
+    { "Op": "log", "Text": "Rule files of the user (run with -ModConfig tests\\rules\\files): migration of 5.0 copies (CDPlayer.mopconfig unchanged -> deleted, BetterMSC.mopconfig edited -> kept), old-format files, JSON files with mistakes, the settings page status, export / convert / reload, then a game load." },
+    { "Op": "console", "Text": "mopr rules" },
+    { "Op": "opensettings", "Text": "MOPR" },
+    { "Op": "scrollsettings", "Value": "0.0" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "screenshot", "Label": "rules_status" },
+    { "Op": "console", "Text": "mopr rules why COMPUTER" },
+    { "Op": "console", "Text": "mopr rules export CDPlayer" },
+    { "Op": "console", "Text": "mopr rules convert Custom" },
+    { "Op": "console", "Text": "mopr reload" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "screenshot", "Label": "rules_status_after" },
+    { "Op": "closesettings" },
+    { "Op": "console", "Text": "mopr rules" }
+  ],
+  "Steps": [
+    { "Op": "mopstate", "Label": "load" },
+    { "Op": "console", "Text": "mopr rules" },
+    { "Op": "console", "Text": "mopr rules why Hatch" },
+    { "Op": "console", "Text": "mop help rules" },
+    { "Op": "quit" }
+  ]
+}

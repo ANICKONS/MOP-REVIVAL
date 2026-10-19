@@ -1,0 +1,25 @@
+ignore: COMPUTER
+ignore: YARD TV
+﻿ignore: HUMANS
+ignore: Randomizer
+ignore: Walkers
+ignore: Kale
+ignore: Julli
+ignore: Kristian
+ignore: Unto
+ignore: Rauno
+ignore: Alpo
+toggle: Scale(itemx) item
+toggle: "Alarm clock(itemx)" item
+toggle: Sponge(itemx) item
+toggle: "Tool cart(itemx)" item
+toggle: mattress(itemx) item
+toggle: "Lamp cover(itemx)" item
+toggle: "Lamp shade(Clon1)" item
+toggle: "Lamp shade(Clon2)" item
+toggle: "Lamp shade(itemx)" item
+toggle: "Lamp shade(item1)" item
+toggle: "Lamp shade(item2)" item
+toggle: "Lamp shade(item3)" item
+toggle: "Lamp shade(item4)" item
+toggle: "Lamp shade(item5)" item

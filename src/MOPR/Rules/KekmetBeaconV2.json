@@ -1,0 +1,9 @@
+// MOPR rules for the "KekmetBeaconV2" mod.
+{
+  "mod": "KekmetBeaconV2",
+  "keepActiveIn": {
+    "KEKMET(350-400psi)": [
+      "rotator"
+    ]
+  }
+}

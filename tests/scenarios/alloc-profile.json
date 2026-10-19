@@ -1,0 +1,21 @@
+{
+  "Name": "alloc-profile",
+  "SettleSeconds": 20,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Who allocates? Allocation-sampling profile (engine on) at spawn and home, then GC frequency with the engine on and off" },
+    { "Op": "engine", "Mode": "on" },
+    { "Op": "profile", "Label": "spawn-alloc", "Seconds": 15, "Detail": true, "Alloc": true },
+
+    { "Op": "teleport", "Pos": [ -7.0, 0.5, 10.0 ], "Yaw": 0 },
+    { "Op": "wait", "Seconds": 20 },
+    { "Op": "profile", "Label": "home-alloc", "Seconds": 15, "Detail": true, "Alloc": true },
+
+    { "Op": "engine", "Mode": "on" },
+    { "Op": "measure", "Label": "home-gc-on", "Seconds": 60 },
+    { "Op": "engine", "Mode": "off" },
+    { "Op": "measure", "Label": "home-gc-off", "Seconds": 60 },
+
+    { "Op": "quit" }
+  ]
+}

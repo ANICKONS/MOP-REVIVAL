@@ -1,0 +1,12 @@
+{
+  "Name": "route-discover",
+  "SettleSeconds": 5,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Discovery: road waypoints of the AI traffic (for a repeatable driving route)" },
+    { "Op": "find", "Label": "waypoints", "Text": "Waypoint,waypoint,WayPoint,Route,iTween,WP" },
+    { "Op": "find", "Label": "traffic", "Text": "TRAFFIC,NPC_CARS,Highway,DirtRoad,Bus" , "Max": 400 },
+    { "Op": "dumpfsm", "Label": "bus", "Path": "NPC_CARS/Bus", "Recursive": false },
+    { "Op": "quit" }
+  ]
+}

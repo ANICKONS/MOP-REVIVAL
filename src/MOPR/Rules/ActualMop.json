@@ -1,0 +1,5 @@
+// MOPR rules for the "ActualMop" mod.
+// toggle:mop(Clone)
+{
+  "mod": "ActualMop"
+}

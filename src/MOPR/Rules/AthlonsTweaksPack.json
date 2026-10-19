@@ -1,0 +1,7 @@
+// MOPR rules for the "AthlonsTweaksPack" mod.
+{
+  "mod": "AthlonsTweaksPack",
+  "keepActive": [
+    "motor hoist(itemx)"
+  ]
+}

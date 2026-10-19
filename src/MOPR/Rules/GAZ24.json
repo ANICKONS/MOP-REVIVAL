@@ -1,0 +1,9 @@
+// MOPR rules for the "GAZ24" mod.
+{
+  "mod": "GAZ24",
+  "manage": {
+    "vehicles": [
+      "GAZ24(1420kg)"
+    ]
+  }
+}

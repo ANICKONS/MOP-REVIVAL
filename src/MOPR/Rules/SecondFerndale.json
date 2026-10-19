@@ -1,0 +1,9 @@
+// MOPR rules for the "SecondFerndale" mod.
+{
+  "mod": "SecondFerndale",
+  "manage": {
+    "vehicles": [
+      "SECONDFERNDALE(1630kg)"
+    ]
+  }
+}

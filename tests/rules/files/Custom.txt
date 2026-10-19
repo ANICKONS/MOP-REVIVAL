@@ -1,0 +1,3 @@
+# my old custom rules
+ignore: COMPUTER
+ignore: YARD Handle

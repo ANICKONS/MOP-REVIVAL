@@ -1,0 +1,48 @@
+{
+  "Name": "lamp-fix",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Satsuma roof lamp fix: stock geometry vs fixed (MOP.Next.RoofLampFix.ShowOriginal), merger off, then the fixed car merged." },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "renderMergeVehicles", "Value": "false" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.5, 20.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "movecar", "Target": "SATSUMA(557kg, 248)", "Pos": [0.0, 0.3, 13.0] },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-4.5, 1.6, 0.5], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 6 },
+
+    { "Op": "log", "Text": "--- stock ---" },
+    { "Op": "staticbool", "Path": "MOP.Next.RoofLampFix.ShowOriginal", "Value": "true" },
+    { "Op": "wait", "Seconds": 0.5 },
+    { "Op": "meshclip", "Label": "cowl_orig", "Path": "SATSUMA(557kg, 248)/Body/cowl_parts", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Light/light", "Seconds": 0.08 },
+    { "Op": "meshclip", "Label": "cube_orig", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "meshclip", "Label": "lens_orig", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Light/light", "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "camshot", "Label": "side_orig", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Pos": [-0.9, 0.55, 0.0], "Max": 40 },
+    { "Op": "camshot", "Label": "close_orig", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Pos": [-0.35, 0.3, 0.1], "Max": 30 },
+    { "Op": "camshot", "Label": "front_orig", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Pos": [0.0, 0.35, 0.5], "Max": 30 },
+    { "Op": "camshot", "Label": "inside_orig", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Pos": [-0.25, -0.35, -0.3], "Max": 40 },
+
+    { "Op": "log", "Text": "--- fixed ---" },
+    { "Op": "staticbool", "Path": "MOP.Next.RoofLampFix.ShowOriginal", "Value": "false" },
+    { "Op": "wait", "Seconds": 0.5 },
+    { "Op": "meshclip", "Label": "cowl_fixed", "Path": "SATSUMA(557kg, 248)/Body/cowl_parts", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Light/light", "Seconds": 0.08 },
+    { "Op": "meshclip", "Label": "cube_fixed", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "meshclip", "Label": "lens_fixed", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Light/light", "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "camshot", "Label": "side_fixed", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Pos": [-0.9, 0.55, 0.0], "Max": 40 },
+    { "Op": "camshot", "Label": "close_fixed", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Pos": [-0.35, 0.3, 0.1], "Max": 30 },
+    { "Op": "camshot", "Label": "front_fixed", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Pos": [0.0, 0.35, 0.5], "Max": 30 },
+    { "Op": "camshot", "Label": "inside_fixed", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Pos": [-0.25, -0.35, -0.3], "Max": 40 },
+    { "Op": "activate", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Light", "Active": true },
+    { "Op": "camshot", "Label": "inside_fixed_on", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Pos": [-0.25, -0.35, -0.3], "Max": 40 },
+    { "Op": "camshot", "Label": "close_fixed_on", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Pos": [-0.35, 0.3, 0.1], "Max": 30 },
+    { "Op": "activate", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Light", "Active": false },
+
+    { "Op": "log", "Text": "--- fixed and merged ---" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "renderMergeVehicles", "Value": "true" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "watch", "Label": "merged", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged" ] },
+    { "Op": "camshot", "Label": "close_fixed_merged", "Target": "SATSUMA(557kg, 248)", "Anchor": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Path": "SATSUMA(557kg, 248)/Interior/InteriorLight/Pivot/Cube", "Pos": [-0.35, 0.3, 0.1], "Max": 30 },
+    { "Op": "quit" }
+  ]
+}

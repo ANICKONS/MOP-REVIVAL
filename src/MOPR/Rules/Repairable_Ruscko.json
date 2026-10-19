@@ -1,0 +1,7 @@
+// MOPR rules for the "Repairable_Ruscko" mod.
+{
+  "mod": "Repairable_Ruscko",
+  "exclude": [
+    "RCO_RUSCKO12(270)"
+  ]
+}

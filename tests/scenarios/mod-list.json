@@ -1,0 +1,21 @@
+{
+  "Name": "mod-list",
+  "StayInMenu": true,
+  "MenuReadyTimeoutSeconds": 30,
+  "Steps": [
+    { "Op": "log", "Text": "MSCLoader mod list: the MOPR icon and the description in Russian, then English (switched in the settings, the open list follows), then Russian again." },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "1" },
+    { "Op": "modmenu", "Value": "open" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "screenshot", "Label": "list_ru" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "0" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "screenshot", "Label": "list_en" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "1" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "screenshot", "Label": "list_ru_again" },
+    { "Op": "modmenu", "Value": "close" },
+    { "Op": "quit" }
+  ]
+}

@@ -1,0 +1,9 @@
+// MOPR rules for the "Police_Ferndale" mod.
+{
+  "mod": "Police_Ferndale",
+  "manage": {
+    "vehiclePhysics": [
+      "POLICEFERNDALE(1630kg)"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "Name": "discover",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Discovery: septic job objects, Gifu FSMs, save point FSMs, one item FSM" },
+    { "Op": "find", "Label": "septic", "Text": "shit,septic,waste,sewage,well,pump,hose,sewer" },
+    { "Op": "find", "Label": "savegame", "Text": "SAVEGAME" },
+    { "Op": "dumpfsm", "Label": "gifu", "Path": "GIFU(750/450psi)", "Recursive": true },
+    { "Op": "dumpfsm", "Label": "septic", "Text": "shit,septic,sewage,waste", "Recursive": true },
+    { "Op": "dumpfsm", "Label": "savegame", "Text": "SAVEGAME", "Recursive": false },
+    { "Op": "dumpfsm", "Label": "item", "Text": "beer case(itemx)", "Max": 1, "Recursive": false },
+    { "Op": "quit" }
+  ]
+}

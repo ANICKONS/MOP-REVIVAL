@@ -1,0 +1,12 @@
+{
+  "Name": "menu-probe",
+  "StayInMenu": true,
+  "MenuReadyTimeoutSeconds": 30,
+  "Steps": [
+    { "Op": "log", "Text": "Main menu probe: dump the active menu objects (welcome popup), no Continue" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "dumpui", "Label": "menu" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "quit" }
+  ]
+}

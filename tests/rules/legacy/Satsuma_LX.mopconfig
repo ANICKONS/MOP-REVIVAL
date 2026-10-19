@@ -1,0 +1,11 @@
+# Satsuma_LX.mopconfig
+# Satsuma LX (by Bosorkanamettle) is a full Satsuma overhaul: it replaces the body, interior,
+# dashboard, lights and many bolted parts. MOP's Satsuma management (part toggling, bolt gluing on
+# save, renderer culling, hood/battery/trigger fixes) was written for the vanilla car and fights the
+# replaced parts; with MOPR 4.x this crashed the game on save.
+#
+# satsuma_ignore makes MOP - REVIVAL leave the Satsuma entirely to this mod: no fixes, no toggling,
+# no physics changes, no renderer culling, no save-time gluing, no Satsuma save checks. The rest of
+# the world (scenery, items, other vehicles, LODs, sectors) is still optimized as usual.
+min_ver: 4.0.1
+satsuma_ignore

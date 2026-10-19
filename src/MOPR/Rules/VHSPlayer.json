@@ -1,0 +1,7 @@
+// MOPR rules for the "VHSPlayer" mod.
+{
+  "mod": "VHSPlayer",
+  "keepActive": [
+    "tv_table(Clone)"
+  ]
+}

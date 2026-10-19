@@ -1,0 +1,4 @@
+{
+  "exclude": [ "A" ]
+  "keepActive": [ "B" ]
+}

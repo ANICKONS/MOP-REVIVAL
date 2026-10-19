@@ -1,0 +1,35 @@
+{
+  "Name": "render-toggle",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Unity 5.0 check: is a renderer switched back on inside Camera.onPreCull drawn again? Merger off, the car on the yard, seen from the left side." },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "renderMergeVehicles", "Value": "false" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.5, 20.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "movecar", "Target": "SATSUMA(557kg, 248)", "Pos": [0.0, 0.3, 13.0] },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-4.5, 1.6, 0.5], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "rendstate", "Label": "base", "Path": "SATSUMA(557kg, 248)" },
+    { "Op": "screenshot", "Label": "base" },
+
+    { "Op": "log", "Text": "--- rear left tyre: off, back on in the next frame (coroutine) ---" },
+    { "Op": "rendtoggle", "Path": "SATSUMA(557kg, 248)/RL/wheelRL/TireRL/pivot_wheel_standard/wheel_regula/TireStock13(Clone)", "Text": "update" },
+    { "Op": "log", "Text": "--- front left tyre and the car body: off, back on inside the next Camera.onPreCull ---" },
+    { "Op": "rendtoggle", "Path": "SATSUMA(557kg, 248)/FL/AckerFL/wheelFL/TireFL/OFFSET/pivot_wheel_standard/wheel_regula/TireStock13(Clone)", "Text": "precull" },
+    { "Op": "rendtoggle", "Path": "SATSUMA(557kg, 248)/Body/car body(xxxxx)", "Text": "precull" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "rendstate", "Label": "toggled", "Path": "SATSUMA(557kg, 248)" },
+    { "Op": "screenshot", "Label": "toggled" },
+
+    { "Op": "log", "Text": "--- repair: the car body off and on again, outside rendering ---" },
+    { "Op": "rendtoggle", "Path": "SATSUMA(557kg, 248)/Body/car body(xxxxx)", "Text": "now" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "rendstate", "Label": "repaired", "Path": "SATSUMA(557kg, 248)" },
+    { "Op": "screenshot", "Label": "repaired" },
+    { "Op": "rendcompare", "A": "base", "B": "toggled" },
+    { "Op": "rendcompare", "A": "base", "B": "repaired" },
+    { "Op": "quit" }
+  ]
+}

@@ -1,0 +1,7 @@
+// MOPR rules for the "OffroadHayosiko" mod.
+{
+  "mod": "OffroadHayosiko",
+  "keepActive": [
+    "HAYOSIKO(1500kg, 250)"
+  ]
+}

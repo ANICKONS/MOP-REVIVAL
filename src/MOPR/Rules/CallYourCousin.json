@@ -1,0 +1,8 @@
+// MOPR rules for the "CallYourCousin" mod.
+{
+  "mod": "CallYourCousin",
+  "exclude": [
+    "TRAFFIC",
+    "VehiclesDirtRoad"
+  ]
+}

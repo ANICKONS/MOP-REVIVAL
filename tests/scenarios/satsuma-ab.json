@@ -1,0 +1,27 @@
+{
+  "Name": "satsuma-ab",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Interleaved A/B attribution near the Satsuma (1 s blocks). Median frame-time difference = cost of the switched-off part." },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [8.0, 2.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "abtoggle", "Label": "8m-look-car-renderers", "Var": "renderers", "Path": "SATSUMA(557kg, 248)", "Seconds": 24 },
+    { "Op": "abtoggle", "Label": "8m-look-car-colliders", "Var": "colliders", "Path": "SATSUMA(557kg, 248)", "Seconds": 24 },
+    { "Op": "abtoggle", "Label": "8m-look-car-shadows", "Var": "castshadows", "Path": "SATSUMA(557kg, 248)", "Seconds": 16 },
+    { "Op": "abtoggle", "Label": "8m-look-chassis-renderers", "Var": "renderers", "Path": "SATSUMA(557kg, 248)/Chassis", "Seconds": 16 },
+    { "Op": "abtoggle", "Label": "8m-look-chassis-colliders", "Var": "colliders", "Path": "SATSUMA(557kg, 248)/Chassis", "Seconds": 16 },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [15.0, 3.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "abtoggle", "Label": "15m-away-car-colliders", "Var": "colliders", "Path": "SATSUMA(557kg, 248)", "Seconds": 24 },
+    { "Op": "abtoggle", "Label": "15m-away-car-renderers", "Var": "renderers", "Path": "SATSUMA(557kg, 248)", "Seconds": 16 },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [40.0, 4.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "abtoggle", "Label": "40m-1000-dummies", "Var": "dummies", "Max": 1000, "Seconds": 16 },
+    { "Op": "abtoggle", "Label": "40m-away-car-colliders", "Var": "colliders", "Path": "SATSUMA(557kg, 248)", "Seconds": 16 },
+    { "Op": "quit" }
+  ]
+}

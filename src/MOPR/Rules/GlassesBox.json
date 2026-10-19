@@ -1,0 +1,10 @@
+// MOPR rules for the "GlassesBox" mod.
+{
+  "mod": "GlassesBox",
+  "exclude": [
+    "glassesbox(Clone)"
+  ],
+  "keepActive": [
+    "dashboard(Clone)"
+  ]
+}

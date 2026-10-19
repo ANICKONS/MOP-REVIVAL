@@ -1,0 +1,23 @@
+{
+  "Name": "alloc-hunt",
+  "SettleSeconds": 20,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Remaining garbage: extended allocation profile (OnGUI, physics messages, all coroutines) with the engine on; FsmProperty slow paths" },
+    { "Op": "engine", "Mode": "on", "Detail": true },
+    { "Op": "wait", "Seconds": 15 },
+    { "Op": "enginestats", "Label": "on-spawn-detail" },
+    { "Op": "profile", "Label": "spawn-ext", "Seconds": 15, "Detail": true, "Alloc": true, "Extended": true },
+    { "Op": "measure", "Label": "spawn-on", "Seconds": 20 },
+
+    { "Op": "teleport", "Pos": [ -7.0, 0.5, 10.0 ], "Yaw": 0 },
+    { "Op": "wait", "Seconds": 20 },
+    { "Op": "engine", "Mode": "on", "Detail": true },
+    { "Op": "wait", "Seconds": 15 },
+    { "Op": "enginestats", "Label": "on-home-detail" },
+    { "Op": "profile", "Label": "home-ext", "Seconds": 15, "Detail": true, "Alloc": true, "Extended": true },
+    { "Op": "measure", "Label": "home-on", "Seconds": 20 },
+
+    { "Op": "quit" }
+  ]
+}

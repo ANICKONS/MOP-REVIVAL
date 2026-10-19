@@ -1,0 +1,11 @@
+{
+  "Name": "smoke",
+  "SettleSeconds": 20,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "smoke test: measure and profile at the saved position" },
+    { "Op": "measure", "Label": "spawn", "Seconds": 15 },
+    { "Op": "profile", "Label": "spawn", "Seconds": 10 },
+    { "Op": "quit" }
+  ]
+}

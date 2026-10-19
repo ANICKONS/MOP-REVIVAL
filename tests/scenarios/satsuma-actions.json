@@ -1,0 +1,14 @@
+{
+  "Name": "satsuma-actions",
+  "SettleSeconds": 5,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Every PlayMaker action type used inside the Satsuma (all states), plus the transform churn of the car root while parked." },
+    { "Op": "actiontypes", "Label": "satsuma", "Path": "SATSUMA(557kg, 248)" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.5, -9.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "setmember", "Path": "SATSUMA(557kg, 248)", "Var": "Transform.hasChanged", "Value": "false" },
+    { "Op": "watch", "Label": "root_changed", "Seconds": 3, "Interval": 0.5, "Probes": [ "changed=SATSUMA(557kg, 248)|#Transform.hasChanged", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic" ] },
+    { "Op": "quit" }
+  ]
+}

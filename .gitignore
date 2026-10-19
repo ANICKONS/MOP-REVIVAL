@@ -1,0 +1,21 @@
+# Build output
+bin/
+obj/
+dist/
+tools/RefStubGen/out/
+
+# Generated compile-only stubs and downloaded third-party binaries (regenerate with refs/build-stubs.ps1)
+refs/generated/
+refs/cache/
+
+# Local research material (original sources, decompiled game code, tools). Never commit game code.
+_reference/
+semantic-review/
+
+# Automated in-game test runs (contain save backups and logs)
+_testruns/
+
+# IDE
+.vs/
+*.user
+*.suo

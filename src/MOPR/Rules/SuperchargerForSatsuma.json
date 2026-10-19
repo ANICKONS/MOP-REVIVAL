@@ -1,0 +1,8 @@
+// MOPR rules for the "SuperchargerForSatsuma" mod.
+{
+  "mod": "SuperchargerForSatsuma",
+  "keepActive": [
+    "SATSUMA(557kg, 248)"
+  ],
+  "satsuma": "keepRenderers"
+}

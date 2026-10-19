@@ -1,0 +1,8 @@
+// MOPR rules for the "GifuPump" mod.
+// Note (from the old file): only "GIFU(750/450psi)" is excluded; the words between it and fullignore have no effect
+{
+  "mod": "GifuPump",
+  "exclude": [
+    "GIFU(750/450psi)"
+  ]
+}

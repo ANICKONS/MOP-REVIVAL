@@ -1,0 +1,8 @@
+// MOPR rules for the "DonnerTech_ECU_Mod" mod.
+{
+  "mod": "DonnerTech_ECU_Mod",
+  "keepActive": [
+    "SATSUMA(557kg, 248)"
+  ],
+  "satsuma": "keepRenderers"
+}

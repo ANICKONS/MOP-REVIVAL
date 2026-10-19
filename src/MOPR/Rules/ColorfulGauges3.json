@@ -1,0 +1,5 @@
+// MOPR rules for the "ColorfulGauges3" mod.
+{
+  "mod": "ColorfulGauges3",
+  "satsuma": "keepRenderers"
+}

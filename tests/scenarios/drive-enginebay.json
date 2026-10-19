@@ -1,0 +1,31 @@
+{
+  "Name": "drive-enginebay",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Engine bay hidden from the driver's seat (layer swap during the main camera's render): seated and driving A/B, next to the reference of switching the engine renderers off." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "placecar", "Target": "SATSUMA(557kg, 248)", "Path": "Waypoint Manager/TeimoBicycleIn", "Max": 5 },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Pos": [0.0, 0.0, 0.0] },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Fsm": "PlayerTrigger", "Event": "Key DOWN" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "experimentalEngineBay", "Value": "true" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "watch", "Label": "bay_on", "Seconds": 0, "Probes": [ "vehicle=global|PlayerCurrentVehicle", "bay=static|MOP.Next.EngineBayCulling.Report" ] },
+    { "Op": "viewdiff", "Label": "bay", "Path": "MOP.Next.EngineBayCulling.Bypass", "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "abtoggle", "Label": "seated-engine-bay", "Var": "staticbool", "Path": "MOP.Next.EngineBayCulling.Bypass", "Seconds": 20, "Block": 1 },
+    { "Op": "abtoggle", "Label": "seated-engine-renderers-off", "Var": "renderers", "Path": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/CarMotorPivot", "Seconds": 16, "Block": 1 },
+    { "Op": "watch", "Label": "bay_seated", "Seconds": 0, "Probes": [ "bay=static|MOP.Next.EngineBayCulling.Report" ] },
+    { "Op": "drive", "Target": "SATSUMA(557kg, 248)", "Path": "Waypoint Manager/TeimoBicycleIn", "Max": 5, "Last": 17, "Speed": 45 },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "abtoggle", "Label": "driving-engine-bay", "Var": "staticbool", "Path": "MOP.Next.EngineBayCulling.Bypass", "Seconds": 20, "Block": 1 },
+    { "Op": "watch", "Label": "bay_driving", "Seconds": 0, "Probes": [ "driver=static|MOPR.TestBot.Driver.Status", "bay=static|MOP.Next.EngineBayCulling.Report" ] },
+    { "Op": "drivestop" },
+    { "Op": "quit" }
+  ]
+}

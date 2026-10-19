@@ -1,0 +1,12 @@
+// MOPR rules for the "TangerinePickup" mod.
+{
+  "mod": "TangerinePickup",
+  "keepActive": [
+    "gasoline(itemx)"
+  ],
+  "manage": {
+    "vehiclePhysics": [
+      "TangerinePickup(Clone)"
+    ]
+  }
+}

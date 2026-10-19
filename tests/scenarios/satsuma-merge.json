@@ -1,0 +1,44 @@
+{
+  "Name": "satsuma-merge",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "MOPR mesh merger for the parked Satsuma: state, screenshots (merged vs original), FPS on/off, and a part change while merged." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.5, -9.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "watch", "Label": "merge_state", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged", "report=static|MOP.Next.VehicleMeshMerge.Report" ] },
+    { "Op": "screenshot", "Label": "merged" },
+    { "Op": "measure", "Label": "merged-1", "Seconds": 8 },
+
+    { "Op": "modsetting", "Text": "MOPR", "Var": "renderMergeVehicles", "Value": "false" },
+    { "Op": "watch", "Label": "after_off", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged" ] },
+    { "Op": "screenshot", "Label": "original" },
+    { "Op": "measure", "Label": "original-1", "Seconds": 8 },
+
+    { "Op": "modsetting", "Text": "MOPR", "Var": "renderMergeVehicles", "Value": "true" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "watch", "Label": "after_on", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged" ] },
+    { "Op": "measure", "Label": "merged-2", "Seconds": 8 },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "renderMergeVehicles", "Value": "false" },
+    { "Op": "measure", "Label": "original-2", "Seconds": 8 },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "renderMergeVehicles", "Value": "true" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "measure", "Label": "merged-3", "Seconds": 8 },
+
+    { "Op": "log", "Text": "--- change while merged: hide the hood, then show it again ---" },
+    { "Op": "watch", "Label": "before_change", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged" ] },
+    { "Op": "activate", "Path": "SATSUMA(557kg, 248)/Body/pivot_hood/hood(Clone)", "Active": false },
+    { "Op": "watch", "Label": "after_hide", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged", "report=static|MOP.Next.VehicleMeshMerge.Report" ] },
+    { "Op": "screenshot", "Label": "hood_hidden" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "watch", "Label": "remerged_without_hood", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged", "report=static|MOP.Next.VehicleMeshMerge.Report" ] },
+    { "Op": "screenshot", "Label": "hood_hidden_merged" },
+    { "Op": "activate", "Path": "SATSUMA(557kg, 248)/Body/pivot_hood/hood(Clone)", "Active": true },
+    { "Op": "watch", "Label": "after_show", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged" ] },
+    { "Op": "screenshot", "Label": "hood_back" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "watch", "Label": "final", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged", "report=static|MOP.Next.VehicleMeshMerge.Report" ] },
+    { "Op": "screenshot", "Label": "hood_back_merged" },
+    { "Op": "quit" }
+  ]
+}

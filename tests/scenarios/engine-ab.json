@@ -1,0 +1,46 @@
+{
+  "Name": "engine-ab",
+  "SettleSeconds": 20,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Engine Lab A/B at the saved position, then at home" },
+
+    { "Op": "engine", "Mode": "shadow", "Detail": true },
+    { "Op": "wait", "Seconds": 20 },
+    { "Op": "enginestats", "Label": "shadow-spawn" },
+
+    { "Op": "engine", "Mode": "off" },
+    { "Op": "measure", "Label": "spawn-off-1", "Seconds": 12 },
+    { "Op": "engine", "Mode": "on" },
+    { "Op": "measure", "Label": "spawn-on-1", "Seconds": 12 },
+    { "Op": "engine", "Mode": "off" },
+    { "Op": "measure", "Label": "spawn-off-2", "Seconds": 12 },
+    { "Op": "engine", "Mode": "on" },
+    { "Op": "measure", "Label": "spawn-on-2", "Seconds": 12 },
+    { "Op": "enginestats", "Label": "on-spawn" },
+    { "Op": "profile", "Label": "spawn-on", "Seconds": 8 },
+    { "Op": "engine", "Mode": "off" },
+    { "Op": "profile", "Label": "spawn-off", "Seconds": 8 },
+
+    { "Op": "teleport", "Pos": [ -7.0, 0.5, 10.0 ], "Yaw": 0 },
+    { "Op": "wait", "Seconds": 20 },
+    { "Op": "engine", "Mode": "shadow", "Detail": true },
+    { "Op": "wait", "Seconds": 15 },
+    { "Op": "enginestats", "Label": "shadow-home" },
+
+    { "Op": "engine", "Mode": "off" },
+    { "Op": "measure", "Label": "home-off-1", "Seconds": 12 },
+    { "Op": "engine", "Mode": "on" },
+    { "Op": "measure", "Label": "home-on-1", "Seconds": 12 },
+    { "Op": "engine", "Mode": "off" },
+    { "Op": "measure", "Label": "home-off-2", "Seconds": 12 },
+    { "Op": "engine", "Mode": "on" },
+    { "Op": "measure", "Label": "home-on-2", "Seconds": 12 },
+    { "Op": "enginestats", "Label": "on-home" },
+    { "Op": "profile", "Label": "home-on", "Seconds": 8 },
+    { "Op": "engine", "Mode": "off" },
+    { "Op": "profile", "Label": "home-off", "Seconds": 8 },
+
+    { "Op": "quit" }
+  ]
+}

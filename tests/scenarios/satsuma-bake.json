@@ -1,0 +1,26 @@
+{
+  "Name": "satsuma-bake",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Prototype: draw the parked Satsuma as meshes merged by material. Interleaved A/B + screenshots (originals vs merged)." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [8.0, 2.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "screenshot", "Label": "8m_original" },
+    { "Op": "bakeshow", "Path": "SATSUMA(557kg, 248)", "Active": true },
+    { "Op": "screenshot", "Label": "8m_merged" },
+    { "Op": "bakeshow", "Active": false },
+    { "Op": "screenshot", "Label": "8m_original_again" },
+    { "Op": "abtoggle", "Label": "8m-look-merged", "Var": "bake", "Path": "SATSUMA(557kg, 248)", "Seconds": 24 },
+    { "Op": "abtoggle", "Label": "8m-look-renderers-off", "Var": "renderers", "Path": "SATSUMA(557kg, 248)", "Seconds": 16 },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [3.0, 1.5, 0.5], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "screenshot", "Label": "3m_original" },
+    { "Op": "bakeshow", "Path": "SATSUMA(557kg, 248)", "Active": true },
+    { "Op": "screenshot", "Label": "3m_merged" },
+    { "Op": "bakeshow", "Active": false },
+    { "Op": "abtoggle", "Label": "3m-look-merged", "Var": "bake", "Path": "SATSUMA(557kg, 248)", "Seconds": 16 },
+    { "Op": "quit" }
+  ]
+}

@@ -1,0 +1,5 @@
+// MOPR rules for the "GT_Interior" mod.
+// ignore:"SATSUMA(557kg, 248)" Dashboard fullIgnore
+{
+  "mod": "GT_Interior"
+}

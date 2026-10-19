@@ -1,0 +1,7 @@
+// MOPR rules for the "DrivableBus" mod.
+{
+  "mod": "DrivableBus",
+  "reparent": {
+    "BUS": null
+  }
+}
