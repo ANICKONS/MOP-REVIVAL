@@ -10,6 +10,7 @@
 //   path|@self           activeSelf
 //   path|@parent         hierarchy path of the parent ("(root)" at the scene root)
 //   path|@pos            world position
+//   path|@in:OTHER       position in the frame of the object OTHER (local x,y,z)
 //   |@player             distance of the player to path (path given before the bar)
 //   global|Var           global FSM variable
 
@@ -196,7 +197,7 @@ namespace MOPR.TestBot
         }
 
         /// <summary>Places an object at Target + offset (Target empty: its own position + offset). Zeroes rigidbody velocity.</summary>
-        public static string Place(string path, string target, Vector3 offset)
+        public static string Place(string path, string target, Vector3 offset, bool local = false)
         {
             GameObject go = Resolve(path);
             if (go == null) return "object not found: " + path;
@@ -206,6 +207,7 @@ namespace MOPR.TestBot
                 GameObject t = Resolve(target);
                 if (t == null) return "target not found: " + target;
                 basePos = t.transform.position;
+                if (local) offset = t.transform.rotation * offset; // offset in the target's own frame
             }
             go.transform.position = basePos + offset;
             Rigidbody rb = go.GetComponent<Rigidbody>();
@@ -1105,6 +1107,14 @@ namespace MOPR.TestBot
                         case "@parent": return go.transform.parent != null ? BotRunner.PathOf(go.transform.parent) : "(root)";
                         case "@pos": return Format(go.transform.position);
                         case "@player": return player != null ? Vector3.Distance(player.position, go.transform.position).ToString("0.0", CultureInfo.InvariantCulture) : "?";
+                    }
+                    if (parts[1].StartsWith("@in:"))
+                    {
+                        // Position in the frame of another object (e.g. cargo relative to the van).
+                        GameObject frame = Resolve(parts[1].Substring(4));
+                        if (frame == null) return "no frame";
+                        Vector3 p = frame.transform.InverseTransformPoint(go.transform.position);
+                        return p.x.ToString("0.00", CultureInfo.InvariantCulture) + "," + p.y.ToString("0.00", CultureInfo.InvariantCulture) + "," + p.z.ToString("0.00", CultureInfo.InvariantCulture);
                     }
                     if (parts[1].StartsWith("#")) return ReadMember(go, parts[1].Substring(1));
                     return "?";

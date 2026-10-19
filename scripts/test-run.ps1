@@ -47,13 +47,17 @@ $PrefsKey   = 'HKCU\Software\Amistech\My Summer Car'
 $ModsDir    = Join-Path $GameDir 'Mods'
 $ManagedDir = Join-Path $GameDir 'mysummercar_Data\Managed'
 $BotCfgDir  = Join-Path $ModsDir 'Config\Mod Settings\MOPR_TestBot'
-$ScenarioPath = if ([IO.Path]::IsPathRooted($Scenario)) { $Scenario } else { Join-Path $RepoRoot $Scenario }
+# Several scenarios separated by commas run in ONE game session (one launch instead of several): their steps are
+# joined, with a "reloadgame" (back to the menu without saving, load again) between two of them.
+$ScenarioPaths = @($Scenario -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ } |
+    ForEach-Object { if ([IO.Path]::IsPathRooted($_)) { $_ } else { Join-Path $RepoRoot $_ } })
+$ScenarioPath = $ScenarioPaths[0]
 
 # --- Preconditions ------------------------------------------------------------------------------
 if (Get-Process mysummercar -ErrorAction SilentlyContinue) { Step 'The game is already running. Close it first.' 'Red'; exit 1 }
 if (-not (Get-Process steam -ErrorAction SilentlyContinue)) { Step 'Steam is not running.' 'Red'; exit 1 }
 if (-not (Test-Path (Join-Path $ManagedDir 'MSCLoader.dll'))) { Step 'MSCLoader is not installed in the game.' 'Red'; exit 1 }
-if (-not (Test-Path $ScenarioPath)) { Step "Scenario not found: $ScenarioPath" 'Red'; exit 1 }
+foreach ($p in $ScenarioPaths) { if (-not (Test-Path $p)) { Step "Scenario not found: $p" 'Red'; exit 1 } }
 $SteamExe = (Get-ItemProperty 'HKCU:\Software\Valve\Steam' -ErrorAction SilentlyContinue).SteamExe
 if (-not $SteamExe) { $SteamExe = "${env:ProgramFiles(x86)}\Steam\steam.exe" }
 
@@ -121,6 +125,20 @@ try {
     if (Test-Path $BotCfgDir) { Remove-Item -Recurse -Force $BotCfgDir }
     New-Item -ItemType Directory -Force -Path $BotCfgDir | Out-Null
     $scenarioJson = Get-Content $ScenarioPath -Raw | ConvertFrom-Json
+    if ($ScenarioPaths.Count -gt 1) {
+        # One session: the settings of the first scenario, every scenario's steps without its "quit", one quit at the end.
+        $steps = New-Object System.Collections.ArrayList
+        for ($s = 0; $s -lt $ScenarioPaths.Count; $s++) {
+            $part = Get-Content $ScenarioPaths[$s] -Raw | ConvertFrom-Json
+            if ($s -gt 0) { [void]$steps.Add([pscustomobject]@{ Op = 'reloadgame' }) }
+            [void]$steps.Add([pscustomobject]@{ Op = 'log'; Text = "===== scenario $($part.Name) ($($s + 1)/$($ScenarioPaths.Count))" })
+            foreach ($st in @($part.Steps)) { if ($st.Op -ne 'quit') { [void]$steps.Add($st) } }
+        }
+        [void]$steps.Add([pscustomobject]@{ Op = 'quit' })
+        $scenarioJson.Steps = $steps.ToArray()
+        $scenarioJson.Name = (($ScenarioPaths | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension($_) }) -join '+')
+        Step "One session for $($ScenarioPaths.Count) scenarios: $($scenarioJson.Name)"
+    }
     $scenarioJson | Add-Member -NotePropertyName Variant -NotePropertyValue $name -Force
     $scenarioJson | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 (Join-Path $BotCfgDir 'run.json')
 
@@ -199,7 +217,7 @@ try {
         # 3. Main menu is up (written by the bot): release the bot.
         if ($splashDone -and -not $menuHandled -and (Test-Path $menuFlag)) {
             $menuHandled = $true
-            Start-Sleep -Seconds 2
+            Start-Sleep -Milliseconds 800
             [void](Save-Screenshot (Join-Path $RunDir 'menu.png'))
             Set-Content -Path $menuReady -Value 'ok'
         }
@@ -228,10 +246,10 @@ finally {
         $p = Join-Path $BotCfgDir $f
         if (Test-Path $p) { Copy-Item $p $RunDir -Force }
     }
-    foreach ($pattern in 'dumpui_*.txt', 'find_*.txt', 'dumpfsm_*.txt', 'probe_*.txt', 'settings_*.txt', 'fsmhist_*.txt', 'tree_*.txt', 'mopstate_*.txt', 'fsmcache_*.txt') {
+    foreach ($pattern in 'dumpui_*.txt', 'find_*.txt', 'dumpfsm_*.txt', 'probe_*.txt', 'settings_*.txt', 'fsmhist_*.txt', 'tree_*.txt', 'mopstate_*.txt', 'fsmcache_*.txt', 'partdiff_*.txt', 'fsmmark_*.txt', 'guardmark_*.txt', 'guardcheck_*.txt') {
         Get-ChildItem $BotCfgDir -Filter $pattern -ErrorAction SilentlyContinue | Copy-Item -Destination $RunDir -Force
     }
-    foreach ($pattern in 'snapshot_*.tsv', 'watch_*.tsv', 'shot_*.png') {
+    foreach ($pattern in 'snapshot_*.tsv', 'watch_*.tsv', 'shot_*.png', 'partsnap_*.tsv') {
         Get-ChildItem $BotCfgDir -Filter $pattern -ErrorAction SilentlyContinue | Copy-Item -Destination $RunDir -Force
     }
     foreach ($log in 'output_log.txt') {

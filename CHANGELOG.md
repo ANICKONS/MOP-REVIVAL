@@ -202,14 +202,38 @@
 - Back in the main menu without a save through MOP (death, MOP's own scene restart), MOP stayed "active", and
   during the next load `Hypervisor.Update` ran before MOP was set up: about 200 `NullReferenceException`s in
   the log (seen with the TestBot's new `reloadgame` step, also in the build before these fixes).
+- The restart guard now also covers the Satsuma's own switching (Body, MiscParts, Dashboard, Interior, Chassis,
+  CarSimulation...), the Hayosiko and the world objects: they used plain `SetActive`, so FSMs in them that read
+  the save when they start read it again every time MOP switched them back on. Measured with the TestBot
+  (`guard-world`: every running FSM at home that reads the save on start gets a value the save does not have,
+  2 km away and back): before, the dashboard light mode, the radio tuner and the windshield went back to the save
+  (a windshield broken in the session came back whole, its tax sticker back); after, 0 resets caused by MOP of 128
+  marked values. The one reset left (the repair shop order) happens in the vanilla game too.
+- `SatsumaHingeManager` froze the game for good if a part ever had two joints of one kind: its clean-up loop
+  (`while (joints.Length > 1) Destroy(joints[0])`) never ends, `Destroy` does not shrink the array.
 - **GifuPump rule**: only the truck's `MESH` stays on while MOP switches the parked GIFU off (`keepActiveIn`).
   The old rule line was misread by MOP 3.10, which excluded the whole truck.
 
 - TestBot: `reloadgame` (back to the main menu without saving, then Continue; the run survives MSCLoader's reset
-  of all mods in the menu), `fsmcache` (MOP's cached FSM variables: live or left over from an earlier scene),
-  probes `@self` and `@parent`.
+  of all mods in the menu), `savegame` (a real save through the game's own save point, then the run goes on
+  after the load; the runner restores the save folder afterwards), `fsmcache` (MOP's cached FSM variables: live or
+  left over from an earlier scene), `partsnap` / `partcompare` (every Satsuma part, bolt stage and parts-database
+  value, inactive objects included), `fsmmark` and `guardmark` / `guardcheck` (values the save does not have, to
+  see resets), `repeat`, `place` in an object's own frame, probes `@self`, `@parent`, `@in:OTHER`.
+- Test runs are about three times faster (a short scenario: 75 s instead of ~220 s): shorter waits in the bot and
+  the scenarios, a faster snapshot comparison, and `test-run.ps1 -Scenario a.json,b.json` runs several scenarios
+  in one game session.
 
 ### Checked
+- **Satsuma parts falling off, bolts resetting** (the most common report against MOP 3.x): not reproduced with
+  5.1. TestBot `b1-parts`, `b1-marked`, `b1-save`, against the vanilla game: 21 cycles away (40 m and 2 km) and
+  back, and a real save and load - no part moved or came off (249 parts, 1709 FSMs, 123 bolt-stage lists). Every
+  BoltCheck tightness got -0.5 first (a value the save does not have): all 88 kept it, also across the save.
+- **Items falling out of vehicles** (`b2-cargo`): three items in the back of the Hayosiko, three times 3 km away
+  and back: 0.00 m difference in the van's frame.
+- **Sudden death in the Satsuma** (`b5-death`): death is the game's "Death" FSM on `DriverHeadPivot` seeing its
+  ConfigurableJoint gone. MOP switches that object (player farther than 10 m), which restarts the FSM into its
+  10 s wait; the joint itself stays (break force unchanged). Not reproduced without driving.
 - **Gifu septic pump** (reported against MOPR 4.0.x): reproduced the job in game with the TestBot
   (`tests/scenarios/gifu-pump.json`). With MOPR 5.1 the well drains at the rate the game's FSM predicts
   (rpm / 90 / 500 per second) with the player at 3 m, at 9 m (MOP has frozen the truck physics), at 40 m

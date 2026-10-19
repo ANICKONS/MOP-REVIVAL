@@ -1,0 +1,18 @@
+{
+  "Name": "guard-world",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Restart resets in everything MOP switches at home: every running FSM that reads the save when it starts gets a value the save does not have (guardmark), the player goes 2 km away and back, guardcheck reports kept / RESET." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "guardmark", "Label": "home", "Text": "SATSUMA(557kg, 248);HAYOSIKO(1500kg, 250);KEKMET(350-400psi);FLATBED;FERNDALE(1630kg);RCO_RUSCKO12(270);JONNEZ ES(Clone);GIFU(750/450psi);YARD;COTTAGE;CABIN;DINGONBIISI;TRAFFIC;HUMANS;MAP;PERAJARVI;STORE;REPAIRSHOP;JOBS;ITEMS" },
+    { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [6.0, 1.0, 0.0] },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "guardcheck", "Label": "home" },
+    { "Op": "console", "Text": "mopr guard" },
+    { "Op": "quit" }
+  ]
+}

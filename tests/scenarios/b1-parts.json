@@ -1,0 +1,34 @@
+{
+  "Name": "b1-parts",
+  "SettleSeconds": 15,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "B1 (parts fall off, bolts reset): every Satsuma part, bolt stage and parts-database value before and after leaving the car. Phase 1: 40 m (MOP switches the Chassis and the physics off, the car stays on). Phase 2: 2 km (MOP switches the car off). Run with -Variant vanilla as well: what changes there is the game itself." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "partsnap", "Label": "base", "Text": "reset" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "partsnap", "Label": "base2" },
+    { "Op": "partcompare", "A": "base", "B": "base2" },
+
+    { "Op": "repeat", "Label": "mid", "Max": 5, "Steps": [
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [40.0, 4.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+      { "Op": "wait", "Seconds": 8 },
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+      { "Op": "wait", "Seconds": 8 },
+      { "Op": "partsnap", "Label": "mid{i}" },
+      { "Op": "partcompare", "A": "base", "B": "mid{i}" }
+    ] },
+
+    { "Op": "repeat", "Label": "far", "Max": 10, "Steps": [
+      { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [6.0, 1.0, 0.0] },
+      { "Op": "wait", "Seconds": 10 },
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+      { "Op": "wait", "Seconds": 10 },
+      { "Op": "partsnap", "Label": "far{i}" },
+      { "Op": "partcompare", "A": "base", "B": "far{i}" }
+    ] },
+    { "Op": "partcompare", "A": "far1", "B": "far10" },
+    { "Op": "quit" }
+  ]
+}

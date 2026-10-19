@@ -33,6 +33,8 @@
 -The "MSCEditor" warning no longer appears for a car that simply has few bolts tightened
 -Fixed errors with modded house doors (fridge), the combine and a few silent errors in item handling
 -Fixed food spoiling three times slower than in the game while MOP had it switched off
+-Fixed the Satsuma's windshield, dashboard light mode and radio tuner going back to the saved state whenever MOP switched the car on again (also for the Hayosiko and world objects)
+-Fixed a possible permanent freeze in MOP's door hinge fix
 -GifuPump rule: only the truck's tank mesh stays on, the rest of the GIFU is optimized again
 
 ### 5.0.0 "Reborn"

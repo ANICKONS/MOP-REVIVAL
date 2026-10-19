@@ -1,0 +1,28 @@
+{
+  "Name": "b2-cargo",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "B2 (items fall out of vehicles): three items are put into the back of the Hayosiko van and settle; the player goes 2 km away and back three times. The items' positions in the van's frame must stay the same." },
+    { "Op": "watch", "Label": "where", "Seconds": 0, "Probes": [ "van=HAYOSIKO(1500kg, 250)|@pos", "vanFromCar=HAYOSIKO(1500kg, 250)|@in:SATSUMA(557kg, 248)", "gifuFromVan=GIFU(750/450psi)|@in:HAYOSIKO(1500kg, 250)" ] },
+    { "Op": "teleport", "Path": "HAYOSIKO(1500kg, 250)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "HAYOSIKO(1500kg, 250)" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "place", "Path": "ITEMS/beer case(itemx)", "Target": "HAYOSIKO(1500kg, 250)", "Local": true, "Pos": [0.0, 1.0, -1.2] },
+    { "Op": "place", "Path": "ITEMS/milk(itemx)", "Target": "HAYOSIKO(1500kg, 250)", "Local": true, "Pos": [0.35, 1.0, -1.6] },
+    { "Op": "place", "Path": "ITEMS/sausages(itemx)", "Target": "HAYOSIKO(1500kg, 250)", "Local": true, "Pos": [-0.35, 1.0, -1.8] },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "watch", "Label": "settled", "Seconds": 0, "Probes": [
+      "beer=ITEMS/beer case(itemx)|@in:HAYOSIKO(1500kg, 250)", "milk=ITEMS/milk(itemx)|@in:HAYOSIKO(1500kg, 250)", "saus=ITEMS/sausages(itemx)|@in:HAYOSIKO(1500kg, 250)",
+      "beerAct=ITEMS/beer case(itemx)|@active", "vanAct=HAYOSIKO(1500kg, 250)|@self", "vanKin=HAYOSIKO(1500kg, 250)|#Rigidbody.isKinematic" ] },
+    { "Op": "repeat", "Label": "cycle", "Max": 3, "Steps": [
+      { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [6.0, 1.0, 0.0] },
+      { "Op": "wait", "Seconds": 3 },
+      { "Op": "watch", "Label": "away{i}", "Seconds": 0, "Probes": [ "beerAct=ITEMS/beer case(itemx)|@active", "vanAct=HAYOSIKO(1500kg, 250)|@self", "vanDist=HAYOSIKO(1500kg, 250)|@player" ] },
+      { "Op": "teleport", "Path": "HAYOSIKO(1500kg, 250)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "HAYOSIKO(1500kg, 250)" },
+      { "Op": "watch", "Label": "back{i}", "Seconds": 4, "Interval": 1, "Probes": [
+        "beer=ITEMS/beer case(itemx)|@in:HAYOSIKO(1500kg, 250)", "milk=ITEMS/milk(itemx)|@in:HAYOSIKO(1500kg, 250)", "saus=ITEMS/sausages(itemx)|@in:HAYOSIKO(1500kg, 250)",
+        "beerAct=ITEMS/beer case(itemx)|@active", "vanAct=HAYOSIKO(1500kg, 250)|@self", "vanKin=HAYOSIKO(1500kg, 250)|#Rigidbody.isKinematic" ] }
+    ] },
+    { "Op": "quit" }
+  ]
+}

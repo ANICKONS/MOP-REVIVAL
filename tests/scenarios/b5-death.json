@@ -1,0 +1,27 @@
+{
+  "Name": "b5-death",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "B5 (sudden death in the Satsuma): what the driver's head pivot and its Death FSM are, and what happens to them while MOP switches DriverHeadPivot (player farther than 10 m) and the car physics (5 m)." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "tree", "Label": "head", "Path": "SATSUMA(557kg, 248)/DriverHeadPivot", "Max": 3 },
+    { "Op": "dumpfsm", "Label": "head", "Path": "SATSUMA(557kg, 248)/DriverHeadPivot", "Recursive": true },
+    { "Op": "repeat", "Label": "cycle", "Max": 3, "Steps": [
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [25.0, 3.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+      { "Op": "watch", "Label": "away{i}", "Seconds": 3, "Interval": 0.5, "Probes": [
+        "act=SATSUMA(557kg, 248)/DriverHeadPivot|@self", "death=SATSUMA(557kg, 248)/DriverHeadPivot|Death|@state",
+        "fixed=SATSUMA(557kg, 248)/DriverHeadPivot|#FixedJoint.breakForce", "conf=SATSUMA(557kg, 248)/DriverHeadPivot|#ConfigurableJoint.breakForce",
+        "spring=SATSUMA(557kg, 248)/DriverHeadPivot|#SpringJoint.breakForce", "kin=SATSUMA(557kg, 248)/DriverHeadPivot|#Rigidbody.isKinematic",
+        "carKin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic", "headPos=SATSUMA(557kg, 248)/DriverHeadPivot|@pos" ] },
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+      { "Op": "watch", "Label": "back{i}", "Seconds": 4, "Interval": 0.25, "Probes": [
+        "act=SATSUMA(557kg, 248)/DriverHeadPivot|@self", "death=SATSUMA(557kg, 248)/DriverHeadPivot|Death|@state",
+        "fixed=SATSUMA(557kg, 248)/DriverHeadPivot|#FixedJoint.breakForce", "conf=SATSUMA(557kg, 248)/DriverHeadPivot|#ConfigurableJoint.breakForce",
+        "spring=SATSUMA(557kg, 248)/DriverHeadPivot|#SpringJoint.breakForce", "kin=SATSUMA(557kg, 248)/DriverHeadPivot|#Rigidbody.isKinematic",
+        "carKin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic", "headPos=SATSUMA(557kg, 248)/DriverHeadPivot|@pos" ] }
+    ] },
+    { "Op": "quit" }
+  ]
+}

@@ -22,6 +22,8 @@ namespace MOPR.TestBot
         Scenario scenario;
         Report report = new Report();
         Dictionary<string, Dictionary<string, string>> snapshots = new Dictionary<string, Dictionary<string, string>>();
+        // Static: part snapshots survive "reloadgame" / "savegame" (a new runner continues the run).
+        static readonly Dictionary<string, Dictionary<string, string>> partSnaps = new Dictionary<string, Dictionary<string, string>>();
         float startTime;
         float lastHeartbeat;
         bool finished;
@@ -66,13 +68,14 @@ namespace MOPR.TestBot
             resumeSnapshots = null;
             resumeStep = -1;
             Application.runInBackground = true;
+            PartSnapshot.Reset(); // new scene: new instance IDs
             Log($"TestBot resumed after reloadgame: step {from + 1} of {scenario.Steps.Count}");
             StartCoroutine(ResumeRun(from));
         }
 
         IEnumerator ResumeRun(int from)
         {
-            for (int i = 0; i < 5; i++) { Beat(); yield return new WaitForSeconds(1f); }
+            for (int i = 0; i < 2; i++) { Beat(); yield return new WaitForSeconds(1f); }
             yield return StartCoroutine(EnterGame(false));
             if (enterError != null)
             {
@@ -82,6 +85,21 @@ namespace MOPR.TestBot
             Log($"reloadgame: game ready again after {lastLoadSeconds:0.0} s");
             yield return StartCoroutine(RunSteps(scenario.Steps.Skip(from).ToList(), from));
             Finish(null);
+        }
+
+        /// <summary>"savegame" handed the run over; if the game is still in the game scene after 90 s, it did not save.</summary>
+        IEnumerator SaveWatchdog()
+        {
+            float until = Time.realtimeSinceStartup + 90f;
+            while (Time.realtimeSinceStartup < until)
+            {
+                if (ModLoader.CurrentScene != CurrentScene.Game) yield break;
+                yield return new WaitForSeconds(1f);
+            }
+            resumeScenario = null;
+            resumeStep = -1;
+            finished = false;
+            Finish("savegame: the game did not save and quit to the menu within 90 s");
         }
 
         void Update()
@@ -338,6 +356,134 @@ namespace MOPR.TestBot
                         Log("reloadgame: loading the main menu without saving; the run continues after MSCLoader's reload");
                         Application.LoadLevel(1);
                         yield break;
+                    case "savegame":
+                        {
+                            // Saves through one of the game's own save points ("SAVE AND QUIT TO MENU"): its Button FSM is
+                            // started at "Mute audio" (the state after the click, where MOP hooks its pre-save), then the
+                            // game saves and loads the main menu. The run continues like after "reloadgame". The save
+                            // folder is restored by scripts\test-run.ps1 after the run.
+                            if (baseIndex < 0)
+                            {
+                                Log("savegame: only possible in Steps, skipped");
+                                break;
+                            }
+                            GameObject point = GameOps.Resolve(step.Path ?? "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME");
+                            PlayMakerFSM button = GameOps.Fsm(point, step.Fsm ?? "Button");
+                            if (button == null || !button.gameObject.activeInHierarchy || !button.enabled)
+                            {
+                                Log("savegame: save point not found or not active: " + (step.Path ?? "living room"));
+                                break;
+                            }
+                            resumeScenario = scenario;
+                            resumeReport = report;
+                            resumeSnapshots = snapshots;
+                            resumeStep = baseIndex + stepIndex + 1;
+                            resumeStartTime = startTime;
+                            finished = true;
+                            Log("savegame: saving through " + PathOf(button.transform) + "; the run continues after the main menu");
+                            // PlayMaker 1.6 has no public "go to state": Fsm.SwitchState(FsmState) is what a transition calls.
+                            FsmState muteAudio = button.FsmStates.FirstOrDefault(s => s.Name == "Mute audio");
+                            System.Reflection.MethodInfo switchState = typeof(Fsm).GetMethod("SwitchState",
+                                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, new[] { typeof(FsmState) }, null);
+                            if (muteAudio == null || switchState == null)
+                            {
+                                resumeScenario = null;
+                                resumeStep = -1;
+                                finished = false;
+                                Log("savegame: no \"Mute audio\" state or no Fsm.SwitchState");
+                                break;
+                            }
+                            switchState.Invoke(button.Fsm, new object[] { muteAudio });
+                            StartCoroutine(SaveWatchdog());
+                            yield break;
+                        }
+                    case "repeat":
+                        {
+                            // Max times the nested Steps; "{i}" in Label, A, B and Text becomes the iteration (1..Max).
+                            List<Step> body = step.Steps ?? new List<Step>();
+                            string json = JsonConvert.SerializeObject(body);
+                            for (int iteration = 1; iteration <= Math.Max(1, step.Max) && !finished; iteration++)
+                            {
+                                List<Step> copy = JsonConvert.DeserializeObject<List<Step>>(json);
+                                string it = iteration.ToString(CultureInfo.InvariantCulture);
+                                foreach (Step s in copy)
+                                {
+                                    if (s.Label != null) s.Label = s.Label.Replace("{i}", it);
+                                    if (s.A != null) s.A = s.A.Replace("{i}", it);
+                                    if (s.B != null) s.B = s.B.Replace("{i}", it);
+                                    if (s.Text != null) s.Text = s.Text.Replace("{i}", it);
+                                }
+                                Log($"repeat {step.Label}: {iteration}/{step.Max}");
+                                yield return StartCoroutine(RunSteps(copy));
+                            }
+                        }
+                        break;
+                    case "partsnap":
+                        {
+                            // The Satsuma, its parts database and loose parts (PartSnapshot.cs). Text "reset": forget names.
+                            if (step.Text == "reset") PartSnapshot.Reset();
+                            System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+                            Dictionary<string, string> snap = PartSnapshot.Take(out string summary);
+                            partSnaps[step.Label ?? "x"] = snap;
+                            PartSnapshot.Write(snap, Path.Combine(TestBotMod.Folder, "partsnap_" + (step.Label ?? "x") + ".tsv"));
+                            Log($"partsnap {step.Label}: {snap.Count} values, {summary} ({sw.ElapsedMilliseconds} ms)");
+                        }
+                        break;
+                    case "guardmark":
+                        {
+                            // Text: root object names, ";" separated (empty = all). See GuardProbe.cs.
+                            string list = GuardProbe.MarkAll(step.Text, out string summary);
+                            WriteArtifact("guardmark_" + (step.Label ?? "x") + ".txt", list);
+                            Log("guardmark " + step.Label + ": " + summary);
+                        }
+                        break;
+                    case "guardcheck":
+                        {
+                            string list = GuardProbe.Check(out string summary);
+                            WriteArtifact("guardcheck_" + (step.Label ?? "x") + ".txt", list);
+                            Log("guardcheck " + step.Label + ": " + summary);
+                        }
+                        break;
+                    case "fsmmark":
+                        {
+                            // Changes a float of every FSM named Fsm under Path (all of them if Path is empty) by Value
+                            // (default -0.5), only where it is above 0.75: a marker the save does not have. If MOP lets
+                            // such an FSM restart from the save, the marker is gone in the next partsnap.
+                            GameObject rootGo = string.IsNullOrEmpty(step.Path) ? null : GameOps.Resolve(step.Path);
+                            float delta = string.IsNullOrEmpty(step.Value) ? -0.5f : float.Parse(step.Value, CultureInfo.InvariantCulture);
+                            string fsmName = step.Fsm ?? "BoltCheck", varName = step.Var ?? "Tightness";
+                            int marked = 0, skipped = 0;
+                            StringBuilder list = new StringBuilder();
+                            foreach (PlayMakerFSM fsm in Resources.FindObjectsOfTypeAll<PlayMakerFSM>())
+                            {
+                                if (fsm == null || fsm.hideFlags != HideFlags.None || fsm.FsmName != fsmName) continue;
+                                if (rootGo != null && fsm.transform.root != rootGo.transform) continue;
+                                FsmFloat f = fsm.FsmVariables.FindFsmFloat(varName);
+                                if (f == null) continue;
+                                if (f.Value <= 0.75f) { skipped++; continue; }
+                                float before = f.Value;
+                                f.Value = before + delta;
+                                marked++;
+                                list.Append(PathOf(fsm.transform)).Append('\t').Append(before.ToString("0.###", CultureInfo.InvariantCulture))
+                                    .Append(" -> ").Append(f.Value.ToString("0.###", CultureInfo.InvariantCulture)).Append('\n');
+                            }
+                            WriteArtifact("fsmmark_" + (step.Label ?? "x") + ".txt", list.ToString());
+                            Log($"fsmmark {step.Label}: {fsmName}.{varName} {delta:+0.###;-0.###} on {marked} FSMs ({skipped} at 0.75 or below left alone)");
+                        }
+                        break;
+                    case "partcompare":
+                        {
+                            if (step.A == null || step.B == null || !partSnaps.ContainsKey(step.A) || !partSnaps.ContainsKey(step.B))
+                            {
+                                Log($"partcompare: missing snapshot {step.A} / {step.B}");
+                                break;
+                            }
+                            string diff = PartSnapshot.Compare(partSnaps[step.A], partSnaps[step.B], out string summary, out int changed);
+                            WriteArtifact("partdiff_" + step.A + "_" + step.B + ".txt", diff);
+                            report.Compares.Add(new CompareResult { A = step.A, B = step.B, Changed = changed, KeysA = partSnaps[step.A].Count, KeysB = partSnaps[step.B].Count });
+                            Log($"partcompare {step.A} -> {step.B}: {summary}");
+                        }
+                        break;
                     case "fsmcache":
                         {
                             // MOP's cached FSM variables (static fields of Text, default MOP.FSM.FsmManager): live = they
@@ -455,7 +601,7 @@ namespace MOPR.TestBot
                     case "place":
                         {
                             Vector3 offset = step.Pos != null && step.Pos.Length == 3 ? new Vector3(step.Pos[0], step.Pos[1], step.Pos[2]) : Vector3.zero;
-                            string err = GameOps.Place(step.Path, step.Target, offset);
+                            string err = GameOps.Place(step.Path, step.Target, offset, step.Local);
                             Log($"place {step.Path} at {step.Target ?? "self"} + {offset}" + (err != null ? "  ERROR: " + err : ""));
                             yield return new WaitForFixedUpdate();
                         }
@@ -815,7 +961,7 @@ namespace MOPR.TestBot
         IEnumerator EnterGame(bool first)
         {
             enterError = null;
-            yield return new WaitForSeconds(3f);
+            yield return new WaitForSeconds(1f);
             int attempts = 0;
             while (ModLoader.CurrentScene == CurrentScene.MainMenu && attempts < 6)
             {
@@ -859,7 +1005,7 @@ namespace MOPR.TestBot
                 if (ready)
                 {
                     if (controllableSince < 0f) controllableSince = Time.realtimeSinceStartup;
-                    if (Time.realtimeSinceStartup - controllableSince >= 5f) break;
+                    if (Time.realtimeSinceStartup - controllableSince >= 2f) break;
                 }
                 else controllableSince = -1f;
 

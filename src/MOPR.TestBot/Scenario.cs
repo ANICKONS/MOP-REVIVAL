@@ -50,6 +50,7 @@ namespace MOPR.TestBot
         public float Fov;                         // shadowsweep: field of view of the test camera (0 = the main camera's)
         public float Speed = 60f;                 // drive: km/h
         public int Last;                          // drive: last waypoint of the route (0 = the end); Max = first
+        public List<Step> Steps;                  // repeat: the steps run Max times ("{i}" in Label/A/B/Text = 1..Max)
     }
 
     // ---------------------------------------------------------------------------------------------

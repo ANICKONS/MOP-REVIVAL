@@ -26,6 +26,7 @@ using MOP.Common.Enumerations;
 using MOP.Items.Cases;
 using MOP.Vehicles.Managers.SatsumaManagers;
 using MOP.Rules;
+using MOP.Next;
 
 namespace MOP.Vehicles.Cases
 {
@@ -712,7 +713,7 @@ namespace MOP.Vehicles.Cases
                     continue;
 
                 bool isElementEnabled = IsSatsumaInParcFerme || enabled;
-                disableableObjects[i].gameObject.SetActive(isElementEnabled);
+                SetActiveGuarded(disableableObjects[i].gameObject, isElementEnabled, "Satsuma");
             }
 
             RenderersCulling(enabled);
@@ -929,38 +930,22 @@ namespace MOP.Vehicles.Cases
                         continue;
                     }
 
+                    bool on = sao.EnableOn == SatsumaEnableOn.OnEngine ? onEngine
+                            : sao.EnableOn == SatsumaEnableOn.OnPlayerClose ? onClose : onFar;
+
                     PlayMakerFSM fsm = sao.FSM;
-                    if (fsm != null)
+                    if (fsm != null && fsm.enabled != on)
                     {
-                        switch (sao.EnableOn)
-                        {
-                            case SatsumaEnableOn.OnEngine:
-                                fsm.enabled = onEngine;
-                                break;
-                            case SatsumaEnableOn.OnPlayerClose:
-                                fsm.enabled = onClose;
-                                break;
-                            case SatsumaEnableOn.OnPlayerFar:
-                                fsm.enabled = onFar;
-                                break;
-                        }
+                        // MOP - REVIVAL 5.1: through the restart guard, like every other object MOP switches.
+                        if (!on) RestartGuard.BeforeDisableComponent(fsm, "Satsuma");
+                        fsm.enabled = on;
+                        if (on) RestartGuard.AfterEnableComponent(fsm);
                     }
 
                     GameObject gm = sao.GameObject;
                     if (gm != null)
                     {
-                        switch (sao.EnableOn)
-                        {
-                            case SatsumaEnableOn.OnEngine:
-                                gm.SetActive(onEngine);
-                                break;
-                            case SatsumaEnableOn.OnPlayerClose:
-                                gm.SetActive(onClose);
-                                break;
-                            case SatsumaEnableOn.OnPlayerFar:
-                                gm.SetActive(onFar);
-                                break;
-                        }
+                        SetActiveGuarded(gm, on, "Satsuma");
                     }
                 }
 
@@ -1018,6 +1003,21 @@ namespace MOP.Vehicles.Cases
             {
                 ExceptionManager.New(ex, true, "SATSUMA_TOGGLE_ELEMENTS_ERROR");
             }
+        }
+
+        /// <summary>
+        /// MOP - REVIVAL 5.1 (fix): the Satsuma switched its parts (Body, MiscParts, Dashboard, Interior, Chassis,
+        /// CarSimulation...) with a plain SetActive, so the restart guard never saw them: an FSM in there that reads
+        /// the save when it starts read it again every time MOP switched the car back on. The FSM audit lists e.g. the
+        /// dashboard light mode switch, the radio tuner and the windshield (its tax sticker and damage). Only on a
+        /// change of state, so the per-tick calls of ToggleElements cost a comparison.
+        /// </summary>
+        static void SetActiveGuarded(GameObject go, bool active, string owner)
+        {
+            if (go.activeSelf == active) return;
+            if (!active) RestartGuard.BeforeDisable(go, owner);
+            go.SetActive(active);
+            if (active) RestartGuard.AfterEnable(go);
         }
 
         /// <summary>

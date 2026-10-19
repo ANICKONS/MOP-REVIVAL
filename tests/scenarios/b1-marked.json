@@ -1,0 +1,38 @@
+{
+  "Name": "b1-marked",
+  "SettleSeconds": 15,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "B1, bolts reset to the save: the in-game values must differ from the save, or a reset can't be seen. Every BoltCheck Tightness of the Satsuma gets -0.5 (a value the save does not have), then the player leaves (40 m: Chassis and physics off; 2 km: car off) and comes back. A Tightness back at its saved value = that part's BoltCheck restarted and re-read the save. Run with -Variant vanilla as well." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "partsnap", "Label": "base", "Text": "reset" },
+    { "Op": "fsmmark", "Label": "tightness", "Path": "SATSUMA(557kg, 248)", "Fsm": "BoltCheck", "Var": "Tightness", "Value": "-0.5" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "partsnap", "Label": "marked" },
+    { "Op": "partcompare", "A": "base", "B": "marked" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "partsnap", "Label": "marked2" },
+    { "Op": "partcompare", "A": "marked", "B": "marked2" },
+    { "Op": "console", "Text": "mopr audit" },
+
+    { "Op": "repeat", "Label": "mid", "Max": 3, "Steps": [
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [40.0, 4.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+      { "Op": "wait", "Seconds": 8 },
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+      { "Op": "wait", "Seconds": 8 },
+      { "Op": "partsnap", "Label": "mid{i}" },
+      { "Op": "partcompare", "A": "marked2", "B": "mid{i}" }
+    ] },
+
+    { "Op": "repeat", "Label": "far", "Max": 3, "Steps": [
+      { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [6.0, 1.0, 0.0] },
+      { "Op": "wait", "Seconds": 10 },
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+      { "Op": "wait", "Seconds": 10 },
+      { "Op": "partsnap", "Label": "far{i}" },
+      { "Op": "partcompare", "A": "marked2", "B": "far{i}" }
+    ] },
+    { "Op": "quit" }
+  ]
+}

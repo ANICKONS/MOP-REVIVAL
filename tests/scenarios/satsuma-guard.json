@@ -1,0 +1,28 @@
+{
+  "Name": "satsuma-guard",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "FSMs of the Satsuma that read the save when they start (MOP FSM audit): dashboard light mode, radio tuner, windshield. Each gets a value the save does not have; MOP switches the car off (2 km) and on again. A value back at the save = that FSM restarted from the save." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "fsmset", "Path": "SATSUMA(557kg, 248)/Dashboard/pivot_dashboard/dashboard(Clone)/pivot_meters/dashboard meters(Clone)/Knobs/ButtonsDash/LightModes", "Fsm": "Use", "Var": "Selection", "Value": "2" },
+    { "Op": "fsmset", "Path": "SATSUMA(557kg, 248)/Dashboard/pivot_dashboard/dashboard(Clone)/pivot_meters/dashboard meters(Clone)/pivot_radio/radio(Clone)/TunerPivot/RadioTuner", "Fsm": "Knob", "Var": "Tune", "Value": "0.37" },
+    { "Op": "fsmset", "Path": "SATSUMA(557kg, 248)/Body/Windshield", "Fsm": "Data", "Var": "TaxSticker", "Value": "false" },
+    { "Op": "partsnap", "Label": "marked", "Text": "reset" },
+    { "Op": "repeat", "Label": "far", "Max": 2, "Steps": [
+      { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [6.0, 1.0, 0.0] },
+      { "Op": "wait", "Seconds": 3 },
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+      { "Op": "wait", "Seconds": 3 },
+      { "Op": "partsnap", "Label": "far{i}" },
+      { "Op": "partcompare", "A": "marked", "B": "far{i}" }
+    ] },
+    { "Op": "watch", "Label": "markers", "Seconds": 0, "Probes": [
+      "lights=SATSUMA(557kg, 248)/Dashboard/pivot_dashboard/dashboard(Clone)/pivot_meters/dashboard meters(Clone)/Knobs/ButtonsDash/LightModes|Use|Selection",
+      "tune=SATSUMA(557kg, 248)/Dashboard/pivot_dashboard/dashboard(Clone)/pivot_meters/dashboard meters(Clone)/pivot_radio/radio(Clone)/TunerPivot/RadioTuner|Knob|Tune",
+      "tax=SATSUMA(557kg, 248)/Body/Windshield|Data|TaxSticker" ] },
+    { "Op": "console", "Text": "mopr guard" },
+    { "Op": "quit" }
+  ]
+}

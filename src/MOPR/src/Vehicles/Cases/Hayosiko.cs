@@ -81,12 +81,15 @@ namespace MOP.Vehicles.Cases
             {
                 MoveNonDisableableObjects(temporaryParent);
                 colliders.parent = temporaryParent;
+                // MOP - REVIVAL 5.1 (fix): the van has its own toggle and skipped the restart guard of Vehicle.
+                Next.RestartGuard.BeforeDisable(gameObject, "Vehicle " + gameObject.name);
             }
 
             gameObject.SetActive(enabled);
 
             if (enabled)
             {
+                Next.RestartGuard.AfterEnable(gameObject);
                 MoveNonDisableableObjects(null);
                 colliders.parent = transform;
                 colliders.localPosition = colliderPosition;
@@ -102,7 +105,9 @@ namespace MOP.Vehicles.Cases
 
             for (int i = 0; i < partialDisableItems.Length; i++)
             {
+                if (!enabled) Next.RestartGuard.BeforeDisable(partialDisableItems[i], "Vehicle " + gameObject.name);
                 partialDisableItems[i].SetActive(enabled);
+                if (enabled) Next.RestartGuard.AfterEnable(partialDisableItems[i]);
             }
         }
     }

@@ -92,11 +92,14 @@ namespace MOP.Vehicles.Managers.SatsumaManagers
             FixedJoint[] fixedJoints = gameObject.GetComponents<FixedJoint>();
             HingeJoint[] hingeJoints = gameObject.GetComponents<HingeJoint>();
 
-            while (fixedJoints.Length > 1)
-                Destroy(fixedJoints[0]);
+            // MOP - REVIVAL 5.1 (fix, original MOP bug): "while (joints.Length > 1) Destroy(joints[0])" never ends -
+            // Destroy does not shrink the array - so a part that ever had two joints froze the game for good.
+            // Keeps the last joint of each kind, as intended.
+            for (int i = 0; i < fixedJoints.Length - 1; i++)
+                Destroy(fixedJoints[i]);
 
-            while (hingeJoints.Length > 1)
-                Destroy(hingeJoints[0]);
+            for (int i = 0; i < hingeJoints.Length - 1; i++)
+                Destroy(hingeJoints[i]);
         }
     }
 }

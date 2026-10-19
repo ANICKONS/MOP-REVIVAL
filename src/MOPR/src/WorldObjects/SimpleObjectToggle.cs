@@ -39,7 +39,12 @@ namespace MOP.WorldObjects
 
             if (this.gameObject != null && this.gameObject.activeSelf != enabled)
             {
+                // MOP - REVIVAL 5.1 (fix): world objects were switched without the restart guard, so FSMs in them that
+                // read the save when they start (FSM audit: the cottage sauna stove, the Dingonbiisi clock, the
+                // candles at the crash site) went back to the saved state each time MOP switched them on again.
+                if (!enabled) Next.RestartGuard.BeforeDisable(this.gameObject, "World object " + this.gameObject.name);
                 this.gameObject.SetActive(enabled);
+                if (enabled) Next.RestartGuard.AfterEnable(this.gameObject);
             }
         }
     }

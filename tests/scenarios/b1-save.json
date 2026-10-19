@@ -1,0 +1,38 @@
+{
+  "Name": "b1-save",
+  "SettleSeconds": 15,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "B1 over a save: the Satsuma's state is saved through the game's own save point (living room, SAVE AND QUIT TO MENU) and loaded again. Every BoltCheck Tightness gets -0.5 first, so the save holds values only this session made. After the load every part must be where it was, with the marked tightness. Then two far cycles. The runner restores the save folder afterwards. Run with -Variant vanilla as well." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "partsnap", "Label": "base", "Text": "reset" },
+    { "Op": "fsmmark", "Label": "tightness", "Path": "SATSUMA(557kg, 248)", "Fsm": "BoltCheck", "Var": "Tightness", "Value": "-0.5" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "partsnap", "Label": "presave" },
+    { "Op": "partcompare", "A": "base", "B": "presave" },
+
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.3, 0.0] },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "watch", "Label": "savepoint", "Seconds": 0, "Probes": [ "active=YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME|@active", "state=YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME|Button|@state", "car=SATSUMA(557kg, 248)|@player" ] },
+    { "Op": "savegame" },
+
+    { "Op": "log", "Text": "loaded again after the save" },
+    { "Op": "wait", "Seconds": 15 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "partsnap", "Label": "loaded" },
+    { "Op": "partcompare", "A": "presave", "B": "loaded" },
+    { "Op": "partcompare", "A": "base", "B": "loaded" },
+
+    { "Op": "repeat", "Label": "far", "Max": 2, "Steps": [
+      { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [6.0, 1.0, 0.0] },
+      { "Op": "wait", "Seconds": 10 },
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+      { "Op": "wait", "Seconds": 10 },
+      { "Op": "partsnap", "Label": "far{i}" },
+      { "Op": "partcompare", "A": "loaded", "B": "far{i}" }
+    ] },
+    { "Op": "quit" }
+  ]
+}
