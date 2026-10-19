@@ -215,6 +215,33 @@ namespace MOPR.TestBot
             return null;
         }
 
+        /// <summary>
+        /// Sets an object down on the ground at world x/z: a ray from <paramref name="from"/> straight down (the object's
+        /// own colliders ignored), the object upright (its yaw kept) <paramref name="clearance"/> m above the hit.
+        /// </summary>
+        public static string PlaceOnGround(string path, Vector3 from, float clearance, out string where)
+        {
+            where = null;
+            GameObject go = Resolve(path);
+            if (go == null) return "object not found: " + path;
+            Transform root = go.transform.root;
+            RaycastHit[] hits = Physics.RaycastAll(from, Vector3.down, 500f);
+            float best = float.MaxValue;
+            RaycastHit ground = default(RaycastHit);
+            foreach (RaycastHit h in hits)
+            {
+                if (h.collider == null || h.collider.isTrigger || h.collider.transform.root == root) continue;
+                if (h.distance < best) { best = h.distance; ground = h; }
+            }
+            if (best == float.MaxValue) return "no ground below " + Format(from);
+            go.transform.rotation = Quaternion.Euler(0f, go.transform.eulerAngles.y, 0f);
+            go.transform.position = ground.point + Vector3.up * clearance;
+            Rigidbody rb = go.GetComponent<Rigidbody>();
+            if (rb != null && !rb.isKinematic) { rb.velocity = Vector3.zero; rb.angularVelocity = Vector3.zero; }
+            where = Format(go.transform.position) + " on " + BotRunner.PathOf(ground.collider.transform);
+            return null;
+        }
+
         /// <summary>Calls a parameterless method: "Namespace.Type:StaticMember.Method" or "Namespace.Type:Method" (static).</summary>
         public static string Call(string spec)
         {

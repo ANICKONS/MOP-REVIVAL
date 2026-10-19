@@ -606,6 +606,16 @@ namespace MOPR.TestBot
                             yield return new WaitForFixedUpdate();
                         }
                         break;
+                    case "placeground":
+                        {
+                            // Pos = world point to look down from; Value = clearance above the ground (default 0.8 m).
+                            Vector3 from = step.Pos != null && step.Pos.Length == 3 ? new Vector3(step.Pos[0], step.Pos[1], step.Pos[2]) : Vector3.zero;
+                            float clearance = string.IsNullOrEmpty(step.Value) ? 0.8f : float.Parse(step.Value, CultureInfo.InvariantCulture);
+                            string err = GameOps.PlaceOnGround(step.Path, from, clearance, out string where);
+                            Log($"placeground {step.Path}: " + (err ?? where));
+                            yield return new WaitForFixedUpdate();
+                        }
+                        break;
                     case "callcount":
                         {
                             // Text = "Type:Method,Type:Method": calls per frame and time of each, for Seconds.

@@ -209,6 +209,13 @@
   2 km away and back): before, the dashboard light mode, the radio tuner and the windshield went back to the save
   (a windshield broken in the session came back whole, its tax sticker back); after, 0 resets caused by MOP of 128
   marked values. The one reset left (the repair shop order) happens in the vanilla game too.
+- While MOP had the Satsuma's physics off, `ForceRotation` put the car back every frame to where it was frozen,
+  also when something else had moved it on purpose (the game, a teleport or garage mod, a tow): TestBot `b3-flip`,
+  the car lifted 0.5 m or set down at the rally parc ferme 1.8 km away was back at its old place in the same
+  frame. Only small drift (under 0.25 m and 5°) is undone now; a bigger move becomes the car's new resting place.
+  The frozen pose was also saved as a world pose in one place and applied as a local one (wrong for a parented
+  car). At the parc ferme (`b3-parc`, car on the gravel, away and back three times) it stays upright with no
+  velocity spike when its physics come back.
 - `SatsumaHingeManager` froze the game for good if a part ever had two joints of one kind: its clean-up loop
   (`while (joints.Length > 1) Destroy(joints[0])`) never ends, `Destroy` does not shrink the array.
 - **GifuPump rule**: only the truck's `MESH` stays on while MOP switches the parked GIFU off (`keepActiveIn`).

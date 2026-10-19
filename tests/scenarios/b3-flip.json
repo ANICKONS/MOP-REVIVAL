@@ -1,0 +1,30 @@
+{
+  "Name": "b3-flip",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "B3 (Satsuma flips or 'explodes' when MOP switches it on, parc ferme). 1) Something else moves the car while MOP has its physics off (a mod, the game): does MOP's ForceRotation put it back? 2) Physics back on: velocity and tilt right after. 3) The rally parc ferme: the car set down there, then away / back three times." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "watch", "Label": "start", "Seconds": 0, "Probes": [ "pos=SATSUMA(557kg, 248)|@pos", "up=SATSUMA(557kg, 248)|#Transform.up", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic" ] },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [30.0, 3.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "place", "Path": "SATSUMA(557kg, 248)", "Pos": [0.0, 0.5, 0.0] },
+    { "Op": "watch", "Label": "moved", "Seconds": 2, "Interval": 0.5, "Probes": [ "pos=SATSUMA(557kg, 248)|@pos", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic", "cd=SATSUMA(557kg, 248)|#CarDynamics.enabled" ] },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "watch", "Label": "physics_on", "Seconds": 3, "Interval": 0.1, "Probes": [ "pos=SATSUMA(557kg, 248)|@pos", "up=SATSUMA(557kg, 248)|#Transform.up", "vel=SATSUMA(557kg, 248)|#Rigidbody.velocity", "ang=SATSUMA(557kg, 248)|#Rigidbody.angularVelocity", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic" ] },
+
+    { "Op": "teleport", "Path": "RALLY/Scenery/MOP_ParcFermeTrigger", "Pos": [-4.0, 2.0, 0.0] },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "place", "Path": "SATSUMA(557kg, 248)", "Target": "RALLY/Scenery/MOP_ParcFermeTrigger", "Pos": [0.0, 2.0, 0.0] },
+    { "Op": "watch", "Label": "parc_drop", "Seconds": 5, "Interval": 0.5, "Probes": [ "pos=SATSUMA(557kg, 248)|@pos", "up=SATSUMA(557kg, 248)|#Transform.up", "vel=SATSUMA(557kg, 248)|#Rigidbody.velocity", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic", "dist=SATSUMA(557kg, 248)|@player" ] },
+    { "Op": "repeat", "Label": "parc", "Max": 3, "Steps": [
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [40.0, 4.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+      { "Op": "watch", "Label": "parc_away{i}", "Seconds": 2, "Interval": 0.5, "Probes": [ "pos=SATSUMA(557kg, 248)|@pos", "up=SATSUMA(557kg, 248)|#Transform.up", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic" ] },
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+      { "Op": "watch", "Label": "parc_back{i}", "Seconds": 3, "Interval": 0.1, "Probes": [ "pos=SATSUMA(557kg, 248)|@pos", "up=SATSUMA(557kg, 248)|#Transform.up", "vel=SATSUMA(557kg, 248)|#Rigidbody.velocity", "ang=SATSUMA(557kg, 248)|#Rigidbody.angularVelocity", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic" ] }
+    ] },
+    { "Op": "quit" }
+  ]
+}

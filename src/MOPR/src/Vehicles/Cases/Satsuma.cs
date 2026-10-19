@@ -700,8 +700,10 @@ namespace MOP.Vehicles.Cases
 
             if (!enabled)
             {
-                lastGoodRotation = transform.rotation;
-                lastGoodPosition = transform.position;
+                // MOP - REVIVAL 5.1: local, like everywhere else these are written and read (ForceRotation applies
+                // them as local values). World values here moved a parented car to the wrong place.
+                lastGoodRotation = transform.localRotation;
+                lastGoodPosition = transform.localPosition;
             }
 
             if (!GameFixes.Instance.HoodFixDone)
@@ -858,10 +860,26 @@ namespace MOP.Vehicles.Cases
 
             if (!hasBeenMovedByFleetari && !carDynamics.enabled)
             {
+                // MOP - REVIVAL 5.1 (fix, original MOP bug): only small drift is undone. When something else moved
+                // the frozen car on purpose (the game, a teleport or garage mod, a tow), MOP put it straight back
+                // to where it was frozen - in the same frame (TestBot b3-flip: lifted 0.5 m, set down at the rally
+                // parc ferme 1.8 km away: back at home at once). A move of more than 0.25 m or 5 degrees is now
+                // taken as the car's new resting place.
+                if ((transform.localPosition - lastGoodPosition).sqrMagnitude > AdoptMoveDistance * AdoptMoveDistance ||
+                    Quaternion.Angle(transform.localRotation, lastGoodRotation) > AdoptMoveAngle)
+                {
+                    lastGoodPosition = transform.localPosition;
+                    lastGoodRotation = transform.localRotation;
+                    return;
+                }
+
                 transform.localRotation = lastGoodRotation;
                 transform.localPosition = lastGoodPosition;
             }
         }
+
+        const float AdoptMoveDistance = 0.25f;
+        const float AdoptMoveAngle = 5f;
 
         /// <summary>
         /// MOP - REVIVAL 5.1: true while MOP draws the car (the last RenderersCulling call enabled them). Tracked

@@ -1,0 +1,18 @@
+{
+  "Name": "b3-parc",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "B3 at the rally parc ferme: the Satsuma is set down on the ground there (ray down at the centre of MOP's parc ferme area), the player walks up to it, then away (40 m) and back three times. Tilt (up vector), velocity and position after each return. Run with -Variant vanilla as well." },
+    { "Op": "placeground", "Path": "SATSUMA(557kg, 248)", "Pos": [-1383.0, 60.0, 1260.0], "Value": "0.6" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "watch", "Label": "arrive", "Seconds": 5, "Interval": 0.25, "Probes": [ "pos=SATSUMA(557kg, 248)|@pos", "up=SATSUMA(557kg, 248)|#Transform.up", "vel=SATSUMA(557kg, 248)|#Rigidbody.velocity", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic", "dist=SATSUMA(557kg, 248)|@player" ] },
+    { "Op": "repeat", "Label": "parc", "Max": 3, "Steps": [
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [40.0, 4.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+      { "Op": "watch", "Label": "away{i}", "Seconds": 2, "Interval": 0.5, "Probes": [ "pos=SATSUMA(557kg, 248)|@pos", "up=SATSUMA(557kg, 248)|#Transform.up", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic" ] },
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+      { "Op": "watch", "Label": "back{i}", "Seconds": 3, "Interval": 0.1, "Probes": [ "pos=SATSUMA(557kg, 248)|@pos", "up=SATSUMA(557kg, 248)|#Transform.up", "vel=SATSUMA(557kg, 248)|#Rigidbody.velocity", "ang=SATSUMA(557kg, 248)|#Rigidbody.angularVelocity", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic" ] }
+    ] },
+    { "Op": "quit" }
+  ]
+}
