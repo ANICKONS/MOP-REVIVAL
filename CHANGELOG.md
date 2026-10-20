@@ -1,6 +1,8 @@
 # Changelog
 
-## 5.1.0 "Engine" (unreleased)
+## 5.1.0 "Engine" (2026-10-20)
+
+The first public release of the 5.x line; it includes everything of 5.0 below.
 
 ### Added
 - **PlayMaker engine optimizations** (`Next/Engine/`, Harmony). Work is skipped only when MOP can prove from
@@ -315,7 +317,7 @@
   (rpm / 90 / 500 per second) with the player at 3 m, at 9 m (MOP has frozen the truck physics), at 40 m
   and with the engine optimizations off. Not affected.
 
-## 5.0.0 "Reborn" (unreleased)
+## 5.0.0 "Reborn" (not released on its own, part of 5.1.0)
 
 A new foundation. MOPR 4.x was a from-scratch rewrite and introduced many regressions; 5.0 is built
 on the original MOP 3.10.4 source instead, so all of its game-specific fixes are back.
