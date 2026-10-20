@@ -437,7 +437,7 @@ namespace MOP.Managers
 
                     if (state == null)
                     {
-                        ModConsole.LogError($"[MOPR] FSM {i} has no Create or Create product");
+                        ModConsole.Debug($"FSM {i} has no Create or Create product");
                         continue;
                     }
 

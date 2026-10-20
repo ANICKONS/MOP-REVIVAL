@@ -19,7 +19,9 @@
 //   1. Only opaque MeshRenderers whose mesh, material and pose relative to the vehicle are stable are merged.
 //      Parts that move (needles, wipers, wheels, suspension...), transparent or alpha-tested materials
 //      (sorting), deformable panels (they rewrite their own mesh), items and mirrored transforms stay as
-//      they are.
+//      they are. Parts are only merged with parts that are drawn the same way: material, shadow modes, layer,
+//      light probe use and - for shaders that sample them - reflection probe use and the exact reflection
+//      probes and weights Unity picks (see "Reflection probes" below).
 //   2. Every frame in LateUpdate, before any camera renders, every merged part is checked: its pose relative
 //      to the vehicle (local position, rotation and scale of the part and of every object between it and the
 //      vehicle root, compared with the pose at merge time within 0.1 mm / ~0.01 degree - far below a pixel),
@@ -38,6 +40,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -94,6 +97,13 @@ namespace MOP.Next
                 float d = a - b;
                 return d > tolerance || d < -tolerance;
             }
+
+            /// <summary>World pose moved by more than the pose tolerance.</summary>
+            public static bool Moved(Vector3 p, Vector3 p0, Quaternion q, Quaternion q0)
+            {
+                return Off(p.x, p0.x, PosTolerance) || Off(p.y, p0.y, PosTolerance) || Off(p.z, p0.z, PosTolerance) ||
+                       Off(q.x, q0.x, RotTolerance) || Off(q.y, q0.y, RotTolerance) || Off(q.z, q0.z, RotTolerance) || Off(q.w, q0.w, RotTolerance);
+            }
         }
 
         sealed class Part
@@ -103,6 +113,7 @@ namespace MOP.Next
             public GameObject GameObject;           // cached: Component.gameObject is a native call
             public Material Material;               // first shared material (checked every frame)
             public int[] Links;                     // own transform first, then the parents up to the root
+            public ProbeBlend Blend;                // reflection probes this part gets (probe-sampling shaders only)
         }
 
         sealed class Dynamic
@@ -118,8 +129,84 @@ namespace MOP.Next
             public bool ReceiveShadows;
             public int Layer;
             public bool UseLightProbes;
+            public ReflectionProbeUsage Reflections;
+            public ProbeBlend Blend;                // non-null: the shader samples reflection probes, checked
+            public MeshRenderer Renderer;           // the merged renderer
+            public readonly List<int> PartIndices = new List<int>();
             public readonly List<CombineInstance> Instances = new List<CombineInstance>();
             public int Vertices;
+        }
+
+        /// <summary>
+        /// The reflection probes Unity picks for a renderer (from its bounds, or its probe anchor) and their
+        /// weights, as Renderer.GetClosestReflectionProbes reports them. Compared exactly (weights bitwise).
+        /// </summary>
+        sealed class ProbeBlend
+        {
+            public int[] Ids;
+            public float[] Weights;
+            public string Key;
+
+            static readonly List<ReflectionProbeBlendInfo> buffer = new List<ReflectionProbeBlendInfo>(4);
+
+            public static ProbeBlend Of(Renderer r)
+            {
+                buffer.Clear();
+                r.GetClosestReflectionProbes(buffer);
+                ProbeBlend b = new ProbeBlend { Ids = new int[buffer.Count], Weights = new float[buffer.Count] };
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < buffer.Count; i++)
+                {
+                    b.Ids[i] = buffer[i].probe != null ? buffer[i].probe.GetInstanceID() : 0;
+                    b.Weights[i] = buffer[i].weight;
+                    sb.Append(b.Ids[i]).Append(':').Append(BitConverter.DoubleToInt64Bits(b.Weights[i])).Append(';');
+                }
+                b.Key = sb.ToString();
+                return b;
+            }
+
+            /// <summary>True if the renderer gets exactly these probes and weights now (no allocation).</summary>
+            public bool Holds(Renderer r)
+            {
+                buffer.Clear();
+                r.GetClosestReflectionProbes(buffer);
+                if (buffer.Count != Ids.Length) return false;
+                for (int i = 0; i < buffer.Count; i++)
+                {
+                    int id = buffer[i].probe != null ? buffer[i].probe.GetInstanceID() : 0;
+                    if (id != Ids[i] || !buffer[i].weight.Equals(Weights[i])) return false;
+                }
+                return true;
+            }
+        }
+
+        /// <summary>Everything about a reflection probe that decides which renderers it affects.</summary>
+        sealed class ProbeState
+        {
+            public ReflectionProbe Probe;
+            public bool Enabled, Active;
+            public Vector3 Position, Size, Center;
+            public int Importance;
+
+            public void Snapshot()
+            {
+                Enabled = Probe.enabled;
+                Active = Probe.gameObject.activeInHierarchy;
+                Position = Probe.transform.position;
+                Size = Probe.size;
+                Center = Probe.center;
+                Importance = Probe.importance;
+            }
+
+            public bool Changed()
+            {
+                if (Probe == null) return true;
+                if (Probe.enabled != Enabled || Probe.gameObject.activeInHierarchy != Active || Probe.importance != Importance) return true;
+                Vector3 p = Probe.transform.position, s = Probe.size, c = Probe.center;
+                return p.x != Position.x || p.y != Position.y || p.z != Position.z ||
+                       s.x != Size.x || s.y != Size.y || s.z != Size.z ||
+                       c.x != Center.x || c.y != Center.y || c.z != Center.z;
+            }
         }
 
         enum State { Idle, Observing, Building, Merged }
@@ -247,6 +334,99 @@ namespace MOP.Next
             }
         }
 
+        /// <summary>
+        /// Drops the links no remaining part uses, keeping the poses snapshotted at observation time (the merged
+        /// meshes were built from them).
+        /// </summary>
+        void PruneLinks()
+        {
+            Dictionary<int, int> remap = new Dictionary<int, int>();
+            List<Link> kept = new List<Link>();
+            for (int i = 0; i < parts.Count; i++)
+            {
+                int[] l = parts[i].Links;
+                for (int j = 0; j < l.Length; j++)
+                {
+                    int k;
+                    if (!remap.TryGetValue(l[j], out k))
+                    {
+                        k = kept.Count;
+                        kept.Add(links[l[j]]);
+                        remap[l[j]] = k;
+                    }
+                    l[j] = k;
+                }
+            }
+            links.Clear();
+            links.AddRange(kept);
+        }
+
+        // ----- Reflection probes (5.1) -----------------------------------------------------------------
+        // A shader that samples reflection probes gets them per renderer: Unity picks the probes and weights from
+        // the renderer's bounds. A merged mesh has other bounds than its parts, so it is only used when it gets
+        // exactly the same probes and weights as every one of its parts (checked at build). While merged, the
+        // probes themselves are compared every frame (on, active, position, box, importance), and when the car
+        // moved by more than the pose tolerance every probe group is checked again (merged mesh and parts). Any
+        // difference hands the originals back; the next merge regroups by the new probes.
+
+        sealed class ProbeGroup
+        {
+            public ProbeBlend Blend;
+            public MeshRenderer Renderer;
+            public readonly List<Part> Parts = new List<Part>();
+        }
+
+        readonly List<ProbeGroup> probeGroups = new List<ProbeGroup>();
+        readonly List<ProbeState> probeStates = new List<ProbeState>();
+        Vector3 probeCheckPosition;
+        Quaternion probeCheckRotation;
+
+        bool ProbeGroupsHold()
+        {
+            for (int i = 0; i < probeGroups.Count; i++)
+            {
+                ProbeGroup g = probeGroups[i];
+                if (g.Renderer == null || !g.Blend.Holds(g.Renderer)) return false;
+                for (int k = 0; k < g.Parts.Count; k++)
+                    if (g.Parts[k].Renderer == null || !g.Blend.Holds(g.Parts[k].Renderer)) return false;
+            }
+            return true;
+        }
+
+        void SnapshotProbes()
+        {
+            probeStates.Clear();
+            if (probeGroups.Count == 0) return;
+            // Inactive ones too (one could be switched on later). Prefab assets, if any, never change: harmless.
+            foreach (ReflectionProbe p in Resources.FindObjectsOfTypeAll<ReflectionProbe>())
+            {
+                if (p == null) continue;
+                ProbeState s = new ProbeState { Probe = p };
+                s.Snapshot();
+                probeStates.Add(s);
+            }
+            probeCheckPosition = root.position;
+            probeCheckRotation = root.rotation;
+        }
+
+        /// <summary>Null if the reflection probes of every probe group are still exactly what they were.</summary>
+        string ProbesChanged()
+        {
+            if (probeGroups.Count == 0) return null;
+            for (int i = 0; i < probeStates.Count; i++)
+                if (probeStates[i].Changed()) return "reflection probe changed";
+
+            Vector3 p = root.position;
+            Quaternion q = root.rotation;
+            if (Link.Moved(p, probeCheckPosition, q, probeCheckRotation))
+            {
+                if (!ProbeGroupsHold()) return "reflection probes differ";
+                probeCheckPosition = p;
+                probeCheckRotation = q;
+            }
+            return null;
+        }
+
         /// <summary>Compares every link; true if any changed (their Changed flags tell which).</summary>
         bool CompareAllLinks()
         {
@@ -325,7 +505,7 @@ namespace MOP.Next
         {
             if (r == null || !r.enabled || !r.gameObject.activeInHierarchy) return "hidden";
             if (IsDynamic(r.GetInstanceID(), Time.realtimeSinceStartup)) return "moving";
-            if (r.gameObject.name.StartsWith("MOP_")) return "MOP";
+            if (r.gameObject.name.StartsWith("MOP_")) return "MOPR";
             if (exclude != null && exclude(r)) return "managed";
 
             MeshFilter mf = r.GetComponent<MeshFilter>();
@@ -341,6 +521,10 @@ namespace MOP.Next
             Material[] mats = r.sharedMaterials;
             if (mats == null || mats.Length != 1) return "multi-material";
 
+            // Probes are sampled at the anchor / bounds centre of a renderer: one merged mesh has one centre.
+            if (r.probeAnchor != null && (r.useLightProbes || SamplesReflectionProbes(mat))) return "probe anchor";
+            if (r.useLightProbes && LightmapSettings.lightProbes != null && LightmapSettings.lightProbes.count > 0) return "light probes";
+
             // Panels that deform on impact rewrite their own mesh; items are toggled by MOP itself.
             if (r.GetComponent<Deformable>() != null) return "deformable";
             if (r.GetComponent<Items.ItemBehaviour>() != null) return "item";
@@ -348,6 +532,17 @@ namespace MOP.Next
             // CombineMeshes does not flip the winding of mirrored parts.
             if (Determinant3(r.transform.localToWorldMatrix) < 0f) return "mirrored";
             return null;
+        }
+
+        /// <summary>
+        /// False only for Unity's legacy shaders: their lighting models (Lambert, BlinnPhong) take no reflection
+        /// probe (the Reflective ones use their own cube map property). Everything else, the Standard shaders and any
+        /// custom shader, is treated as sampling the probes the renderer gets.
+        /// </summary>
+        static bool SamplesReflectionProbes(Material m)
+        {
+            Shader s = m != null ? m.shader : null;
+            return s == null || !s.name.StartsWith("Legacy Shaders/", StringComparison.Ordinal);
         }
 
         /// <summary>Determinant of the rotation/scale part (Unity 5.0 has no Matrix4x4.determinant).</summary>
@@ -394,7 +589,10 @@ namespace MOP.Next
             parts.AddRange(stable);
             BuildLinks();                               // only the chains of the parts that will be merged
 
-            // Group by everything that changes how a renderer is drawn.
+            // Group by everything that changes how a renderer is drawn. For shaders that sample reflection probes
+            // that includes the probe setting and the exact probes and weights Unity picks for the part (5.1 fix:
+            // the merged renderers had Unity's default "blend probes", so interior parts the game draws without
+            // reflections reflected the realtime probe - the cabin got lighter or darker with the surroundings).
             Dictionary<string, Group> groups = new Dictionary<string, Group>();
             List<Group> order = new List<Group>();
             for (int i = 0; i < parts.Count; i++)
@@ -403,8 +601,20 @@ namespace MOP.Next
                 Mesh mesh = r.GetComponent<MeshFilter>().sharedMesh;
                 Material mat = parts[i].Material;
                 Matrix4x4 m = RelativePose(parts[i]);
+                ReflectionProbeUsage refl = r.reflectionProbeUsage;
+                string reflKey = "-";
+                parts[i].Blend = null;
+                if (SamplesReflectionProbes(mat))
+                {
+                    reflKey = ((int)refl).ToString();
+                    if (refl != ReflectionProbeUsage.Off)
+                    {
+                        parts[i].Blend = ProbeBlend.Of(r);
+                        reflKey += "|" + parts[i].Blend.Key;
+                    }
+                }
                 string key = mat.GetInstanceID() + "|" + (int)r.shadowCastingMode + "|" + r.receiveShadows + "|" +
-                             r.gameObject.layer + "|" + r.useLightProbes;
+                             r.gameObject.layer + "|" + r.useLightProbes + "|" + reflKey;
                 int chunk = 0;
                 Group g;
                 while (groups.TryGetValue(key + "#" + chunk, out g) && g.Vertices + mesh.vertexCount > MaxVerticesPerMesh) chunk++;
@@ -413,14 +623,18 @@ namespace MOP.Next
                     g = new Group
                     {
                         Material = mat, Shadows = r.shadowCastingMode, ReceiveShadows = r.receiveShadows,
-                        Layer = r.gameObject.layer, UseLightProbes = r.useLightProbes
+                        Layer = r.gameObject.layer, UseLightProbes = r.useLightProbes, Reflections = refl,
+                        Blend = parts[i].Blend
                     };
                     groups[key + "#" + chunk] = g;
                     order.Add(g);
                 }
                 g.Instances.Add(new CombineInstance { mesh = mesh, subMeshIndex = 0, transform = m });
+                g.PartIndices.Add(i);
                 g.Vertices += mesh.vertexCount;
             }
+            HashSet<int> notMerged = new HashSet<int>();     // parts of groups whose merged mesh would get other probes
+            List<Group> builtGroups = new List<Group>();
 
             // Build the meshes, a few per frame. Nothing is shown until everything is ready.
             List<GameObject> built = new List<GameObject>();
@@ -442,8 +656,22 @@ namespace MOP.Next
                     mr.shadowCastingMode = g.Shadows;
                     mr.receiveShadows = g.ReceiveShadows;
                     mr.useLightProbes = g.UseLightProbes;
+                    mr.reflectionProbeUsage = g.Reflections;
                     mr.enabled = false;
-                    built.Add(go);
+                    g.Renderer = mr;
+                    if (g.Blend != null && !g.Blend.Holds(mr))
+                    {
+                        // The merged mesh (other bounds) would get other reflection probes: these parts stay as they are.
+                        for (int k = 0; k < g.PartIndices.Count; k++) notMerged.Add(g.PartIndices[k]);
+                        UnityEngine.Object.Destroy(combined);
+                        UnityEngine.Object.Destroy(go);
+                        go = null;
+                    }
+                    else
+                    {
+                        built.Add(go);
+                        builtGroups.Add(g);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -474,6 +702,35 @@ namespace MOP.Next
                 DestroyAll(built);
                 Abort("changed while building");
                 yield break;
+            }
+
+            // Reflection probes: the merged renderer of a probe-sampling group must get exactly what each of its
+            // parts gets (checked again now, frames after the grouping), and the probes must stay as they are.
+            probeGroups.Clear();
+            for (int i = 0; i < builtGroups.Count; i++)
+            {
+                Group g = builtGroups[i];
+                if (g.Blend == null) continue;
+                ProbeGroup pg = new ProbeGroup { Blend = g.Blend, Renderer = g.Renderer };
+                for (int k = 0; k < g.PartIndices.Count; k++) pg.Parts.Add(parts[g.PartIndices[k]]);
+                probeGroups.Add(pg);
+            }
+            if (!ProbeGroupsHold())
+            {
+                DestroyAll(built);
+                probeGroups.Clear();
+                Abort("reflection probes changed while building");
+                yield break;
+            }
+            SnapshotProbes();
+            if (notMerged.Count > 0)
+            {
+                List<Part> keep = new List<Part>(parts.Count - notMerged.Count);
+                for (int i = 0; i < parts.Count; i++) if (!notMerged.Contains(i)) keep.Add(parts[i]);
+                skipped["reflection probes"] = notMerged.Count;
+                parts.Clear();
+                parts.AddRange(keep);
+                PruneLinks();
             }
             bool movedWhileBuilding = CompareAllLinks();
             for (int i = 0; i < parts.Count; i++)
@@ -553,6 +810,9 @@ namespace MOP.Next
                 }
             }
 
+            string probes = ProbesChanged();
+            if (probes != null) { Unmerge(probes); return; }
+
             // Renderer.enabled is checked for an eighth of the parts per frame. Someone switching an original on
             // while merged draws the same surface twice with the same material for at most 8 frames, then the
             // originals are handed back. (Satsuma FSMs have no visibility actions and MOP unmerges before it
@@ -607,6 +867,8 @@ namespace MOP.Next
             originalsShown = false;
             parts.Clear();
             links.Clear();
+            probeGroups.Clear();
+            probeStates.Clear();
             state = State.Idle;
             stateSince = Time.realtimeSinceStartup;
         }
@@ -616,6 +878,8 @@ namespace MOP.Next
             lastReason = reason;
             parts.Clear();
             links.Clear();
+            probeGroups.Clear();
+            probeStates.Clear();
             state = State.Idle;
             stateSince = Time.realtimeSinceStartup;
         }

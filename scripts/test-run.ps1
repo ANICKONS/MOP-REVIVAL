@@ -246,7 +246,7 @@ finally {
         $p = Join-Path $BotCfgDir $f
         if (Test-Path $p) { Copy-Item $p $RunDir -Force }
     }
-    foreach ($pattern in 'dumpui_*.txt', 'find_*.txt', 'dumpfsm_*.txt', 'probe_*.txt', 'settings_*.txt', 'fsmhist_*.txt', 'tree_*.txt', 'mopstate_*.txt', 'fsmcache_*.txt', 'partdiff_*.txt', 'fsmmark_*.txt', 'guardmark_*.txt', 'guardcheck_*.txt') {
+    foreach ($pattern in 'dumpui_*.txt', 'find_*.txt', 'dumpfsm_*.txt', 'probe_*.txt', 'settings_*.txt', 'fsmhist_*.txt', 'tree_*.txt', 'mopstate_*.txt', 'fsmcache_*.txt', 'partdiff_*.txt', 'fsmmark_*.txt', 'guardmark_*.txt', 'guardcheck_*.txt', 'lightinfo_*.txt', 'visible_*.txt') {
         Get-ChildItem $BotCfgDir -Filter $pattern -ErrorAction SilentlyContinue | Copy-Item -Destination $RunDir -Force
     }
     foreach ($pattern in 'snapshot_*.tsv', 'watch_*.tsv', 'shot_*.png', 'partsnap_*.tsv') {

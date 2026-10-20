@@ -1,0 +1,22 @@
+{
+  "Name": "map-cull",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Item 4 (map cull distances): what the main camera draws of MAP from home (groups, layers, tiny objects), the current layer cull distances, reflection probes and extra cameras; and what hiding MAP / the realtime reflection probes is worth (upper bounds, measurement only)." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-12.0, 2.0, 6.0], "Target": "YARD/Building" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "visible", "Label": "yard_map1", "Path": "MAP", "Max": 1 },
+    { "Op": "visible", "Label": "yard_map2", "Path": "MAP", "Max": 2 },
+    { "Op": "visible", "Label": "yard_yard", "Path": "YARD", "Max": 2 },
+    { "Op": "abtoggle", "Label": "yard-map-hidden", "Var": "renderers", "Path": "MAP", "Seconds": 12, "Block": 1 },
+    { "Op": "abtoggle", "Label": "yard-probe-map-off", "Var": "probes", "Path": "RefProbeMap", "Seconds": 12, "Block": 1 },
+    { "Op": "abtoggle", "Label": "yard-probe-garage-off", "Var": "probes", "Path": "RefProbeGarage", "Seconds": 12, "Block": 1 },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "visible", "Label": "living_map1", "Path": "MAP", "Max": 1 },
+    { "Op": "abtoggle", "Label": "living-map-hidden", "Var": "renderers", "Path": "MAP", "Seconds": 12, "Block": 1 },
+    { "Op": "abtoggle", "Label": "living-probes-off", "Var": "probes", "Path": "RefProbe", "Seconds": 12, "Block": 1 },
+    { "Op": "quit" }
+  ]
+}

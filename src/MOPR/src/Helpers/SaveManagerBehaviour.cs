@@ -26,18 +26,18 @@ namespace MOP.Helpers
                 {
                     RemoveAttribute(SaveManager.SavePath);
                     RemoveAttribute(SaveManager.ItemsPath);
-                    ModConsole.Log("[MOPR] Removed attributes from save file.");
+                    ModConsole.Debug("Removed attributes from save file.");
                     currentRoutine = null;
                     yield break;
                 }
                 catch
                 {
-                    ModConsole.Log($"[MOPR] Retrying removing attributes ({retries + 1}/5)");
+                    ModConsole.Debug($"Retrying removing attributes ({retries + 1}/5)");
                 }
                 retries++;
                 yield return new WaitForSeconds(0.5f);
             }
-            ModConsole.Error("[MOPR] Failed to remove attributes from the save file. Try removing it manually form defaultSaveES2.txt, and items.txt.");
+            ModConsole.Err("con.save.attributes_failed");
 
             currentRoutine = null;
         }

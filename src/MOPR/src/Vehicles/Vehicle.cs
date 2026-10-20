@@ -84,7 +84,7 @@ namespace MOP.Vehicles
 
             if (gameObject == null)
             {
-                ModConsole.LogError($"[MOPR] Could not find {gameObjectName} vehicle.");
+                ModConsole.Err("con.vehicle_missing", gameObjectName);
                 return;
             }
 
@@ -186,7 +186,7 @@ namespace MOP.Vehicles
                 Transform t = transform.FindRecursive(child);
                 if (t == null)
                 {
-                    ModConsole.LogError($"[MOPR] Couldn't find {child} in {this.gameObject.name}.");
+                    ModConsole.Debug($"Couldn't find {child} in {this.gameObject.name}.");
                     continue;
                 }
 
@@ -455,7 +455,7 @@ namespace MOP.Vehicles
 
             if (colliders == null)
             {
-                ModConsole.Log($"[MOPR] Could not locate the colliders of vehicle {gameObject.name}");
+                ModConsole.Debug($"Could not locate the colliders of vehicle {gameObject.name}");
                 return;
             }
 

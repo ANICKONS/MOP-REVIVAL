@@ -55,7 +55,7 @@ namespace MOP.Places
 
             if (gameObject == null)
             {
-                global::MOP.ModConsole.LogError($"[MOPR] Place {placeName} not found!");
+                global::MOP.ModConsole.Err("con.place_missing", placeName);
                 return;
             }
 
@@ -183,7 +183,7 @@ namespace MOP.Places
                 }
                 catch 
                 {
-                    ModConsole.LogError(currentChild.Path());
+                    ModConsole.Debug("Place child error at " + currentChild.Path());
                 }
             }
 

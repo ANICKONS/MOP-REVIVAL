@@ -33,6 +33,7 @@ using MOP.Helpers;
 using MOP.Rules;
 using MOP.WorldObjects;
 using MOP.Next;
+using MOP.Localization;
 using HutongGames.PlayMaker;
 
 namespace MOP
@@ -227,7 +228,7 @@ namespace MOP
             // MOP - REVIVAL: MSCLoader 1.4 renamed the loading canvas ("...(Clone)"), so the original lookup
             // threw and the restart never happened. Wait by frames instead (MSCLoader yields one frame per mod),
             // plus the old dialog check when it can be found.
-            ModConsole.Log("[MOPR] Waiting for the MSCLoader to finish to load...");
+            ModConsole.Debug("Waiting for the MSCLoader to finish to load...");
             int frames = LoaderFramesToFinish();
             for (int i = 0; i < frames; i++)
                 yield return null;
@@ -243,7 +244,7 @@ namespace MOP
             yield return null;
 
             MopSettings.GameFixStatus = GameFixStatus.DoFix;
-            ModConsole.Log("[MOPR] Attempting to restart the scene...");
+            ModConsole.Info("con.restart_scene");
             Application.LoadLevel(1);
         }
 
@@ -282,7 +283,7 @@ namespace MOP
 
         void Initialize()
         {
-            ModConsole.Log("[MOPR] Loading MOP...");
+            ModConsole.Info("con.loading");
             RestartGuard.Reset();
             ExceptionManager.ResetSession();
 
@@ -330,7 +331,7 @@ namespace MOP
             {
                 ExceptionManager.New(ex, false, "WORLD_OBJECT_ERROR | Skidmarks");
             }
-            ModConsole.Log("[MOPR] World objects (1) loaded");
+            ModConsole.Debug("World objects (1) loaded");
 
             // Initialize places.
             placeManager = new PlaceManager();
@@ -363,7 +364,7 @@ namespace MOP
             AddWorldObject("BirdTower", DisableOn.Distance, 400);
             AddWorldObject("RYKIPOHJA", DisableOn.PlayerInHome);
             AddWorldObject("COMPUTER", DisableOn.PlayerAwayFromHome, silent: true);
-            ModConsole.Log("[MOPR] World objects (2) loaded");
+            ModConsole.Debug("World objects (2) loaded");
 
             // Adding area check if Satsuma is in the inspection's area
             try
@@ -401,7 +402,7 @@ namespace MOP
                 ExceptionManager.New(ex, false, "PARC_FERME_TRIGGER_FAIL");
             }
 
-            ModConsole.Log("[MOPR] Satsuma triggers loaded");
+            ModConsole.Debug("Satsuma triggers loaded");
 
             // Jokke's furnitures.
             // Only renderers are going to be toggled.
@@ -423,7 +424,7 @@ namespace MOP
                         }
                     }
 
-                    ModConsole.Log("[MOPR] Jokke's furnitures found and loaded");
+                    ModConsole.Debug("Jokke's furnitures found and loaded");
                 }
             }
             catch (Exception ex)
@@ -573,7 +574,7 @@ namespace MOP
             try
             {
                 ItemsManager.Instance.Initialize();
-                ModConsole.Log("[MOPR] Items class initialized");
+                ModConsole.Debug("Items class initialized");
             }
             catch (Exception ex)
             {
@@ -591,7 +592,7 @@ namespace MOP
                     GameObject g = GameObject.Find(v.Name);
                     if (g == null)
                     {
-                        ModConsole.LogError($"[MOPR] Rules: couldn't find {v.Name} (manage {v.Kind})");
+                        ModConsole.Err("con.rules.manage_missing", v.Name, v.Kind);
                         continue;
                     }
 
@@ -744,24 +745,27 @@ namespace MOP
         {
             try
             {
-                ModConsole.Log("[MOPR] " + MoprColors.Success("Loaded successfully!"));
-                ModConsole.Log("[MOPR] Managing " +
-                    Count(WorldObjectManager.Instance?.Count) + " world objects, " +
-                    Count(ItemsManager.Instance?.Count) + " items, " +
-                    Count(VehicleManager.Instance?.Count) + " vehicles, " +
-                    Count(PlaceManager.Instance?.Count) + " places");
-                ModConsole.Log("[MOPR] Mode " + MoprColors.Accent(MopSettings.Mode.ToString()) +
-                    ", render optimizations " + MoprColors.OnOff(MopMenu.RenderOptimizerEnabled != null && MopMenu.RenderOptimizerEnabled.GetValue()) +
-                    ", game engine " + MoprColors.OnOff(MopMenu.EngineFastPath != null && MopMenu.EngineFastPath.GetValue()) +
-                    ", parked Satsuma merging " + MoprColors.OnOff(VehicleMeshMerge.Enabled));
+                ModConsole.Success("con.loaded");
 
-                List<string> experimental = new List<string>();
-                if (MopMenu.ExperimentalMouseRay != null && MopMenu.ExperimentalMouseRay.GetValue()) experimental.Add("shared mouse ray");
-                if (MopMenu.ExperimentalEngineBay != null && MopMenu.ExperimentalEngineBay.GetValue()) experimental.Add("engine hidden from the driver's seat");
-                if (MopMenu.ExperimentalMirrorRate != null && MopMenu.ExperimentalMirrorRate.GetValue()) experimental.Add("mirrors at most 60 FPS");
-                ModConsole.Log("[MOPR] Experimental: " + (experimental.Count == 0
-                    ? MoprColors.Muted("all off")
-                    : MoprColors.Warning(string.Join(", ", experimental.ToArray()))));
+                new ModConsole.Block("con.sum.managed")
+                    .Line("con.sum.count", Loc.Word("con.sum.world_objects"), Count(WorldObjectManager.Instance?.Count))
+                    .Line("con.sum.count", Loc.Word("con.sum.items"), Count(ItemsManager.Instance?.Count))
+                    .Line("con.sum.count", Loc.Word("con.sum.vehicles"), Count(VehicleManager.Instance?.Count))
+                    .Line("con.sum.count", Loc.Word("con.sum.places"), Count(PlaceManager.Instance?.Count))
+                    .Print();
+
+                bool engine = MopMenu.EngineFastPath != null && MopMenu.EngineFastPath.GetValue();
+                new ModConsole.Block("con.sum.mode", Loc.Word(ModeKey(MopSettings.Mode), MoprColors.AccentHex))
+                    .Line("con.sum.flag", Loc.Word("con.name.render"), Loc.OnOff(MopMenu.RenderOptimizerEnabled != null && MopMenu.RenderOptimizerEnabled.GetValue()))
+                    .Line("con.sum.flag", Loc.Word("con.name.scripts"), Loc.OnOff(engine))
+                    .Line("con.sum.flag", Loc.Word("con.name.rays"), Loc.OnOff(Next.Engine.SharedMouseRay.Installed))
+                    .Line("con.sum.flag", Loc.Word("con.name.merge"), Loc.OnOff(VehicleMeshMerge.Enabled))
+                    .Print();
+
+                new ModConsole.Block("con.sum.experimental")
+                    .Line("con.sum.flag", Loc.Word("con.name.engine_bay"), Loc.OnOff(MopMenu.ExperimentalEngineBay != null && MopMenu.ExperimentalEngineBay.GetValue()))
+                    .Line("con.sum.flag", Loc.Word("con.name.mirrors"), Loc.OnOff(MopMenu.ExperimentalMirrorRate != null && MopMenu.ExperimentalMirrorRate.GetValue()))
+                    .Print();
             }
             catch (Exception ex)
             {
@@ -770,6 +774,18 @@ namespace MOP
         }
 
         static string Count(int? n) => MoprColors.Accent(n.HasValue ? n.Value.ToString() : "-");
+
+        /// <summary>The settings-page name of a performance mode (menu.mode.*), also used by the console.</summary>
+        internal static string ModeKey(PerformanceMode mode)
+        {
+            switch (mode)
+            {
+                case PerformanceMode.Performance: return "menu.mode.performance";
+                case PerformanceMode.Quality: return "menu.mode.quality";
+                case PerformanceMode.Safe: return "menu.mode.safe";
+                default: return "menu.mode.balanced";
+            }
+        }
 #endregion
 #region Save Game Actions
         /// <summary>
@@ -813,7 +829,7 @@ namespace MOP
                         else
                         {
                             failed++;
-                            ModConsole.LogWarning($"[MOPR] Save point {savegame.Path()} has no \"Mute audio\" state.");
+                            ModConsole.Warn("con.save.no_mute_state", savegame.Path());
                         }
                         savegame.FsmInject("Wait for click", SaveManager.RemoveReadOnlyAttribute);
                     }
@@ -874,9 +890,9 @@ namespace MOP
                 }
 
                 if (failed == 0)
-                    ModConsole.Log($"[MOPR] Hooked {hooked} save points!");
+                    ModConsole.Debug($"Hooked {hooked} save points!");
                 else
-                    ModConsole.LogError($"[MOPR] Hooked {hooked} save points, {failed} could not be hooked. Saving there may store objects MOP disabled.");
+                    ModConsole.Err("con.save.hook_failed", hooked, failed);
             }
             catch (Exception ex)
             {
@@ -889,7 +905,7 @@ namespace MOP
         /// </summary>
         public void PreSaveGame()
         {
-            ModConsole.Log("[MOPR] Initializing Pre-Save Actions...");
+            ModConsole.Debug("Initializing Pre-Save Actions...");
             SaveManager.ReleaseSave();
             MopSettings.IsModActive = false;
             StopCoroutine(currentLoop);
@@ -912,7 +928,7 @@ namespace MOP
             // and a read-only verification reports anything managed by MOP that stayed disabled.
             RestartGuard.ReleaseAll();
             SaveBarrier.Verify();
-            ModConsole.Log("[MOPR] Pre-Save Actions Completed!");
+            ModConsole.Debug("Pre-Save Actions Completed!");
         }
 
         public void DelayedPreSave()
@@ -1222,7 +1238,7 @@ namespace MOP
                 if (retries > 0 && !restartSucceedMessaged)
                 {
                     restartSucceedMessaged = true;
-                    ModConsole.Log("[MOPR] " + MoprColors.Success("Restart succeeded!"));
+                    ModConsole.Success("con.restart_succeeded");
                 }
             }
         }
@@ -1451,8 +1467,8 @@ namespace MOP
                 {
                     if (retries >= MaxRetries)
                     {
-                        ModConsole.LogError("[MOPR] Restart attempt failed. Enabling Safe Mode.");
-                        ModConsole.LogError("[MOPR] Please report it with MSCLoader's \"Report bug\" button for MOP - REVIVAL (logs are attached).");
+                        ModConsole.Err("con.restart_failed");
+                        ModConsole.Err("con.report_bug");
                         try { ToggleAll(true); } catch { }
                         MopSettings.EnableSafeMode();
                         yield break;
@@ -1460,7 +1476,7 @@ namespace MOP
 
                     retries++;
                     restartSucceedMessaged = false;
-                    ModConsole.LogWarning($"[MOPR] MOP has stopped working! Restart attempt {retries}/{MaxRetries}...");
+                    ModConsole.Warn("con.stopped_working", retries, MaxRetries);
                     StopCoroutine(currentLoop);
                     currentLoop = LoopRoutine();
                     StartCoroutine(currentLoop);
@@ -1478,7 +1494,7 @@ namespace MOP
         /// </summary>
         public void ToggleAll(bool enabled, ToggleAllMode mode = ToggleAllMode.Default)
         {
-            ModConsole.Log($"[MOPR] Toggling all to {enabled.ToString().ToUpper()} in mode {mode.ToString().ToUpper()}");
+            ModConsole.Debug($"Toggling all to {enabled.ToString().ToUpper()} in mode {mode.ToString().ToUpper()}");
 
             // World objects
             for (int i = 0; i < worldObjectManager.Count; i++)
@@ -1493,7 +1509,7 @@ namespace MOP
                 }
             }
 
-            ModConsole.Log("[MOPR] Toggled WORLD OBJECTS");
+            ModConsole.Debug("Toggled WORLD OBJECTS");
 
             if (MopSettings.Mode == PerformanceMode.Safe) return;
 
@@ -1522,7 +1538,7 @@ namespace MOP
                 }
             }
 
-            ModConsole.Log("[MOPR] Toggled ITEMS");
+            ModConsole.Debug("Toggled ITEMS");
 
             // Find all kilju, emptyca, empty juice container, and force empty them if applicable
             try
@@ -1542,7 +1558,7 @@ namespace MOP
                 ExceptionManager.New(ex, false, "KILJU_RESET_FORCE_ERROR");
             }
 
-            ModConsole.Log("[MOPR] Toggled KILJU");
+            ModConsole.Debug("Toggled KILJU");
 
             // Vehicles
             for (int i = 0; i < VehicleManager.Instance.Count; i++)
@@ -1580,7 +1596,7 @@ namespace MOP
                 ExceptionManager.New(ex, false, "TOGGLE_SATSUMA_GLUE_ALL_ERROR");
             }
 
-            ModConsole.Log("[MOPR] Toggled VEHICLES");
+            ModConsole.Debug("Toggled VEHICLES");
 
             // Places
             for (int i = 0; i < placeManager.Count; i++)
@@ -1595,7 +1611,7 @@ namespace MOP
                 }
             }
 
-            ModConsole.Log("[MOPR] Toggled PLACES");
+            ModConsole.Debug("Toggled PLACES");
 
             // Force teleport kilju bottles.
             try
@@ -1618,7 +1634,7 @@ namespace MOP
                 ExceptionManager.New(ex, false, "TOGGLE_ALL_JOBS_DRUNK");
             }
 
-            ModConsole.Log("[MOPR] Toggled KILJU TELEPORT");
+            ModConsole.Debug("Toggled KILJU TELEPORT");
 
             // ToggleElements class of Satsuma.
             try
@@ -1637,8 +1653,8 @@ namespace MOP
                 ExceptionManager.New(ex, false, "TOGGLE_ALL_SATSUMA_TOGGLE_ELEMENTS");
             }
 
-            ModConsole.Log("[MOPR] Toggled SATSUMA ELEMENTS");
-            ModConsole.Log("[MOPR] Toggle done!");
+            ModConsole.Debug("Toggled SATSUMA ELEMENTS");
+            ModConsole.Debug("Toggle done!");
         }
 
         public Transform GetPlayer()
@@ -1694,7 +1710,8 @@ namespace MOP
             yield return new WaitForSeconds(LoadScreenWorkaroundTime);
             if (FsmManager.PlayerInMenu)
             {
-                ModConsole.LogError("[MOPR] MOP failed to load in time. Please report it with MSCLoader's \"Report bug\" button for MOP - REVIVAL.");
+                ModConsole.Err("con.load_timeout");
+                ModConsole.Err("con.report_bug");
                 FinishLoading();
                 Satsuma.Instance?.ToggleActive(true);
                 Satsuma.Instance?.ForceToggleUnityCar(true);

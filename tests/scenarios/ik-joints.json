@@ -1,0 +1,15 @@
+{
+  "Name": "ik-joints",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Item 5: what the SimpleIKSolver joint writes move, and whether a solve on resting inputs changes anything (bitwise)." },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "iksolvers", "Label": "joints" },
+    { "Op": "ikprobe", "Label": "rest", "Seconds": 5 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [1.6, 1.2, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "ikprobe", "Label": "near_car", "Seconds": 5 },
+    { "Op": "quit" }
+  ]
+}

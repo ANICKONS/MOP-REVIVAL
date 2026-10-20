@@ -1,0 +1,33 @@
+{
+  "Name": "drive-evaluated",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "5.1 evaluated actions in the Satsuma: shadow check seated and driving (moving camera, dashboard picks), then A/B while driving (A = evaluation on, B = off)." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "placecar", "Target": "SATSUMA(557kg, 248)", "Path": "Waypoint Manager/TeimoBicycleIn", "Max": 5 },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Pos": [0.0, 0.0, 0.0] },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Fsm": "PlayerTrigger", "Event": "Key DOWN" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "watch", "Label": "seated", "Seconds": 0, "Probes": [ "state=SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger|PlayerTrigger|@state", "vehicle=global|PlayerCurrentVehicle" ] },
+
+    { "Op": "engine", "Mode": "shadow", "Detail": true },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "enginestats", "Label": "shadow-seated" },
+    { "Op": "drive", "Target": "SATSUMA(557kg, 248)", "Path": "Waypoint Manager/TeimoBicycleIn", "Max": 5, "Last": 17, "Speed": 45 },
+    { "Op": "wait", "Seconds": 20 },
+    { "Op": "enginestats", "Label": "shadow-driving" },
+
+    { "Op": "engine", "Mode": "on", "Detail": false },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "abtoggle", "Label": "driving-evaluated-vs-blocking", "Var": "staticbool", "Path": "MOP.Next.Engine.FsmFastPath.EvaluationOff", "Seconds": 20, "Block": 1 },
+    { "Op": "watch", "Label": "driving_end", "Seconds": 0, "Probes": [ "driver=static|MOPR.TestBot.Driver.Status" ] },
+    { "Op": "drivestop" },
+    { "Op": "quit" }
+  ]
+}

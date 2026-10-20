@@ -43,8 +43,8 @@ namespace MOP.Next
             HashSet<GameObject> roots = CollectManagedRoots(out Dictionary<GameObject, string> owners);
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"MOP - REVIVAL {MOP.ModVersion} - FSM restart audit ({DateTime.Now:yyyy-MM-dd HH:mm:ss})");
-            sb.AppendLine("FSMs below live inside objects that MOP enables/disables and still have RestartOnEnable = true.");
-            sb.AppendLine("Those with load-like states may reset their progress whenever MOP re-enables the object.");
+            sb.AppendLine("FSMs below live inside objects that MOPR enables/disables and still have RestartOnEnable = true.");
+            sb.AppendLine("Those with load-like states may reset their progress whenever MOPR re-enables the object.");
             sb.AppendLine();
 
             int scanned = 0, restarting = 0, hazards = 0;
@@ -97,7 +97,7 @@ namespace MOP.Next
 
             string path = Path.Combine(Paths.LogFolder, $"MOP_FsmAudit_{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.txt");
             File.WriteAllText(path, sb.ToString());
-            ModConsole.Log($"[MOPR] FSM audit: {scanned} FSMs scanned, {hazards} potential restart hazards. Report: {path}");
+            ModConsole.Info("con.audit", scanned, hazards, path);
             return path;
         }
 
@@ -228,12 +228,12 @@ namespace MOP.Next
 
             if (inactiveItems + inactivePlaces + inactiveVehicles == 0)
             {
-                ModConsole.Log("[MOPR] Save barrier: all managed objects are enabled.");
+                ModConsole.Debug("Save barrier: all managed objects are enabled.");
                 return;
             }
 
             // Some objects are legitimately inactive (e.g. the game itself hid an item, "empty" items).
-            ModConsole.LogWarning($"[MOPR] Save barrier: still inactive before save - items {inactiveItems}, place objects {inactivePlaces}, vehicles {inactiveVehicles}.\n{details}");
+            ModConsole.Warn("con.save.barrier", inactiveItems, inactivePlaces, inactiveVehicles, details);
         }
     }
 }

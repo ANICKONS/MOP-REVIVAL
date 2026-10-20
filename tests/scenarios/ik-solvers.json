@@ -1,0 +1,18 @@
+{
+  "Name": "ik-solvers",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Item 5: the game's SimpleIKSolver (CCD IK in LateUpdate, up to 21 iterations a frame). Where they are, which ones cannot reach their target (all 21 iterations every frame), calls and time per frame, and what skipping them all would save (upper bound, measurement only)." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-12.0, 2.0, 6.0], "Target": "YARD/Building" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "iksolvers", "Label": "yard" },
+    { "Op": "callcount", "Label": "ik-yard", "Seconds": 4, "Text": "SimpleIKSolver:LateUpdate" },
+    { "Op": "abtoggle", "Label": "yard-ik-skipped", "Var": "skipmethod", "Path": "SimpleIKSolver:LateUpdate", "Seconds": 16, "Block": 1 },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "iksolvers", "Label": "living" },
+    { "Op": "callcount", "Label": "ik-living", "Seconds": 4, "Text": "SimpleIKSolver:LateUpdate" },
+    { "Op": "quit" }
+  ]
+}

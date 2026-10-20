@@ -1,0 +1,17 @@
+{
+  "Name": "ray-probe",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Shared mouse ray verify, short: what the original DoMousePick stores (misses included), next to the car with a turning camera." },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "engineSharedMouseRay", "Value": "true" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "enginePlayMakerVerify", "Value": "true" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [1.6, 1.5, 1.2], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "spin", "Speed": 40 },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "spin", "Speed": 0 },
+    { "Op": "watch", "Label": "verify_car", "Seconds": 0, "Probes": [ "engine=static|MOP.Next.Engine.EngineLab.Report" ] },
+    { "Op": "quit" }
+  ]
+}

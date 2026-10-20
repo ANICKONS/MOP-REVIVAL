@@ -87,7 +87,7 @@ namespace MOP.Common
             // Add version stamp, to the new log file.
             if (isNewFile)
             {
-                errorInfo = $"MOP {MOP.ModVersion}\n" + errorInfo;
+                errorInfo = $"MOPR {MOP.ModVersion}\n" + errorInfo;
             }
 
             // Fix (original MOP bug): the de-duplication buffer was never filled, so an error inside
@@ -106,21 +106,16 @@ namespace MOP.Common
             }
             catch (Exception ioEx)
             {
-                ModConsole.LogError($"[MOPR] Unable to write the log file: {ioEx.Message}");
+                ModConsole.Err("con.error.log_write_failed", ioEx.Message);
             }
-
-            string errorMessage = 
-                $"[MOPR] An error has occured. The log file has been saved into:\n\n" +
-                $"{logFilePath}\nMessage: {message}\n\n" +
-                $"To report it, use MSCLoader's \"<b>Report bug</b>\" button for MOP - REVIVAL (logs are attached automatically).\n";
 
             if (isCritical)
             {
-                ModConsole.LogError(errorMessage);
+                ModConsole.Err("con.error.occurred", logFilePath, message);
             }
             else
             {
-                ModConsole.LogWarning(errorMessage + "\n<b>You can continue playing.</b>");
+                ModConsole.Warn("con.error.occurred_continue", logFilePath, message);
             }
         }
 
@@ -168,7 +163,7 @@ namespace MOP.Common
                 sw.Write(gameInfo);
             }
 
-            ModConsole.Log("[MOPR] Mod report has been successfully generated.");
+            ModConsole.Info("con.report_generated");
             Process.Start(path);
         }
 
@@ -196,8 +191,9 @@ namespace MOP.Common
             sb.Append($"RAM: ").Append(SystemInfo.systemMemorySize).AppendLine(" MB");
             sb.Append($"GPU: ").Append(SystemInfo.graphicsDeviceName).Append(" (").Append(SystemInfo.graphicsMemorySize).AppendLine(" MB VRAM)");
             sb.AppendLine();
-            sb.AppendLine("=== MOP SETTINGS ===");
+            sb.AppendLine("=== MOPR SETTINGS ===");
             sb.AppendLine(); 
+            sb.Append("Language: ").Append(Localization.Loc.ToCode(Localization.Loc.Current)).AppendLine();
             sb.Append($"ActiveDistance: ").Append(MopMenu.ActiveDistance.GetValue()).AppendLine();
             sb.Append($"ActiveDistanceMultiplier: ").Append(MopSettings.ActiveDistanceMultiplicationValue).AppendLine();
             sb.Append($"PerformanceMode: ").Append(MopSettings.Mode).AppendLine();

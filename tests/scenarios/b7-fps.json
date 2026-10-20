@@ -1,0 +1,26 @@
+{
+  "Name": "b7-fps",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "B7 (FPS drops after 2-15 minutes): FPS, frame times and memory at one spot at home, then about 5 minutes of home -> Teimo -> repair shop -> home (MOP switches the world, vehicles and items every time), then the same spot again. Engine objects counted before and after (leaks), MOP's lists too." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "objcount", "Label": "start" },
+    { "Op": "mopstate", "Label": "start" },
+    { "Op": "measure", "Label": "start", "Seconds": 10 },
+    { "Op": "repeat", "Label": "tour", "Max": 12, "Steps": [
+      { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [6.0, 1.0, 0.0] },
+      { "Op": "wait", "Seconds": 6 },
+      { "Op": "teleport", "Path": "REPAIRSHOP/Order", "Pos": [0.0, 1.0, 3.0] },
+      { "Op": "wait", "Seconds": 6 },
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+      { "Op": "wait", "Seconds": 6 }
+    ] },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "objcount", "Label": "end" },
+    { "Op": "mopstate", "Label": "end" },
+    { "Op": "measure", "Label": "end", "Seconds": 10 },
+    { "Op": "quit" }
+  ]
+}

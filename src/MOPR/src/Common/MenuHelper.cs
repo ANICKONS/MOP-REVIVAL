@@ -56,7 +56,7 @@ namespace MOP.Common
         {
             yield return null;
 
-            ModConsole.Log("[MOPR] Initializing the restart procedure...");
+            ModConsole.Info("con.restart_procedure");
 
             GameObject interfaceObj = GameObject.Find("Interface");
             Transform continueTransform = interfaceObj != null ? interfaceObj.transform.Find("Buttons/ButtonContinue") : null;

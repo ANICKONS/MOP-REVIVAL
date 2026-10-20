@@ -89,8 +89,7 @@ namespace MOP.Localization
             if (!CanRelabel && !warned)
             {
                 warned = true;
-                ModConsole.LogWarning("[MOPR] This MSCLoader version does not allow renaming settings live. " +
-                                      "The new language applies to the settings after a game restart.");
+                ModConsole.Warn("con.language_restart");
             }
 
             for (int i = 0; i < entries.Count; i++)
@@ -121,7 +120,7 @@ namespace MOP.Localization
                 }
                 catch (Exception ex)
                 {
-                    ModConsole.LogWarning("[MOPR] Could not relabel a setting: " + ex.Message);
+                    ModConsole.Debug("Could not relabel a setting: " + ex.Message);
                 }
             }
 
@@ -142,7 +141,7 @@ namespace MOP.Localization
                 }
                 catch (Exception ex)
                 {
-                    ModConsole.LogWarning("[MOPR] Could not relabel a slider: " + ex.Message);
+                    ModConsole.Debug("Could not relabel a slider: " + ex.Message);
                 }
             }
         }
@@ -170,7 +169,7 @@ namespace MOP.Localization
             }
             catch (Exception ex)
             {
-                ModConsole.LogWarning("[MOPR] Could not relabel the mod list: " + ex.Message);
+                ModConsole.Debug("Could not relabel the mod list: " + ex.Message);
             }
         }
 

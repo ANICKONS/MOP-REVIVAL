@@ -131,7 +131,7 @@ namespace MOP.Vehicles.Cases
                 maskedElements = new Dictionary<GameObject, bool>();
                 Toggle = IgnoreToggle;
                 IsActive = false;
-                ModConsole.Log("[MOPR] satsuma_ignore rule is active: the Satsuma is left entirely to another mod.");
+                ModConsole.Info("con.satsuma_excluded");
                 return;
             }
 
@@ -571,7 +571,7 @@ namespace MOP.Vehicles.Cases
                 GameObject odometer = GameObject.Find("dashboard meters(Clone)/Gauges/Odometer");
                 if (odometer.GetComponent<PlayMakerFSM>() == null)
                 {
-                    ModConsole.Log("[MOPR] Can't reset Odometer FSM. Perhaps a mod has removed it?");
+                    ModConsole.Debug("Can't reset Odometer FSM. Perhaps a mod has removed it?");
                 }
                 else
                 {
@@ -1068,29 +1068,56 @@ namespace MOP.Vehicles.Cases
         internal void AddPart(SatsumaBoltsAntiReload i)
         {
             satsumaBoltsAntiReloads.Add(i);
+            // 5.1: the object's name, to tell in the log which entries are gone when the parts are unglued.
+            string name;
+            try { name = i != null && i.gameObject != null ? i.gameObject.name : "?"; } catch { name = "?"; }
+            satsumaBoltsNames.Add(name);
         }
 
+        readonly List<string> satsumaBoltsNames = new List<string>();
+        // Entries BoltsFix added itself. Any entry after them was registered by a copy of a part that already had the
+        // component (Instantiate runs the constructor again, before the copy has a name).
+        int boltsAddedByMopr;
+
+        /// <summary>
+        /// Original MOP: the parts on the car are "glued" while it loads (their joints can't break) and the bolt FSMs
+        /// don't restart when MOP switches them back on. The first time the player is far from the car, the joints get
+        /// their real strength back. Entries whose component no longer exists by then (the game destroyed the object:
+        /// its DUMMY_ placeholders, copies of parts) are simply dropped - harmless, so only in the log.
+        /// </summary>
         private void UnglueAll()
         {
             if (partsUnglued) return;
             partsUnglued = true;
 
-            List<SatsumaBoltsAntiReload> brokens = new List<SatsumaBoltsAntiReload>();
-
+            List<int> gone = new List<int>();
             for (int i = 0; i < satsumaBoltsAntiReloads.Count; ++i)
             {
                 if (satsumaBoltsAntiReloads[i] == null)
                 {
-                    brokens.Add(satsumaBoltsAntiReloads[i]);
+                    gone.Add(i);
                     continue;
                 }
-                satsumaBoltsAntiReloads[i]?.Unglue();
+                satsumaBoltsAntiReloads[i].Unglue();
             }
 
-            ModConsole.Log($"[MOPR] Found {brokens.Count} broken SatsumaBoltsAntiReload.");
-            foreach (var broken in brokens)
+            if (gone.Count > 0)
             {
-                satsumaBoltsAntiReloads.Remove(broken);
+                List<string> names = new List<string>();
+                int copies = 0;
+                foreach (int i in gone)
+                {
+                    if (i >= boltsAddedByMopr) copies++;
+                    else names.Add(i < satsumaBoltsNames.Count ? satsumaBoltsNames[i] : "?");
+                }
+                ModConsole.Debug($"Unglued the Satsuma parts; {gone.Count} of {satsumaBoltsAntiReloads.Count} entries were already gone " +
+                                 $"(destroyed by the game): {(names.Count > 0 ? string.Join(", ", names.ToArray()) : "-")}" +
+                                 (copies > 0 ? $"; {copies} copies of parts made after the load" : ""));
+            }
+            for (int k = gone.Count - 1; k >= 0; k--)
+            {
+                satsumaBoltsAntiReloads.RemoveAt(gone[k]);
+                if (gone[k] < satsumaBoltsNames.Count) satsumaBoltsNames.RemoveAt(gone[k]);
             }
         }
 
@@ -1118,7 +1145,7 @@ namespace MOP.Vehicles.Cases
                 }
             }
 
-            ModConsole.Log("[MOPR] Glued all Satsuma parts.");
+            ModConsole.Debug("Glued all Satsuma parts.");
         }
 
         private List<Renderer> GetRenderersToDisable()
@@ -1159,6 +1186,7 @@ namespace MOP.Vehicles.Cases
         {
             // Get all bolts.
             satsumaBoltsAntiReloads = new List<SatsumaBoltsAntiReload>();
+            satsumaBoltsNames.Clear();
             GameObject[] bolts = Resources.FindObjectsOfTypeAll<GameObject>().Where(obj => obj.name == "BoltPM").ToArray();
             foreach (GameObject bolt in bolts)
             {
@@ -1228,11 +1256,12 @@ namespace MOP.Vehicles.Cases
             // Fuel line.
             transform.Find("MiscParts/fuel line(xxxxx)").gameObject.AddComponent<SatsumaBoltsAntiReload>();
 
-            ModConsole.Log($"[MOPR] Found {satsumaBoltsAntiReloads.Count} bolts.");
+            boltsAddedByMopr = satsumaBoltsAntiReloads.Count;
+            ModConsole.Debug($"Found {satsumaBoltsAntiReloads.Count} bolts.");
             // If there's less bolts found than the value, warn user.
             if (satsumaBoltsAntiReloads.Count < MinimumBolts)
             {
-                ModConsole.Log("[MOPR] " + MoprColors.Warning($"Only {satsumaBoltsAntiReloads.Count} out of expected {MinimumBolts} have been reset!"));
+                ModConsole.Warn("con.bolts_few", satsumaBoltsAntiReloads.Count, MinimumBolts);
             }
         }
 

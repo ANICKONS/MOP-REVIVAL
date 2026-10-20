@@ -1,0 +1,212 @@
+// MOP - REVIVAL
+// Copyright(C) 2026 ANICKON. Licensed under GPLv3 (see Loc.cs).
+//
+// Russian console messages. A key missing here falls back to English (see Loc.T).
+// Сообщения консоли. Копия для отчётов всегда английская (Console.En.cs), поэтому здесь только то, что видит игрок.
+// Не используйте <color=yellow|green|red>: копия для отчётов превращает их в [WARNING]/[SYSTEM]/[ERROR].
+
+using System.Collections.Generic;
+
+namespace MOP.Localization
+{
+    internal static class ConsoleRu
+    {
+        internal static readonly Dictionary<string, string> Table = new Dictionary<string, string>
+        {
+            // === Слова ===
+            { "con.on", "ВКЛ" },
+            { "con.off", "ВЫКЛ" },
+            { "con.verify", "ПРОВЕРКА" },
+
+            // === Оптимизации: «Движок: Оптимизация скриптов ВКЛ» ===
+            { "con.engine.line", "Движок: {0} {1}" },
+            { "con.render.line", "Отрисовка: {0} {1}" },
+            { "con.name.scripts", "Оптимизация скриптов" },
+            { "con.name.rays", "Оптимизация лучей" },
+            { "con.name.engine_bay", "Оптимизация двигателя" },
+            { "con.name.mirrors", "Оптимизация зеркал" },
+            { "con.name.render", "Оптимизация отрисовки" },
+            { "con.name.merge", "Склейка стоящей Satsuma" },
+            { "con.engine.failed", "Движок: оптимизация скриптов выключена: {0}" },
+            { "con.engine.part_unavailable", "Движок: {0} недоступно: {1}" },
+            { "con.engine.detail", "Движок: подробная статистика {0}" },
+            { "con.engine.unpatch_failed", "Движок: не удалось снять патчи: {0}" },
+
+            // === Загрузка и итог ===
+            { "con.loading", "Загрузка MOPR..." },
+            { "con.loaded", "Загружено успешно!" },
+            { "con.sum.managed", "Под управлением:" },
+            { "con.sum.count", "    {0}: {1}" },
+            { "con.sum.world_objects", "Объекты мира" },
+            { "con.sum.items", "Предметы" },
+            { "con.sum.vehicles", "Транспорт" },
+            { "con.sum.places", "Места" },
+            { "con.sum.mode", "Режим: {0}" },
+            { "con.sum.flag", "    {0} {1}" },
+            { "con.sum.experimental", "Экспериментальное:" },
+            { "con.restart_scene", "Перезагружаем сцену, чтобы догрузить Satsuma..." },
+            { "con.restart_procedure", "Запускаем перезагрузку сцены..." },
+            { "con.restart_succeeded", "Перезапуск удался!" },
+            { "con.restart_failed", "Перезапуск не удался. Включён безопасный режим." },
+            { "con.report_bug", "Сообщите об этом кнопкой «Report bug» в MSCLoader для MOP - REVIVAL (логи приложатся сами)." },
+            { "con.stopped_working", "MOPR перестал работать! Попытка перезапуска {0}/{1}..." },
+            { "con.load_timeout", "MOPR не успел загрузиться." },
+            { "con.prerelease", "ВНИМАНИЕ!\nЭТО ПРЕДВАРИТЕЛЬНАЯ ВЕРСИЯ MOP - REVIVAL!" },
+            { "con.stub_build", "Эта сборка собрана на заглушках вместо настоящих библиотек игры. Она только для тестов." },
+            { "con.initialized", "MOP - REVIVAL {0} <color=#3FB950>запущен!</color>" },
+            { "con.conflict", "MOP - REVIVAL не загружен, потому что установлен этот мод: {0}" },
+            { "con.place_missing", "Место {0} не найдено!" },
+            { "con.vehicle_missing", "Не найден транспорт {0}." },
+            { "con.satsuma_excluded", "Действует правило satsuma_ignore: Satsuma полностью отдана другому моду." },
+            { "con.bolts_few", "Сброшено болтов: только {0} из ожидаемых {1}!" },
+            { "con.fsm_hook_failed", "Не удалось подключиться к состоянию «{0}» FSM «{1}» на {2}." },
+            { "con.audit", "Аудит FSM: проверено {0}, возможных сбросов: {1}. Отчёт: {2}" },
+
+            // === Сохранение ===
+            { "con.save.no_mute_state", "У точки сохранения {0} нет состояния «Mute audio»." },
+            { "con.save.hook_failed", "Подключено точек сохранения: {0}, не удалось: {1}. Сохранение там может записать объекты, выключенные MOPR." },
+            { "con.save.no_access", "Сейчас нет доступа к файлу сохранения." },
+            { "con.save.permadeath", "Сохранение не проверялось: оно после permadeath." },
+            { "con.save.ok", "Проверка сохранения: проблем нет :)" },
+            { "con.save.attributes_failed", "Не удалось снять атрибут «только чтение» с файлов сохранения. Снимите его вручную с defaultES2File.txt и items.txt." },
+            { "con.save.barrier", "Барьер сохранения: перед сохранением ещё выключены - предметы {0}, объекты мест {1}, транспорт {2}.\n{3}" },
+
+            // === Настройки и язык ===
+            { "con.settings_page", "Страница настроек: {0}" },
+            { "con.language", "Язык интерфейса: {0}" },
+            { "con.language_store_failed", "Не удалось сохранить язык: {0}" },
+            { "con.language_restart", "Эта версия MSCLoader не умеет переименовывать настройки на лету. В настройках новый язык появится после перезапуска игры." },
+            { "con.mopdata_read_failed", "Не удалось прочитать MopData.json: {0}" },
+            { "con.resolution_set", "Разрешение экрана: {0}x{1}" },
+
+            // === Ошибки и отчёты ===
+            { "con.error.log_write_failed", "Не удалось записать лог: {0}" },
+            { "con.error.occurred", "Произошла ошибка. Лог сохранён в:\n\n{0}\nСообщение: {1}\n\n" +
+                                    "Чтобы сообщить о ней, нажмите «<b>Report bug</b>» в MSCLoader для MOP - REVIVAL (логи приложатся сами)." },
+            { "con.error.occurred_continue", "Произошла ошибка. Лог сохранён в:\n\n{0}\nСообщение: {1}\n\n" +
+                                             "Чтобы сообщить о ней, нажмите «<b>Report bug</b>» в MSCLoader для MOP - REVIVAL (логи приложатся сами).\n\n" +
+                                             "<b>Можно играть дальше.</b>" },
+            { "con.report_generated", "Отчёт мода создан." },
+            { "con.open_failed", "Не удалось открыть {0}: {1}" },
+
+            // === Правила ===
+            { "con.rules.custom_copied", "Ваш файл правил Custom.txt скопирован из папки настроек оригинального MOP." },
+            { "con.rules.folder_failed", "Не удалось создать папку правил: {0}" },
+            { "con.rules.list_failed", "Не удалось получить список файлов правил в {0}: {1}" },
+            { "con.rules.migrated", "Правила: удалены старые файлы правил, которые туда копировал MOPR ({0}); те же правила теперь встроены. Файлы, которые вы меняли, оставлены." },
+            { "con.rules.manage_missing", "Правила: не найден {0} (manage {1})" },
+            { "con.rules.issue", "Правила: {0}" },
+            { "con.rules.more_issues", "Правила: <color=#9AA6B2>…и ещё {0} (mopr rules)</color>" },
+            // Итоговая строка: «Правила: 25, файлов: 3 (встроенных: 3), прочитаны за 12 мс».
+            { "con.rules.prefix", "Правила: " },
+            { "con.rules.none_needed", "для установленных модов не нужны" },
+            { "con.rules.off", "выключены" },
+            { "con.rules.summary", "{0}, файлов: {1} ({2})" },
+            { "con.rules.n_builtin", "встроенных: {0}" },
+            { "con.rules.n_yours", "ваших: {0}" },
+            { "con.rules.n_legacy", "старого формата: {0}" },
+            { "con.rules.all_files", " (все файлы, даже для неустановленных модов)" },
+            { "con.rules.next_load", " - применятся при следующей загрузке игры" },
+            { "con.rules.read_in", ", прочитаны за {0} мс" },
+            // «mopr rules».
+            { "con.rules.src_builtin", "встроенный" },
+            { "con.rules.src_yours", "ваш" },
+            { "con.rules.src_legacy", "старый формат" },
+            { "con.rules.report_head", "<b>Правила</b>: активных файлов: {0}, правил: {1}" },
+            { "con.rules.report_read_in_game", " (прочитаны во время игры: применятся при следующей загрузке)" },
+            { "con.rules.report_folder", "Папка: {0}" },
+            { "con.rules.report_active", "Активные" },
+            { "con.rules.report_rules", "правил: {0}" },
+            { "con.rules.report_problems", "ошибок: {0}" },
+            { "con.rules.report_unused", "Не используются" },
+            { "con.rules.report_hidden", "встроенные правила для неустановленных модов: {0} (mopr rules all)" },
+            { "con.rules.report_switches", "Переключатели" },
+            { "con.rules.sw_satsuma_excluded", "Satsuma не трогается" },
+            { "con.rules.sw_satsuma_renderers", "детали Satsuma никогда не скрываются" },
+            { "con.rules.sw_bottles", "пустые бутылки остаются" },
+            { "con.rules.sw_fury", "без исправления коллайдера Fury" },
+            { "con.rules.sw_physics_only", "весь транспорт: только физика" },
+            { "con.rules.sw_no_lods", "без дальних копий транспорта" },
+            { "con.rules.report_issues", "Ошибки" },
+            { "con.rules.report_note", "(заметка) " },
+            { "con.rules.report_unmatched", "Объекты из правил, которых MOPR не встретил в этой игре" },
+            { "con.rules.report_unmatched_why", "(опечатка, или такого объекта нет)" },
+            { "con.rules.why_none", "Ни одно правило не называет «{0}» (имена точные, регистр важен)." },
+            // Файлы правил из консоли и настроек.
+            { "con.rules.no_folder", "Папка настроек ещё неизвестна." },
+            { "con.rules.created", "Создан {0}" },
+            { "con.rules.exists_opened", "Файл уже есть, открыт: {0}" },
+            { "con.rules.exists", "Файл уже есть: {0}" },
+            { "con.rules.no_builtin", "У MOPR нет встроенных правил для «{0}»." },
+            { "con.rules.written", "Записан {0}. Применится при следующей загрузке игры." },
+            { "con.rules.no_legacy", "Нет файла старого формата {0} в {1}" },
+            { "con.rules.converted_issues", "Записан {0} (не удалось перевести строк: {1}, см. начало файла). Применится при следующей загрузке игры." },
+
+            // === Команды консоли ===
+            { "con.cmd.help", "Список команд: \"mopr help\"" },
+            { "con.cmd.see_help", "Список команд: \"mopr help\"." },
+            { "con.cmd.invalid", "Неизвестная команда. Список команд: \"mopr help\"." },
+            { "con.cmd.not_found", "Команда {0} не найдена." },
+            { "con.cmd.usage", "Использование: {0}" },
+            { "con.cmd.version", "MOP - REVIVAL {0} для {1}" },
+            { "con.cmd.only_in_game", "Работает только в игре." },
+            { "con.cmd.render_only_in_game", "Оптимизатор отрисовки работает только в игре." },
+            { "con.cmd.render_restored", "Оптимизатор отрисовки приостановлен, все значения возвращены. Измените любую настройку отрисовки, чтобы применить её снова." },
+            { "con.cmd.audit_only_in_game", "Аудит работает только в игре." },
+            { "con.cmd.guard", "Защита от сброса {0}, защищено FSM: {1}. Отчёт: {2}" },
+            { "con.cmd.no_file", "Нет файла правил «{0}». Ваши файлы лежат в {1}" },
+            { "con.cmd.deleted", "Удалён {0}. Применится при следующей загрузке игры." },
+            { "con.cmd.cat_none", "Нет файла правил «{0}» и нет встроенных правил для мода с таким ID." },
+            { "con.cmd.genlist_warning", "Для точного результата выполните \"mopr load-rules false\", чтобы MOPR не применял файлы правил." },
+            { "con.cmd.genlist_state", "Список переключаемых объектов: {0}" },
+            { "con.cmd.load_rules_warning", "Без файлов правил игра может работать с серьёзными ошибками, а сохранение может сломаться.\n<b>ТОЛЬКО НА ВАШ СТРАХ И РИСК!</b>" },
+            { "con.cmd.load_rules_state", "Файлы правил: {0}" },
+            { "con.cmd.resolution_hint", "Чтобы выбрать разрешение, введите 'mopr resolution [номер]'." },
+            { "con.cmd.resolution_failed", "Не удалось установить разрешение." },
+            { "con.cmd.quality_failed", "Не удалось установить уровень качества." },
+            { "con.cmd.bad_argument", "Неизвестный аргумент: {0}" },
+            { "con.cmd.force_load_restart", "Принудительная перезагрузка ради Satsuma: {0}" },
+            { "con.cmd.stop_only_in_game", "Остановить MOPR можно только в игре." },
+            { "con.cmd.start_only_in_game", "Запустить MOPR можно только в игре." },
+            { "con.cmd.not_running", "MOPR не запущен." },
+            { "con.cmd.already_running", "MOPR уже запущен." },
+            { "con.cmd.stopped", "MOPR остановлен. Что-то может работать неправильно. Сохранение в таком состоянии может сломать сейв!" },
+            { "con.cmd.monitor_only_in_game", "Отладочный монитор работает только в игре." },
+            { "con.cmd.presave", "Выполняем подготовку к сохранению..." },
+            { "con.cmd.log_head", "Последние строки лога MOPR ({0}), те же строки попадают в отчёты мода и об ошибках:" },
+
+            // === «mopr help»: по строке на команду (сама команда не переводится) ===
+            { "con.help.help", "Показывает этот список" },
+            { "con.help.version", "Версия MOPR" },
+            { "con.help.log", "Последние строки лога MOPR, включая служебные (по умолчанию 40)" },
+            { "con.help.rules", "Файлы правил: активные, неиспользуемые и почему, ошибки (all: все встроенные файлы)" },
+            { "con.help.rules_why", "Все правила, где упомянут этот объект" },
+            { "con.help.rules_export", "Записывает встроенные правила мода в папку правил, чтобы их можно было менять" },
+            { "con.help.rules_convert", "Переводит старый файл .mopconfig или Custom.txt в JSON (старый остаётся как .bak)" },
+            { "con.help.reload", "Перечитывает файлы правил. \"all\": ещё и файлы неустановленных модов" },
+            { "con.help.new", "Создаёт ваш файл правил (Rules/name.json) с пояснениями и открывает его" },
+            { "con.help.open", "Открывает файл правил (без имени: папку правил)" },
+            { "con.help.open_config", "Открывает папку настроек MOPR" },
+            { "con.help.delete", "Удаляет один из ваших файлов правил" },
+            { "con.help.cat", "Выводит файл правил (ваш, старый или встроенный для мода)" },
+            { "con.help.generate_list", "Записывает текстовые файлы со списком объектов, которые переключает MOPR" },
+            { "con.help.load_rules", "false: со следующей загрузки не действует ни одно правило (для тестов)" },
+            { "con.help.force_crash", "MOPR создаёт тестовую ошибку (critical: критическую)" },
+            { "con.help.resolution", "Список доступных разрешений" },
+            { "con.help.resolution_n", "Устанавливает разрешение из списка 'mopr resolution'" },
+            { "con.help.resolution_wh", "Устанавливает указанное разрешение" },
+            { "con.help.force_load_restart", "Принудительно перезагружает сцену ради недогруженных деталей Satsuma" },
+            { "con.help.stop", "Останавливает MOPR. МОЖЕТ СЛОМАТЬ ИГРУ!" },
+            { "con.help.start", "Запускает MOPR снова" },
+            { "con.help.quality", "Устанавливает уровень качества игры" },
+            { "con.help.debug_monitor", "Показывает или скрывает отладочный монитор MOPR" },
+            { "con.help.presave", "Выполняет подготовку к сохранению" },
+            { "con.help.render", "Отчёт оптимизатора отрисовки (слои, тени, лампы)" },
+            { "con.help.render_rescan", "Заново анализирует все рендереры и лампы" },
+            { "con.help.render_restore", "Возвращает все значения, изменённые оптимизатором отрисовки" },
+            { "con.help.audit", "Ищет в управляемых объектах FSM PlayMaker, которые могут сброситься при включении" },
+            { "con.help.guard", "Записывает список FSM под защитой от сброса" },
+            { "con.help.engine", "Оптимизации движка игры: сменить режим или показать статистику" },
+        };
+    }
+}

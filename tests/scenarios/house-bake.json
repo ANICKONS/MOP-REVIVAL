@@ -1,0 +1,21 @@
+{
+  "Name": "house-bake",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Item 3 (static house/yard geometry merge): what is there to merge (census) and the upper bound of the gain (TestBot bake prototype: everything enabled under the path combined by material, no exactness rules), in the yard looking at the house and in the living room." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-12.0, 2.0, 6.0], "Target": "YARD/Building" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "census", "Path": "YARD" },
+    { "Op": "census", "Path": "YARD/Building" },
+    { "Op": "census", "Path": "YARD/Building/LIVINGROOM" },
+    { "Op": "census", "Path": "YARD/Building/KITCHEN" },
+    { "Op": "abtoggle", "Label": "yard-house-bake", "Var": "bake", "Path": "YARD/Building", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "yard-house-hidden", "Var": "renderers", "Path": "YARD/Building", "Seconds": 12, "Block": 1 },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "abtoggle", "Label": "living-house-bake", "Var": "bake", "Path": "YARD/Building", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "living-house-hidden", "Var": "renderers", "Path": "YARD/Building", "Seconds": 12, "Block": 1 },
+    { "Op": "quit" }
+  ]
+}

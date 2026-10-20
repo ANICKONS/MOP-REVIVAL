@@ -1,0 +1,46 @@
+{
+  "Name": "home-attrib",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Where the frame goes at home (MOPR on): yard looking at the house, and inside the living room. GPU or CPU bound (resolution), script vs rendering (profile), and interleaved A/B of what is drawn: the house, the rest of the map, shadow casters, pixel lights." },
+    { "Op": "repeat", "Label": "spot", "Max": 1, "Steps": [
+      { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+      { "Op": "wait", "Seconds": 3 }
+    ] },
+    { "Op": "log", "Text": "=== inside: living room ===" },
+    { "Op": "measure", "Label": "in-base", "Seconds": 4 },
+    { "Op": "resolution", "Pos": [640, 360] },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "measure", "Label": "in-360p", "Seconds": 4 },
+    { "Op": "resolution", "Pos": [1280, 720] },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "profile", "Label": "in", "Seconds": 6 },
+    { "Op": "abtoggle", "Label": "in-yard-renderers", "Var": "renderers", "Path": "YARD", "Seconds": 8 },
+    { "Op": "abtoggle", "Label": "in-map-renderers", "Var": "renderers", "Path": "MAP", "Seconds": 8 },
+    { "Op": "abtoggle", "Label": "in-yard-shadows", "Var": "castshadows", "Path": "YARD", "Seconds": 8 },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-12.0, 2.0, 6.0], "Target": "YARD/Building" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "log", "Text": "=== outside: yard, looking at the house ===" },
+    { "Op": "measure", "Label": "out-base", "Seconds": 4 },
+    { "Op": "resolution", "Pos": [640, 360] },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "measure", "Label": "out-360p", "Seconds": 4 },
+    { "Op": "resolution", "Pos": [1280, 720] },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "profile", "Label": "out", "Seconds": 6 },
+    { "Op": "abtoggle", "Label": "out-yard-renderers", "Var": "renderers", "Path": "YARD", "Seconds": 8 },
+    { "Op": "abtoggle", "Label": "out-map-renderers", "Var": "renderers", "Path": "MAP", "Seconds": 8 },
+    { "Op": "abtoggle", "Label": "out-yard-shadows", "Var": "castshadows", "Path": "YARD", "Seconds": 8 },
+    { "Op": "abtoggle", "Label": "out-map-shadows", "Var": "castshadows", "Path": "MAP", "Seconds": 8 },
+    { "Op": "quality", "Var": "shadowDistance", "Value": "0" },
+    { "Op": "measure", "Label": "out-no-shadows", "Seconds": 4 },
+    { "Op": "quality", "Var": "shadowDistance", "Value": "restore" },
+    { "Op": "quality", "Var": "pixelLightCount", "Value": "0" },
+    { "Op": "measure", "Label": "out-no-pixel-lights", "Seconds": 4 },
+    { "Op": "quality", "Var": "pixelLightCount", "Value": "restore" },
+    { "Op": "measure", "Label": "out-base-again", "Seconds": 4 },
+    { "Op": "quit" }
+  ]
+}

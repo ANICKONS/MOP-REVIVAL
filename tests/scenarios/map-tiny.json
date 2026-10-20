@@ -1,0 +1,17 @@
+{
+  "Name": "map-tiny",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Item 4: what culling the renderers smaller than 2 / 4 px on screen would save (picked once from the current view, then switched off in alternating 1 s blocks; measurement only)." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-12.0, 2.0, 6.0], "Target": "YARD/Building" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "abtoggle", "Label": "yard-tiny-2px", "Var": "tiny", "Path": "MAP,YARD", "Value": "2", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "yard-tiny-4px", "Var": "tiny", "Path": "MAP,YARD", "Value": "4", "Seconds": 16, "Block": 1 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [6.0, 1.8, -10.0], "Target": "YARD/Building" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "visible", "Label": "yard2_map", "Path": "MAP", "Max": 2 },
+    { "Op": "abtoggle", "Label": "yard2-tiny-2px", "Var": "tiny", "Path": "MAP,YARD", "Value": "2", "Seconds": 16, "Block": 1 },
+    { "Op": "quit" }
+  ]
+}

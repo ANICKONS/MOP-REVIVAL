@@ -45,7 +45,7 @@ namespace MOP.Managers
                 places.Add(new Inspection());
                 places.Add(new Farm());
 
-                ModConsole.Log("[MOPR] Places initialized");
+                ModConsole.Debug("Places initialized");
             }
             catch (Exception ex)
             {

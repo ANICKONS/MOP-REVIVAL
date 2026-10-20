@@ -225,9 +225,17 @@ namespace UnityEngine
         public static int depth { get { throw null; } set { } }
         public static Color color { get { throw null; } set { } }
         public static void Label(Rect position, string text, GUIStyle style) { throw null; }
+        public static void Label(Rect position, GUIContent content, GUIStyle style) { throw null; }
         public static void DrawTexture(Rect position, Texture image) { throw null; }
         public static void DrawTexture(Rect position, Texture image, ScaleMode scaleMode) { throw null; }
+        public static void BeginGroup(Rect position) { throw null; }
+        public static void EndGroup() { throw null; }
     }
+    public class GUIContent
+    {
+        public GUIContent(string text) { throw null; }
+    }
+    public enum TextClipping { Overflow = 0, Clip = 1 }
     public partial class GUISkin
     {
         public GUIStyle label { get { throw null; } set { } }
@@ -241,7 +249,9 @@ namespace UnityEngine
         public FontStyle fontStyle { get { throw null; } set { } }
         public bool richText { get { throw null; } set { } }
         public bool wordWrap { get { throw null; } set { } }
+        public TextClipping clipping { get { throw null; } set { } }
         public GUIStyleState normal { get { throw null; } set { } }
+        public Vector2 CalcSize(GUIContent content) { throw null; }
     }
     public sealed class GUIStyleState
     {
@@ -268,6 +278,22 @@ namespace UnityEngine
     public partial class Mathf
     {
         public static float Exp(float power) { throw null; }
+        public static float Round(float f) { throw null; }
+        public static float Sin(float f) { throw null; }
+        public static float Cos(float f) { throw null; }
+    }
+    // Version mark of the loading screen (5.1).
+    public partial struct Color
+    {
+        public float r;
+        public float g;
+        public float b;
+    }
+    public partial struct Rect
+    {
+        public float x { get { throw null; } set { } }
+        public float y { get { throw null; } set { } }
+        public float width { get { throw null; } set { } }
     }
 
     // ----- Mesh merger (Next/MeshMerger.cs, 5.1). All exist in Unity 5.0. -----
@@ -296,6 +322,29 @@ namespace UnityEngine
     public partial class Renderer
     {
         public bool useLightProbes { get { throw null; } set { } }
+        // 5.1 mesh merger: reflection probes of merged meshes (verified against the game's UnityEngine.dll metadata).
+        public UnityEngine.Rendering.ReflectionProbeUsage reflectionProbeUsage { get { throw null; } set { } }
+        public Transform probeAnchor { get { throw null; } set { } }
+        public void GetClosestReflectionProbes(System.Collections.Generic.List<UnityEngine.Rendering.ReflectionProbeBlendInfo> result) { throw null; }
+    }
+    public sealed partial class ReflectionProbe : Behaviour
+    {
+        public Vector3 size { get { throw null; } set { } }
+        public Vector3 center { get { throw null; } set { } }
+        public int importance { get { throw null; } set { } }
+    }
+    public partial class Material
+    {
+        public Shader shader { get { throw null; } set { } }
+    }
+    public sealed partial class Shader : Object { }
+    public sealed partial class LightmapSettings : Object
+    {
+        public static LightProbes lightProbes { get { throw null; } set { } }
+    }
+    public sealed partial class LightProbes : Object
+    {
+        public int count { get { throw null; } }
     }
     public partial struct Matrix4x4
     {
@@ -334,6 +383,15 @@ namespace UnityEngine
     public partial struct RaycastHit
     {
         public float distance { get { throw null; } set { } }
+        public Vector3 point { get { throw null; } set { } }       // 5.1 evaluated actions (shadow check)
+        public Vector3 normal { get { throw null; } set { } }
+        public int triangleIndex { get { throw null; } }            // 5.1 shared mouse ray (verify)
+        public Vector3 barycentricCoordinate { get { throw null; } set { } }
+    }
+    public partial class Input
+    {
+        public static bool GetMouseButtonDown(int button) { throw null; }   // 5.1 evaluated actions (MousePickEvent)
+        public static bool GetMouseButtonUp(int button) { throw null; }
     }
     public partial struct CombineInstance
     {
@@ -434,6 +492,12 @@ namespace UnityEngine
 namespace UnityEngine.Rendering
 {
     public enum ShadowCastingMode { Off = 0, On = 1, TwoSided = 2, ShadowsOnly = 3 }
+    public enum ReflectionProbeUsage { Off = 0, BlendProbes = 1, BlendProbesAndSkybox = 2, Simple = 3 }
+    public partial struct ReflectionProbeBlendInfo
+    {
+        public UnityEngine.ReflectionProbe probe;
+        public float weight;
+    }
 }
 
 namespace UnityEngine.Events

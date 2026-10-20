@@ -23,6 +23,7 @@ using System.Text;
 using MSCLoader;
 
 using MOP.Common;
+using MOP.Localization;
 using MOP.Next;
 
 namespace MOP.Next.Engine
@@ -51,6 +52,7 @@ namespace MOP.Next.Engine
                 FsmFastPath.Remove();
                 RedundantWrites.Remove();
                 FsmPropertyFastPath.Remove();
+                IkFastPath.Remove();
             }
             else
             {
@@ -61,20 +63,23 @@ namespace MOP.Next.Engine
                     newMode = ModeOff;
                     RedundantWrites.Remove();
                     FsmPropertyFastPath.Remove();
-                    ModConsole.LogError("[MOPR] Engine: PlayMaker fast path disabled: " + error);
+                    IkFastPath.Remove();
+                    ModConsole.Err("con.engine.failed", error);
                 }
                 else
                 {
                     // Independent patch sets: a failure here only disables that part (reported, not fatal).
                     string writes = RedundantWrites.Install(shadow);
-                    if (writes != null) ModConsole.LogWarning("[MOPR] Engine: redundant write elimination unavailable: " + writes);
+                    if (writes != null) ModConsole.Warn("con.engine.part_unavailable", "redundant writes", writes);
                     string property = FsmPropertyFastPath.Install(shadow);
-                    if (property != null) ModConsole.LogWarning("[MOPR] Engine: FsmProperty fast path unavailable: " + property);
+                    if (property != null) ModConsole.Warn("con.engine.part_unavailable", "FsmProperty", property);
+                    string ik = IkFastPath.Install(shadow);
+                    if (ik != null) ModConsole.Warn("con.engine.part_unavailable", "IK", ik);
                 }
             }
 
             if (newMode != mode)
-                ModConsole.Log("[MOPR] Engine: PlayMaker fast path " + ModeWord(newMode));
+                ModConsole.Info("con.engine.line", Loc.Word("con.name.scripts"), ModeWord(newMode));
             mode = newMode;
             lastError = error;
             ResetStats();
@@ -84,10 +89,10 @@ namespace MOP.Next.Engine
         /// <summary>Applies the mod settings (called when settings load or change).</summary>
         public static void ApplySettings()
         {
-            bool verify = false;
+            bool verify = false, on = false;
             try
             {
-                bool on = MopMenu.EngineFastPath != null && MopMenu.EngineFastPath.GetValue();
+                on = MopMenu.EngineFastPath != null && MopMenu.EngineFastPath.GetValue();
                 verify = MopMenu.EngineVerify != null && MopMenu.EngineVerify.GetValue();
                 string wanted = !on ? ModeOff : verify ? ModeShadow : ModeOn;
                 if (wanted != mode) SetMode(wanted);
@@ -96,39 +101,51 @@ namespace MOP.Next.Engine
             {
                 ExceptionManager.New(ex, false, "ENGINE_SETTINGS");
             }
-            ApplyExperimental(verify);
+            ApplyMouseRay(on, verify);
+            ApplyExperimental();
         }
 
-        /// <summary>Experimental tier (off by default, not provably exact): its own switches, same verify mode.</summary>
-        static void ApplyExperimental(bool verify)
+        /// <summary>Shared mouse ray (5.1): part of the game engine section, under its main switch, same verify mode.</summary>
+        static void ApplyMouseRay(bool engineOn, bool verify)
         {
             try
             {
-                bool ray = MopMenu.ExperimentalMouseRay != null && MopMenu.ExperimentalMouseRay.GetValue();
+                bool ray = engineOn && MopMenu.EngineSharedMouseRay != null && MopMenu.EngineSharedMouseRay.GetValue();
                 if (!ray)
                 {
                     if (SharedMouseRay.Installed)
                     {
                         SharedMouseRay.Remove();
-                        ModConsole.Log("[MOPR] Engine: shared mouse ray " + ModeWord(ModeOff));
+                        ModConsole.Info("con.engine.line", Loc.Word("con.name.rays"), ModeWord(ModeOff));
                     }
                 }
                 else if (!SharedMouseRay.Installed || SharedMouseRay.Shadow != verify)
                 {
                     string err = SharedMouseRay.Install(verify);
                     if (err == null)
-                        ModConsole.Log("[MOPR] Engine: shared mouse ray " + ModeWord(verify ? ModeShadow : ModeOn) + Experimental);
+                        ModConsole.Info("con.engine.line", Loc.Word("con.name.rays"), ModeWord(verify ? ModeShadow : ModeOn));
                     else
-                        ModConsole.LogWarning("[MOPR] Engine: shared mouse ray unavailable: " + err);
+                        ModConsole.Warn("con.engine.part_unavailable", "shared mouse ray", err);
                     SharedMouseRay.ResetStats();
                 }
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.New(ex, false, "ENGINE_MOUSE_RAY_SETTINGS");
+            }
+        }
 
+        /// <summary>Experimental tier (off by default, not provably exact): its own switches.</summary>
+        static void ApplyExperimental()
+        {
+            try
+            {
                 bool engineBay = MopMenu.ExperimentalEngineBay != null && MopMenu.ExperimentalEngineBay.GetValue();
                 if (engineBay != EngineBayCulling.Installed)
                 {
                     if (engineBay) EngineBayCulling.Install(); else EngineBayCulling.Remove();
                     EngineBayCulling.ResetStats();
-                    ModConsole.Log("[MOPR] Render: engine bay hidden from the driver's seat " + ModeWord(engineBay ? ModeOn : ModeOff) + (engineBay ? Experimental : ""));
+                    ModConsole.Info("con.render.line", Loc.Word("con.name.engine_bay"), ModeWord(engineBay ? ModeOn : ModeOff));
                 }
 
                 bool mirrors = MopMenu.ExperimentalMirrorRate != null && MopMenu.ExperimentalMirrorRate.GetValue();
@@ -136,7 +153,7 @@ namespace MOP.Next.Engine
                 {
                     if (mirrors) MirrorRate.Install(); else MirrorRate.Remove();
                     MirrorRate.ResetStats();
-                    ModConsole.Log("[MOPR] Render: mirrors at most 60 FPS " + ModeWord(mirrors ? ModeOn : ModeOff) + (mirrors ? Experimental : ""));
+                    ModConsole.Info("con.render.line", Loc.Word("con.name.mirrors"), ModeWord(mirrors ? ModeOn : ModeOff));
                 }
             }
             catch (Exception ex)
@@ -145,8 +162,19 @@ namespace MOP.Next.Engine
             }
         }
 
-        /// <summary>Console word for a mode: ON green, VERIFY yellow, OFF grey.</summary>
-        static string ModeWord(string m)
+        /// <summary>Console word for a mode: ON green, VERIFY yellow, OFF grey (translated when printed).</summary>
+        static LocWord ModeWord(string m)
+        {
+            switch (m)
+            {
+                case ModeOn: return Loc.Word("con.on", MoprColors.SuccessHex);
+                case ModeShadow: return Loc.Word("con.verify", MoprColors.WarningHex);
+                default: return Loc.Word("con.off", MoprColors.MutedHex);
+            }
+        }
+
+        /// <summary>Plain-text mode word for the reports (English, like the rest of the statistics).</summary>
+        static string ModeText(string m)
         {
             switch (m)
             {
@@ -155,8 +183,6 @@ namespace MOP.Next.Engine
                 default: return MoprColors.Muted("OFF");
             }
         }
-
-        static string Experimental => " " + MoprColors.Muted("(experimental)");
 
         /// <summary>Machine-readable counters of the experimental shared mouse ray (TestBot probe).</summary>
         public static string MouseRayCounters() =>
@@ -170,6 +196,7 @@ namespace MOP.Next.Engine
             RedundantWrites.ResetStats();
             FsmPropertyFastPath.ResetStats();
             SharedMouseRay.ResetStats();
+            IkFastPath.ResetStats();
         }
 
         /// <summary>Called when a scene was loaded: the caches must not keep objects of the previous scene alive.</summary>
@@ -178,6 +205,7 @@ namespace MOP.Next.Engine
             FsmFastPath.ClearCaches();
             FsmPropertyFastPath.ClearCaches();
             SharedMouseRay.ClearCaches();
+            IkFastPath.ClearCaches();
             MirrorRate.ClearCaches();
             EngineBayCulling.ClearCaches();
         }
@@ -190,7 +218,7 @@ namespace MOP.Next.Engine
 
         public static long ShadowMismatches =>
             FsmFastPath.UpdateStats.ShadowMismatch + FsmFastPath.LateStats.ShadowMismatch + RedundantWrites.AxisShadowMismatch +
-            FsmPropertyFastPath.ShadowMismatch;
+            FsmPropertyFastPath.ShadowMismatch + IkFastPath.ShadowMismatch;
 
         /// <summary>Machine-readable counters: "key=value;key=value".</summary>
         public static string Counters()
@@ -198,13 +226,16 @@ namespace MOP.Next.Engine
             FsmFastPath.Counters u = FsmFastPath.UpdateStats, l = FsmFastPath.LateStats;
             StringBuilder sb = new StringBuilder();
             sb.Append("mode=").Append(mode);
-            sb.Append(";update.calls=").Append(u.Calls).Append(";update.skipIdle=").Append(u.SkipIdle).Append(";update.skipTimer=").Append(u.SkipTimer);
+            sb.Append(";update.calls=").Append(u.Calls).Append(";update.skipIdle=").Append(u.SkipIdle).Append(";update.skipTimer=").Append(u.SkipTimer).Append(";update.skipEvaluated=").Append(u.SkipEvaluated);
             sb.Append(";late.calls=").Append(l.Calls).Append(";late.skipIdle=").Append(l.SkipIdle);
             sb.Append(";shadow.checked=").Append(u.ShadowChecked + l.ShadowChecked + RedundantWrites.AxisShadowChecked).Append(";shadow.mismatch=").Append(ShadowMismatches);
             sb.Append(";axis.saves=").Append(RedundantWrites.AxisSaves).Append(";axis.skipped=").Append(RedundantWrites.AxisSkipped);
             sb.Append(";volume.sets=").Append(RedundantWrites.VolumeSets).Append(";volume.skipped=").Append(RedundantWrites.VolumeSkipped);
             sb.Append(";property.get=").Append(FsmPropertyFastPath.GetCalls).Append(";property.getFast=").Append(FsmPropertyFastPath.GetFast);
             sb.Append(";property.set=").Append(FsmPropertyFastPath.SetCalls).Append(";property.setFast=").Append(FsmPropertyFastPath.SetFast);
+            sb.Append(";ik.calls=").Append(IkFastPath.Calls).Append(";ik.skipped=").Append(IkFastPath.Skipped)
+              .Append(";ik.noopRuns=").Append(IkFastPath.NoOpRuns).Append(";ik.changedRuns=").Append(IkFastPath.ChangedRuns)
+              .Append(";ik.shadowChecked=").Append(IkFastPath.ShadowChecked).Append(";ik.shadowMismatch=").Append(IkFastPath.ShadowMismatch);
             for (int i = 0; i < FsmFastPath.ReasonCount; i++)
             {
                 if (u.Reasons[i] > 0) sb.Append(";update.run.").Append(FsmFastPath.ReasonNames[i]).Append('=').Append(u.Reasons[i]);
@@ -216,12 +247,13 @@ namespace MOP.Next.Engine
         public static string Report()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("[MOPR] Engine Lab - PlayMaker fast path: " + ModeWord(mode) + (lastError != null ? " (" + lastError + ")" : ""));
+            sb.AppendLine("[MOPR] Engine Lab - PlayMaker fast path: " + ModeText(mode) + (lastError != null ? " (" + lastError + ")" : ""));
             if (mode != ModeOff)
             {
                 FsmFastPath.AppendReport(sb);
                 RedundantWrites.AppendReport(sb);
                 FsmPropertyFastPath.AppendReport(sb);
+                IkFastPath.AppendReport(sb);
             }
             SharedMouseRay.AppendReport(sb);
             sb.AppendLine(MirrorRate.Report());
@@ -245,7 +277,7 @@ namespace MOP.Next.Engine
                     break;
                 case "detail":
                     SetDetailedStats(!FsmFastPath.DetailedStats);
-                    ModConsole.Log("[MOPR] Engine: detailed statistics " + MoprColors.OnOff(FsmFastPath.DetailedStats));
+                    ModConsole.Info("con.engine.detail", Loc.OnOff(FsmFastPath.DetailedStats));
                     break;
             }
             ModConsole.Log(Report());

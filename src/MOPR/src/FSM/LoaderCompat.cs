@@ -41,7 +41,7 @@ namespace MOP.FSM
                     {
                         // Same call as MSCLoader 1.4.2. It silently fails on states without actions; we log it.
                         if (!MSCLoader.PlayMakerExtensions.FsmInject(pm[i], stateName, hook, false, 0, false))
-                            ModConsole.LogWarning($"[MOPR] Could not hook state \"{stateName}\" of FSM \"{pm[i].FsmName}\" on {gameObject.name}.");
+                            ModConsole.Warn("con.fsm_hook_failed", stateName, pm[i].FsmName, gameObject.name);
                     }
                 }
             }

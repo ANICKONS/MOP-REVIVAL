@@ -1,0 +1,13 @@
+{
+  "Name": "home-actions",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "PlayMaker at home, action by action (the biggest part of the frame there): yard looking at the house." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-12.0, 2.0, 6.0], "Target": "YARD/Building" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "profile", "Label": "out", "Seconds": 8, "Detail": true },
+    { "Op": "fsmhist", "Label": "satsuma", "Path": "SATSUMA(557kg, 248)", "Max": 60 },
+    { "Op": "quit" }
+  ]
+}

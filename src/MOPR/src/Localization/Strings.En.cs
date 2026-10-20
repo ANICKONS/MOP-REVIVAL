@@ -24,7 +24,7 @@ namespace MOP.Localization
             { "menu.btn.original_mop", "Original MOP" },
 
             // === Settings: language ===
-            { "menu.header.language", "Language / Язык" },
+            { "menu.header.language", "Language / Язык / Język" },
 
             // === Settings: performance ===
             { "menu.header.performance", "Performance" },
@@ -33,32 +33,31 @@ namespace MOP.Localization
             { "menu.mode.balanced", "Balanced" },
             { "menu.mode.quality", "Quality" },
             { "menu.mode.safe", "Safe" },
-            { "menu.mode_hint", "Performance - the most FPS, far-away buildings appear later.\n" +
-                                "Balanced - recommended.\n" +
-                                "Quality - you see farther, FPS is lower.\n" +
-                                "Safe - if something broke: MOP only switches off buildings and scenery." },
+            { "menu.mode_hint", "Performance - shorter view distance, more FPS\n" +
+                                "Balanced - recommended\n" +
+                                "Quality - longer view distance, less FPS\n" +
+                                "Safe - if something broke: MOPR only manages buildings and scenery." },
             { "menu.restart_note", "Items and vehicles already follow the new mode. Buildings, rooms of the house and simplified " +
                                    "item models follow after you load your save again." },
             { "menu.restart_note_safe", "Safe mode is switched on or off when you quit to the main menu." },
-            { "menu.sub.distance", "Load distance" },
+            { "menu.sub.distance", "View distance" },
             { "menu.active_distance", "Radius" },
             { "menu.dist.0", "Small ×0.5" },
             { "menu.dist.1", "Smaller ×0.75" },
             { "menu.dist.2", "Normal ×1" },
             { "menu.dist.3", "Larger ×2" },
             { "menu.dist.4", "Large ×4" },
-            { "menu.distance_hint", "MOP switches off everything beyond this radius and back on as you come closer. " +
+            { "menu.distance_hint", "MOPR switches off everything beyond this radius and back on as you come closer. " +
                                     "Smaller radius - more FPS." },
             { "menu.sub.protection", "Save safety" },
             { "menu.restart_guard", "Don't let parts and items reset" },
-            { "menu.restart_guard_hint", "When MOP switches an object back on, the game sometimes brings its paint, fluids or doors " +
+            { "menu.restart_guard_hint", "When MOPR switches an object back on, the game sometimes brings its paint, fluids or doors " +
                                          "back to your last save. This prevents it." },
 
             // === Settings: render optimization ===
             { "menu.header.render", "Render optimization" },
             { "menu.render_enable", "Turn on render optimization" },
-            { "menu.render_hint", "The main switch of this section: when off, nothing below works (and it is hidden). " +
-                                  "Only the picture changes - never the game or your save." },
+            { "menu.render_hint", "The main switch of this section: when off, nothing below works (and it is hidden)." },
             { "menu.render_quality", "Strictness" },
             { "menu.render_quality_hint", "How early small and distant things stop being drawn and casting shadows." },
             { "menu.cull.0", "More FPS" },
@@ -81,21 +80,21 @@ namespace MOP.Localization
             { "menu.header.engine", "Game engine" },
             { "menu.engine_fastpath", "Speed up the game's scripts" },
             { "menu.engine_hint", "Skips script work that surely changes nothing. About +10% FPS, the game behaves the same." },
+            { "menu.engine_mouse_ray", "Fewer mouse raycasts" },
+            { "menu.engine_mouse_ray_hint", "Car parts and other objects ask every frame whether the mouse is on them. MOPR casts one ray " +
+                                            "per frame for them all and gives each the answer the game would. About +5% FPS at home." },
             { "menu.sub.diagnostics", "For bug hunting" },
             { "menu.engine_verify", "Check mode" },
-            { "menu.engine_verify_hint", "No speed-up: MOP only compares its result with the game's and records any difference " +
+            { "menu.engine_verify_hint", "No speed-up: MOPR only compares its result with the game's and records any difference " +
                                          "(console: mopr engine). Turn on if you were asked to." },
 
             // === Settings: experimental ===
             { "menu.header.experimental", "Experimental" },
             { "menu.experimental_hint", "All off by default. More FPS, but in rare cases they can behave slightly differently from the game " +
                                         "without mods. Turn them on one at a time." },
-            { "menu.exp_mouse_ray", "Fewer mouse checks at the Satsuma" },
-            { "menu.exp_mouse_ray_hint", "The car's parts share one check per frame for whether the mouse is on them. " +
-                                         "A part may respond one frame later." },
-            { "menu.exp_engine_bay", "Don't draw the engine from the driver's seat" },
+            { "menu.exp_engine_bay", "Hide the engine while driving" },
             { "menu.exp_engine_bay_hint", "While you sit in the car with the hood closed, the engine under it is not drawn. Mirrors still show it." },
-            { "menu.exp_mirrors", "Mirrors at most 60 times a second" },
+            { "menu.exp_mirrors", "Mirrors at 60 FPS" },
             { "menu.exp_mirrors_hint", "Above 60 FPS the car's mirrors are not refreshed every frame." },
 
             // === Settings: graphics ===
@@ -123,8 +122,8 @@ namespace MOP.Localization
 
             // === Settings: mod compatibility (rules) ===
             { "menu.header.rules", "Mod compatibility" },
-            { "menu.rules_hint", "Rules tell MOP which objects of other mods to leave alone. For known mods they are built " +
-                                 "into MOP and switch on by themselves. Your own rules are JSON files in the rules folder." },
+            { "menu.rules_hint", "Rules tell MOPR which objects of other mods to leave alone. For known mods they are built " +
+                                 "into MOPR and switch on by themselves. Your own rules are JSON files in the rules folder." },
             { "menu.rules_status_none", "The rules have not been read yet." },
             { "menu.rules_builtin", "Built-in rules for: {0}" },
             { "menu.rules_builtin_none", "Your mods need no built-in rules." },
@@ -181,7 +180,7 @@ namespace MOP.Localization
             { "msg.safe_mode_off_later", "Safe Mode will be disabled after you quit to the Main Menu." },
             { "msg.msceditor", "The engine block is saved as bolted, but some of its bolts are not tightened at all. " +
                                "The game does not do that by itself; it usually comes from editing the save (MSCEditor or similar).\n\n" +
-                               "MOP skips its check whether the Satsuma loaded completely for this load. You can keep playing." },
+                               "MOPR skips its check whether the Satsuma loaded completely for this load. You can keep playing." },
             { "msg.satsuma_not_loaded", "Satsuma has not been fully loaded by the game!\n\n" +
                                         "Consider restarting the game in order to avoid any issues." },
             { "msg.no_logs_folder", "Logs folder doesn't exist." },
@@ -193,11 +192,11 @@ namespace MOP.Localization
             // === Save integrity verification ===
             { "save.title", "MOP - REVIVAL - Save Integrity Verification" },
             { "save.check_title", "MOP - REVIVAL - Save Integrity Check" },
-            { "save.found_one", "MOP has found <color=yellow>{0}</color> problem with your save:" },
-            { "save.found_many", "MOP has found <color=yellow>{0}</color> problems with your save:" },
+            { "save.found_one", "MOPR has found <color=yellow>{0}</color> problem with your save:" },
+            { "save.found_many", "MOPR has found <color=yellow>{0}</color> problems with your save:" },
             { "save.more", "...and <color=yellow>{0}</color> more." },
-            { "save.ask_one", "Do you want MOP to try to fix this problem?" },
-            { "save.ask_many", "Do you want MOP to try to fix these problems?" },
+            { "save.ask_one", "Do you want MOPR to try to fix this problem?" },
+            { "save.ask_many", "Do you want MOPR to try to fix these problems?" },
             { "save.btn.report", "SHOW REPORT" },
             { "save.fixed_one", "<color=yellow>{0}</color> issue has been fixed." },
             { "save.fixed_many", "<color=yellow>{0}</color> issues have been fixed." },
@@ -216,10 +215,10 @@ namespace MOP.Localization
             { "load.final_touches", "Final touches" },
             { "load.easter", "HAVE A NICE DAY :)" },
             { "load.tip_prefix", "TIP: " },
-            { "load.tip.0", "MOP turns far-away objects off and turns them back on before you get close." },
-            { "load.tip.1", "Saving is safe: MOP turns every object back on before the game writes your save." },
+            { "load.tip.0", "MOPR turns far-away objects off and turns them back on before you get close." },
+            { "load.tip.1", "Saving is safe: MOPR turns every object back on before the game writes your save." },
             { "load.tip.2", "Found a bug? Use the Report bug button in MSCLoader: it attaches the logs for you." },
-            { "load.tip.3", "Type \"mopr help\" in the console to see what MOP can do." },
+            { "load.tip.3", "Type \"mopr help\" in the console to see what MOPR can do." },
             { "load.tip.4", "Having issues? The Safe mode only toggles world objects and leaves items and vehicles alone." },
             { "load.tip.5", "PlayMaker engine optimizations skip only work that provably changes nothing." },
             { "load.tip.6", "Your own rules for mods: \"Create your own rule file\" in the Mod compatibility section of the settings." },

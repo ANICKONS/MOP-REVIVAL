@@ -1,0 +1,212 @@
+// MOP - REVIVAL
+// Copyright(C) 2026 ANICKON. Licensed under GPLv3 (see Loc.cs).
+//
+// Polish console messages. A key missing here falls back to English (see Loc.T).
+// The copy for reports is always English (Console.En.cs), so this is only what the player sees.
+// Don't use <color=yellow|green|red> here: the report copy turns those into [WARNING]/[SYSTEM]/[ERROR].
+
+using System.Collections.Generic;
+
+namespace MOP.Localization
+{
+    internal static class ConsolePl
+    {
+        internal static readonly Dictionary<string, string> Table = new Dictionary<string, string>
+        {
+            // === Słowa ===
+            { "con.on", "WŁ." },
+            { "con.off", "WYŁ." },
+            { "con.verify", "SPRAWDZANIE" },
+
+            // === Optymalizacje: „Silnik gry: Optymalizacja skryptów WŁ.” ===
+            { "con.engine.line", "Silnik gry: {0} {1}" },
+            { "con.render.line", "Renderowanie: {0} {1}" },
+            { "con.name.scripts", "Optymalizacja skryptów" },
+            { "con.name.rays", "Optymalizacja promieni" },
+            { "con.name.engine_bay", "Optymalizacja silnika" },
+            { "con.name.mirrors", "Optymalizacja lusterek" },
+            { "con.name.render", "Optymalizacja renderowania" },
+            { "con.name.merge", "Scalanie zaparkowanej Satsumy" },
+            { "con.engine.failed", "Silnik gry: optymalizacja skryptów wyłączona: {0}" },
+            { "con.engine.part_unavailable", "Silnik gry: {0} niedostępne: {1}" },
+            { "con.engine.detail", "Silnik gry: szczegółowe statystyki {0}" },
+            { "con.engine.unpatch_failed", "Silnik gry: nie udało się usunąć poprawek: {0}" },
+
+            // === Ładowanie i podsumowanie ===
+            { "con.loading", "Ładowanie MOPR..." },
+            { "con.loaded", "Załadowano pomyślnie!" },
+            { "con.sum.managed", "Pod kontrolą:" },
+            { "con.sum.count", "    {0}: {1}" },
+            { "con.sum.world_objects", "Obiekty świata" },
+            { "con.sum.items", "Przedmioty" },
+            { "con.sum.vehicles", "Pojazdy" },
+            { "con.sum.places", "Miejsca" },
+            { "con.sum.mode", "Tryb: {0}" },
+            { "con.sum.flag", "    {0} {1}" },
+            { "con.sum.experimental", "Eksperymentalne:" },
+            { "con.restart_scene", "Ponowne ładowanie sceny, aby doładować Satsumę..." },
+            { "con.restart_procedure", "Uruchamianie ponownego ładowania sceny..." },
+            { "con.restart_succeeded", "Ponowne uruchomienie powiodło się!" },
+            { "con.restart_failed", "Ponowne uruchomienie nie powiodło się. Włączono tryb bezpieczny." },
+            { "con.report_bug", "Zgłoś to przyciskiem „Report bug” w MSCLoader dla MOP - REVIVAL (logi zostaną dołączone)." },
+            { "con.stopped_working", "MOPR przestał działać! Próba ponownego uruchomienia {0}/{1}..." },
+            { "con.load_timeout", "MOPR nie zdążył się załadować." },
+            { "con.prerelease", "UWAGA!\nTO JEST WERSJA PRZEDPREMIEROWA MOP - REVIVAL!" },
+            { "con.stub_build", "Ta wersja została zbudowana na atrapach zamiast prawdziwych bibliotek gry. Służy tylko do testów." },
+            { "con.initialized", "MOP - REVIVAL {0} <color=#3FB950>uruchomiony!</color>" },
+            { "con.conflict", "MOP - REVIVAL nie został załadowany, ponieważ zainstalowany jest ten mod: {0}" },
+            { "con.place_missing", "Nie znaleziono miejsca {0}!" },
+            { "con.vehicle_missing", "Nie znaleziono pojazdu {0}." },
+            { "con.satsuma_excluded", "Działa reguła satsuma_ignore: Satsuma jest w całości obsługiwana przez inny mod." },
+            { "con.bolts_few", "Zresetowano tylko {0} z oczekiwanych {1} śrub!" },
+            { "con.fsm_hook_failed", "Nie udało się podpiąć stanu „{0}” FSM „{1}” w {2}." },
+            { "con.audit", "Audyt FSM: sprawdzono {0}, możliwe resety: {1}. Raport: {2}" },
+
+            // === Zapis gry ===
+            { "con.save.no_mute_state", "Punkt zapisu {0} nie ma stanu „Mute audio”." },
+            { "con.save.hook_failed", "Podpięto punktów zapisu: {0}, nie udało się: {1}. Zapis w nich może zapisać obiekty wyłączone przez MOPR." },
+            { "con.save.no_access", "Brak dostępu do pliku zapisu w tej chwili." },
+            { "con.save.permadeath", "Zapis nie został sprawdzony: jest po permadeath." },
+            { "con.save.ok", "Sprawdzenie zapisu: brak problemów :)" },
+            { "con.save.attributes_failed", "Nie udało się zdjąć atrybutu „tylko do odczytu” z plików zapisu. Zdejmij go ręcznie z defaultES2File.txt i items.txt." },
+            { "con.save.barrier", "Bariera zapisu: przed zapisem nadal wyłączone - przedmioty {0}, obiekty miejsc {1}, pojazdy {2}.\n{3}" },
+
+            // === Ustawienia i język ===
+            { "con.settings_page", "Strona ustawień: {0}" },
+            { "con.language", "Język interfejsu: {0}" },
+            { "con.language_store_failed", "Nie udało się zapisać języka: {0}" },
+            { "con.language_restart", "Ta wersja MSCLoader nie potrafi zmieniać nazw ustawień na bieżąco. Nowy język pojawi się w ustawieniach po ponownym uruchomieniu gry." },
+            { "con.mopdata_read_failed", "Nie udało się odczytać MopData.json: {0}" },
+            { "con.resolution_set", "Rozdzielczość ekranu: {0}x{1}" },
+
+            // === Błędy i raporty ===
+            { "con.error.log_write_failed", "Nie udało się zapisać logu: {0}" },
+            { "con.error.occurred", "Wystąpił błąd. Log zapisano w:\n\n{0}\nKomunikat: {1}\n\n" +
+                                    "Aby go zgłosić, użyj przycisku „<b>Report bug</b>” w MSCLoader dla MOP - REVIVAL (logi zostaną dołączone automatycznie)." },
+            { "con.error.occurred_continue", "Wystąpił błąd. Log zapisano w:\n\n{0}\nKomunikat: {1}\n\n" +
+                                             "Aby go zgłosić, użyj przycisku „<b>Report bug</b>” w MSCLoader dla MOP - REVIVAL (logi zostaną dołączone automatycznie).\n\n" +
+                                             "<b>Możesz grać dalej.</b>" },
+            { "con.report_generated", "Raport moda został utworzony." },
+            { "con.open_failed", "Nie udało się otworzyć {0}: {1}" },
+
+            // === Reguły ===
+            { "con.rules.custom_copied", "Skopiowano Twój plik reguł Custom.txt z folderu ustawień oryginalnego MOP." },
+            { "con.rules.folder_failed", "Nie udało się utworzyć folderu reguł: {0}" },
+            { "con.rules.list_failed", "Nie udało się odczytać listy plików reguł w {0}: {1}" },
+            { "con.rules.migrated", "Reguły: usunięto stare pliki reguł skopiowane tam przez MOPR ({0}); te same reguły są teraz wbudowane. Pliki, które edytowałeś, zostały zachowane." },
+            { "con.rules.manage_missing", "Reguły: nie znaleziono {0} (manage {1})" },
+            { "con.rules.issue", "Reguły: {0}" },
+            { "con.rules.more_issues", "Reguły: <color=#9AA6B2>…i jeszcze {0} (mopr rules)</color>" },
+            // Podsumowanie: „Reguły: 25, plików: 3 (wbudowanych: 3), wczytano w 12 ms”.
+            { "con.rules.prefix", "Reguły: " },
+            { "con.rules.none_needed", "niepotrzebne dla zainstalowanych modów" },
+            { "con.rules.off", "wyłączone" },
+            { "con.rules.summary", "{0}, plików: {1} ({2})" },
+            { "con.rules.n_builtin", "wbudowanych: {0}" },
+            { "con.rules.n_yours", "Twoich: {0}" },
+            { "con.rules.n_legacy", "w starym formacie: {0}" },
+            { "con.rules.all_files", " (wszystkie pliki, także dla niezainstalowanych modów)" },
+            { "con.rules.next_load", " - zadziałają przy następnym wczytaniu gry" },
+            { "con.rules.read_in", ", wczytano w {0} ms" },
+            // „mopr rules”.
+            { "con.rules.src_builtin", "wbudowany" },
+            { "con.rules.src_yours", "Twój" },
+            { "con.rules.src_legacy", "stary format" },
+            { "con.rules.report_head", "<b>Reguły</b>: aktywnych plików: {0}, reguł: {1}" },
+            { "con.rules.report_read_in_game", " (wczytane w trakcie gry: zadziałają przy następnym wczytaniu)" },
+            { "con.rules.report_folder", "Folder: {0}" },
+            { "con.rules.report_active", "Aktywne" },
+            { "con.rules.report_rules", "reguł: {0}" },
+            { "con.rules.report_problems", "błędów: {0}" },
+            { "con.rules.report_unused", "Nieużywane" },
+            { "con.rules.report_hidden", "wbudowane reguły dla niezainstalowanych modów: {0} (mopr rules all)" },
+            { "con.rules.report_switches", "Przełączniki" },
+            { "con.rules.sw_satsuma_excluded", "Satsuma pominięta" },
+            { "con.rules.sw_satsuma_renderers", "części Satsumy nigdy nie są ukrywane" },
+            { "con.rules.sw_bottles", "puste butelki zostają" },
+            { "con.rules.sw_fury", "bez poprawki kolizji Fury" },
+            { "con.rules.sw_physics_only", "wszystkie pojazdy: tylko fizyka" },
+            { "con.rules.sw_no_lods", "bez dalekich kopii pojazdów" },
+            { "con.rules.report_issues", "Błędy" },
+            { "con.rules.report_note", "(uwaga) " },
+            { "con.rules.report_unmatched", "Obiekty z reguł, których MOPR nie spotkał w tej grze" },
+            { "con.rules.report_unmatched_why", "(literówka albo takiego obiektu nie ma)" },
+            { "con.rules.why_none", "Żadna reguła nie wymienia „{0}” (nazwy są dokładne, wielkość liter ma znaczenie)." },
+            // Pliki reguł z konsoli i ustawień.
+            { "con.rules.no_folder", "Folder ustawień nie jest jeszcze znany." },
+            { "con.rules.created", "Utworzono {0}" },
+            { "con.rules.exists_opened", "Plik już istnieje, otwarto go: {0}" },
+            { "con.rules.exists", "Plik już istnieje: {0}" },
+            { "con.rules.no_builtin", "MOPR nie ma wbudowanych reguł dla „{0}”." },
+            { "con.rules.written", "Zapisano {0}. Zadziała przy następnym wczytaniu gry." },
+            { "con.rules.no_legacy", "Brak pliku w starym formacie {0} w {1}" },
+            { "con.rules.converted_issues", "Zapisano {0} (nie udało się przenieść linii: {1}, zobacz początek pliku). Zadziała przy następnym wczytaniu gry." },
+
+            // === Polecenia konsoli ===
+            { "con.cmd.help", "Lista poleceń: \"mopr help\"" },
+            { "con.cmd.see_help", "Lista poleceń: \"mopr help\"." },
+            { "con.cmd.invalid", "Nieznane polecenie. Lista poleceń: \"mopr help\"." },
+            { "con.cmd.not_found", "Nie znaleziono polecenia {0}." },
+            { "con.cmd.usage", "Użycie: {0}" },
+            { "con.cmd.version", "MOP - REVIVAL {0} dla {1}" },
+            { "con.cmd.only_in_game", "Działa tylko w grze." },
+            { "con.cmd.render_only_in_game", "Optymalizator renderowania działa tylko w grze." },
+            { "con.cmd.render_restored", "Optymalizator renderowania wstrzymany, wszystkie wartości przywrócone. Zmień dowolne ustawienie renderowania, aby zastosować je ponownie." },
+            { "con.cmd.audit_only_in_game", "Audyt działa tylko w grze." },
+            { "con.cmd.guard", "Ochrona przed resetem {0}, chronionych FSM: {1}. Raport: {2}" },
+            { "con.cmd.no_file", "Brak pliku reguł „{0}”. Twoje pliki są w {1}" },
+            { "con.cmd.deleted", "Usunięto {0}. Zadziała przy następnym wczytaniu gry." },
+            { "con.cmd.cat_none", "Brak pliku reguł „{0}” i brak wbudowanych reguł dla moda o takim ID." },
+            { "con.cmd.genlist_warning", "Aby wynik był dokładny, wpisz \"mopr load-rules false\", żeby MOPR nie używał plików reguł." },
+            { "con.cmd.genlist_state", "Lista przełączanych obiektów: {0}" },
+            { "con.cmd.load_rules_warning", "Bez plików reguł gra może mieć poważne problemy, a zapis może się zepsuć.\n<b>TYLKO NA WŁASNE RYZYKO!</b>" },
+            { "con.cmd.load_rules_state", "Pliki reguł: {0}" },
+            { "con.cmd.resolution_hint", "Aby wybrać rozdzielczość, wpisz 'mopr resolution [numer]'." },
+            { "con.cmd.resolution_failed", "Nie udało się ustawić rozdzielczości." },
+            { "con.cmd.quality_failed", "Nie udało się ustawić poziomu jakości." },
+            { "con.cmd.bad_argument", "Nieznany argument: {0}" },
+            { "con.cmd.force_load_restart", "Wymuszone ponowne ładowanie dla Satsumy: {0}" },
+            { "con.cmd.stop_only_in_game", "MOPR można zatrzymać tylko w grze." },
+            { "con.cmd.start_only_in_game", "MOPR można uruchomić tylko w grze." },
+            { "con.cmd.not_running", "MOPR nie działa." },
+            { "con.cmd.already_running", "MOPR już działa." },
+            { "con.cmd.stopped", "MOPR został zatrzymany. Coś może nie działać. Zapis gry w tym stanie może zepsuć zapis!" },
+            { "con.cmd.monitor_only_in_game", "Monitor debugowania działa tylko w grze." },
+            { "con.cmd.presave", "Przygotowanie do zapisu..." },
+            { "con.cmd.log_head", "Ostatnie linie logu MOPR ({0}), te same linie trafiają do raportów moda i zgłoszeń błędów:" },
+
+            // === „mopr help”: jedna linia na polecenie (samo polecenie nie jest tłumaczone) ===
+            { "con.help.help", "Pokazuje tę listę" },
+            { "con.help.version", "Wersja MOPR" },
+            { "con.help.log", "Ostatnie linie logu MOPR, także wewnętrzne (domyślnie 40)" },
+            { "con.help.rules", "Pliki reguł: aktywne, nieużywane i dlaczego, błędy (all: wszystkie wbudowane pliki)" },
+            { "con.help.rules_why", "Wszystkie reguły, które wymieniają ten obiekt" },
+            { "con.help.rules_export", "Zapisuje wbudowane reguły moda w folderze reguł, aby można je było edytować" },
+            { "con.help.rules_convert", "Przenosi stary plik .mopconfig lub Custom.txt do JSON (stary zostaje jako .bak)" },
+            { "con.help.reload", "Ponownie wczytuje pliki reguł. \"all\": także pliki niezainstalowanych modów" },
+            { "con.help.new", "Tworzy Twój plik reguł (Rules/name.json) z objaśnieniami i otwiera go" },
+            { "con.help.open", "Otwiera plik reguł (bez nazwy: folder reguł)" },
+            { "con.help.open_config", "Otwiera folder ustawień MOPR" },
+            { "con.help.delete", "Usuwa jeden z Twoich plików reguł" },
+            { "con.help.cat", "Wypisuje plik reguł (Twój, stary lub wbudowany dla moda)" },
+            { "con.help.generate_list", "Zapisuje pliki tekstowe z listą obiektów przełączanych przez MOPR" },
+            { "con.help.load_rules", "false: od następnego wczytania nie działa żadna reguła (do testów)" },
+            { "con.help.force_crash", "MOPR zgłasza testowy błąd (critical: krytyczny)" },
+            { "con.help.resolution", "Lista dostępnych rozdzielczości" },
+            { "con.help.resolution_n", "Ustawia rozdzielczość z listy 'mopr resolution'" },
+            { "con.help.resolution_wh", "Ustawia podaną rozdzielczość" },
+            { "con.help.force_load_restart", "Wymusza ponowne ładowanie sceny dla brakujących części Satsumy" },
+            { "con.help.stop", "Zatrzymuje MOPR. MOŻE ZEPSUĆ GRĘ!" },
+            { "con.help.start", "Uruchamia MOPR ponownie" },
+            { "con.help.quality", "Ustawia poziom jakości gry" },
+            { "con.help.debug_monitor", "Pokazuje lub ukrywa monitor debugowania MOPR" },
+            { "con.help.presave", "Wykonuje przygotowanie do zapisu" },
+            { "con.help.render", "Raport optymalizatora renderowania (warstwy, cienie, lampy)" },
+            { "con.help.render_rescan", "Ponownie analizuje wszystkie renderery i lampy" },
+            { "con.help.render_restore", "Przywraca wszystkie wartości zmienione przez optymalizator renderowania" },
+            { "con.help.audit", "Szuka w zarządzanych obiektach FSM PlayMakera, które mogą się zresetować po włączeniu" },
+            { "con.help.guard", "Zapisuje listę FSM chronionych przed resetem" },
+            { "con.help.engine", "Optymalizacje silnika gry: zmiana trybu lub statystyki" },
+        };
+    }
+}

@@ -97,7 +97,7 @@ namespace MOP.Rules
 
                 string folder = Folder;
                 try { Directory.CreateDirectory(folder); }
-                catch (Exception ex) { ModConsole.LogWarning("[MOPR] Could not create the rules folder: " + ex.Message); }
+                catch (Exception ex) { ModConsole.Warn("con.rules.folder_failed", ex.Message); }
 
                 if (Directory.Exists(folder))
                     foreach (string path in SortedFiles(folder, "*" + RuleJson.Extension))
@@ -243,7 +243,7 @@ namespace MOP.Rules
             }
             catch (Exception ex)
             {
-                ModConsole.LogWarning("[MOPR] Could not list rule files in " + folder + ": " + ex.Message);
+                ModConsole.Warn("con.rules.list_failed", folder, ex.Message);
             }
             files.Sort(StringComparer.OrdinalIgnoreCase);
             return files;
@@ -262,7 +262,7 @@ namespace MOP.Rules
                 if (!File.Exists(target) && original != null && File.Exists(original))
                 {
                     File.Copy(original, target);
-                    ModConsole.Log("[MOPR] Copied your Custom.txt rule file from the original MOP settings folder.");
+                    ModConsole.Info("con.rules.custom_copied");
                 }
             }
             catch (Exception ex)
@@ -275,7 +275,7 @@ namespace MOP.Rules
             try { data = MopSettings.Data; }
             catch (Exception ex)
             {
-                ModConsole.LogWarning("[MOPR] Rules: could not read MopData.json: " + ex.Message);
+                ModConsole.Warn("con.mopdata_read_failed", ex.Message);
                 return;
             }
             if (data.BundledRuleHashes == null || data.BundledRuleHashes.Count == 0) return;
@@ -303,8 +303,7 @@ namespace MOP.Rules
             try { MopSettings.WriteData(data); }
             catch (Exception ex) { ExceptionManager.New(ex, false, "RULES_MIGRATION_SAVE"); }
             if (removed > 0)
-                ModConsole.Log("[MOPR] Rules: removed " + removed + " old rule file" + (removed == 1 ? "" : "s") +
-                               " MOPR had copied there; the same rules are now built in. Files you edited are kept.");
+                ModConsole.Info("con.rules.migrated", removed);
         }
 
         static string Md5(byte[] bytes)
@@ -330,22 +329,9 @@ namespace MOP.Rules
                 else legacy++;
             }
 
-            StringBuilder line = new StringBuilder("[MOPR] Rules: ");
-            if (book.Active.Count == 0) line.Append(MoprColors.Muted(LoadRules ? "none needed for the installed mods" : "off"));
-            else
-            {
-                line.Append(MoprColors.Success(book.RuleCount + " rule" + (book.RuleCount == 1 ? "" : "s")))
-                    .Append(" from ").Append(book.Active.Count).Append(book.Active.Count == 1 ? " file (" : " files (");
-                List<string> parts = new List<string>();
-                if (bundled > 0) parts.Add(bundled + " built-in");
-                if (user > 0) parts.Add(user + " yours");
-                if (legacy > 0) parts.Add(legacy + " old format");
-                line.Append(string.Join(", ", parts.ToArray())).Append(')');
-            }
-            if (ActivateAll) line.Append(MoprColors.Warning(" (every file, installed mod or not)"));
-            if (!applied) line.Append(MoprColors.Warning(" - applies at the next game load"));
-            line.Append(MoprColors.Muted($", read in {ms:0} ms"));
-            ModConsole.Log(line.ToString());
+            // One line in the console language, and the same line in English for the reports.
+            ModConsole.InfoText(SummaryLine(book, applied, ms, bundled, user, legacy, Loc.Current),
+                                SummaryLine(book, applied, ms, bundled, user, legacy, Language.English));
 
             List<RuleIssue> issues = AllIssues(book);
             StringBuilder digest = new StringBuilder();
@@ -357,12 +343,32 @@ namespace MOP.Rules
             foreach (RuleIssue i in issues)
             {
                 if (shown == 8) break;
-                if (i.IsError) ModConsole.LogWarning("[MOPR] Rules: " + i);
-                else ModConsole.Log("[MOPR] Rules: " + MoprColors.Muted(i.ToString()));
+                // The issue itself (file, line, what is wrong) comes from the rule parser and stays English.
+                if (i.IsError) ModConsole.Warn("con.rules.issue", i.ToString());
+                else ModConsole.Info("con.rules.issue", MoprColors.Muted(i.ToString()));
                 shown++;
             }
             if (issues.Count > shown)
-                ModConsole.Log("[MOPR] Rules: " + MoprColors.Muted($"...and {issues.Count - shown} more (mopr rules)"));
+                ModConsole.Info("con.rules.more_issues", issues.Count - shown);
+        }
+
+        static string SummaryLine(RuleBook book, bool applied, double ms, int bundled, int user, int legacy, Language lang)
+        {
+            StringBuilder line = new StringBuilder(Loc.TIn(lang, "con.rules.prefix"));
+            if (book.Active.Count == 0) line.Append(MoprColors.Muted(Loc.TIn(lang, LoadRules ? "con.rules.none_needed" : "con.rules.off")));
+            else
+            {
+                List<string> parts = new List<string>();
+                if (bundled > 0) parts.Add(Loc.FIn(lang, "con.rules.n_builtin", bundled));
+                if (user > 0) parts.Add(Loc.FIn(lang, "con.rules.n_yours", user));
+                if (legacy > 0) parts.Add(Loc.FIn(lang, "con.rules.n_legacy", legacy));
+                line.Append(Loc.FIn(lang, "con.rules.summary", MoprColors.Success(book.RuleCount.ToString()), book.Active.Count,
+                                    string.Join(", ", parts.ToArray())));
+            }
+            if (ActivateAll) line.Append(MoprColors.Warning(Loc.TIn(lang, "con.rules.all_files")));
+            if (!applied) line.Append(MoprColors.Warning(Loc.TIn(lang, "con.rules.next_load")));
+            line.Append(MoprColors.Muted(Loc.FIn(lang, "con.rules.read_in", ms.ToString("0"))));
+            return line.ToString();
         }
 
         /// <summary>Problems of the user's and old-format files (built-in files are checked before every release).</summary>
@@ -375,31 +381,38 @@ namespace MOP.Rules
             return list;
         }
 
-        static string SourceLabel(RuleSet s)
+        static string SourceLabel(RuleSet s, Language lang)
         {
             switch (s.Source)
             {
-                case RuleSource.Bundled: return "built-in";
-                case RuleSource.User: return "yours";
-                default: return "old format";
+                case RuleSource.Bundled: return Loc.TIn(lang, "con.rules.src_builtin");
+                case RuleSource.User: return Loc.TIn(lang, "con.rules.src_yours");
+                default: return Loc.TIn(lang, "con.rules.src_legacy");
             }
         }
 
-        /// <summary>Console "mopr rules [all]".</summary>
-        public static string Report(bool everything)
+        /// <summary>Console "mopr rules [all]" (in the console language).</summary>
+        public static string Report(bool everything) => Report(everything, Loc.Current);
+
+        /// <summary>
+        /// The rules report in a given language (bug reports use English). The reasons why a file is not used and
+        /// the problems come from the rule parser and stay English.
+        /// </summary>
+        public static string Report(bool everything, Language lang)
         {
             RuleBook book = Latest;
             StringBuilder sb = new StringBuilder();
-            sb.Append("<b>Rules</b>: ").Append(book.Active.Count).Append(" active file(s), ").Append(book.RuleCount).Append(" rules")
-              .Append(Book != Latest ? " (read during the game: they apply at the next load)" : "").Append('\n');
-            sb.Append("Folder: ").Append(Folder ?? "-").Append('\n');
+            sb.Append(Loc.FIn(lang, "con.rules.report_head", book.Active.Count, book.RuleCount))
+              .Append(Book != Latest ? Loc.TIn(lang, "con.rules.report_read_in_game") : "").Append('\n');
+            sb.Append(Loc.FIn(lang, "con.rules.report_folder", Folder ?? "-")).Append('\n');
 
             if (book.Active.Count > 0)
             {
-                sb.Append("\n<color=yellow>Active</color>\n");
+                sb.Append("\n<color=yellow>").Append(Loc.TIn(lang, "con.rules.report_active")).Append("</color>\n");
                 foreach (RuleSet s in book.Active)
-                    sb.Append("  ").Append(s.Name).Append(" (").Append(SourceLabel(s)).Append(s.Mod != null ? ", " + s.Mod : "")
-                      .Append(") - ").Append(s.RuleCount).Append(" rules").Append(s.ErrorCount > 0 ? $", {s.ErrorCount} problem(s)" : "").Append('\n');
+                    sb.Append("  ").Append(s.Name).Append(" (").Append(SourceLabel(s, lang)).Append(s.Mod != null ? ", " + s.Mod : "")
+                      .Append(") - ").Append(Loc.FIn(lang, "con.rules.report_rules", s.RuleCount))
+                      .Append(s.ErrorCount > 0 ? ", " + Loc.FIn(lang, "con.rules.report_problems", s.ErrorCount) : "").Append('\n');
             }
 
             int hiddenBundled = 0;
@@ -408,30 +421,32 @@ namespace MOP.Rules
             {
                 bool missingMod = s.Source == RuleSource.Bundled && s.InactiveReason != null && s.InactiveReason.EndsWith("is not installed");
                 if (missingMod && !everything) { hiddenBundled++; continue; }
-                inactive.Add("  " + s.Name + " (" + SourceLabel(s) + ") - " + s.InactiveReason);
+                inactive.Add("  " + s.Name + " (" + SourceLabel(s, lang) + ") - " + s.InactiveReason);
             }
             if (inactive.Count > 0 || hiddenBundled > 0)
             {
-                sb.Append("\n<color=yellow>Not used</color>\n");
+                sb.Append("\n<color=yellow>").Append(Loc.TIn(lang, "con.rules.report_unused")).Append("</color>\n");
                 foreach (string l in inactive) sb.Append(l).Append('\n');
                 if (hiddenBundled > 0)
-                    sb.Append("  built-in rules for ").Append(hiddenBundled).Append(" mods that are not installed (mopr rules all)\n");
+                    sb.Append("  ").Append(Loc.FIn(lang, "con.rules.report_hidden", hiddenBundled)).Append('\n');
             }
 
             List<string> switches = new List<string>();
-            if (book.SatsumaExclude) switches.Add("Satsuma excluded");
-            else if (book.SatsumaKeepRenderers) switches.Add("Satsuma parts never hidden");
-            if (book.KeepEmptyBottles) switches.Add("empty bottles kept");
-            if (book.SkipFuryColliderFix) switches.Add("no Fury collider fix");
-            if (book.AllVehiclesPhysicsOnly) switches.Add("all vehicles: physics only");
-            if (book.NoLods) switches.Add("no far-away vehicle copies");
-            if (switches.Count > 0) sb.Append("\n<color=yellow>Switches</color>\n  ").Append(string.Join(", ", switches.ToArray())).Append('\n');
+            if (book.SatsumaExclude) switches.Add(Loc.TIn(lang, "con.rules.sw_satsuma_excluded"));
+            else if (book.SatsumaKeepRenderers) switches.Add(Loc.TIn(lang, "con.rules.sw_satsuma_renderers"));
+            if (book.KeepEmptyBottles) switches.Add(Loc.TIn(lang, "con.rules.sw_bottles"));
+            if (book.SkipFuryColliderFix) switches.Add(Loc.TIn(lang, "con.rules.sw_fury"));
+            if (book.AllVehiclesPhysicsOnly) switches.Add(Loc.TIn(lang, "con.rules.sw_physics_only"));
+            if (book.NoLods) switches.Add(Loc.TIn(lang, "con.rules.sw_no_lods"));
+            if (switches.Count > 0)
+                sb.Append("\n<color=yellow>").Append(Loc.TIn(lang, "con.rules.report_switches")).Append("</color>\n  ")
+                  .Append(string.Join(", ", switches.ToArray())).Append('\n');
 
             List<RuleIssue> issues = AllIssues(book);
             if (issues.Count > 0)
             {
-                sb.Append("\n<color=yellow>Problems</color>\n");
-                foreach (RuleIssue i in issues) sb.Append("  ").Append(i.IsError ? "" : "(note) ").Append(i).Append('\n');
+                sb.Append("\n<color=yellow>").Append(Loc.TIn(lang, "con.rules.report_issues")).Append("</color>\n");
+                foreach (RuleIssue i in issues) sb.Append("  ").Append(i.IsError ? "" : Loc.TIn(lang, "con.rules.report_note")).Append(i).Append('\n');
             }
 
             if (ModLoader.CurrentScene == CurrentScene.Game && Hypervisor.Instance != null && Book == Latest)
@@ -439,7 +454,8 @@ namespace MOP.Rules
                 List<string> unmatched = book.Unmatched();
                 if (unmatched.Count > 0)
                 {
-                    sb.Append("\n<color=yellow>Named objects MOP did not meet in this game</color> (a typo, or the object is not there)\n");
+                    sb.Append("\n<color=yellow>").Append(Loc.TIn(lang, "con.rules.report_unmatched")).Append("</color> ")
+                      .Append(Loc.TIn(lang, "con.rules.report_unmatched_why")).Append('\n');
                     foreach (string u in unmatched) sb.Append("  ").Append(u).Append('\n');
                 }
             }
@@ -450,7 +466,7 @@ namespace MOP.Rules
         public static string Why(string name)
         {
             string why = Book.Why(name);
-            return why.Length > 0 ? "<b>" + name + "</b>\n" + why : "No rule names \"" + name + "\" (names are exact, case matters).";
+            return why.Length > 0 ? "<b>" + name + "</b>\n" + why : Loc.F("con.rules.why_none", name);
         }
 
         /// <summary>The "Mod compatibility" block of the settings page.</summary>
@@ -502,14 +518,14 @@ namespace MOP.Rules
             "  // true: MOPR's built-in rules for that mod are not used, only this file.\n" +
             "  // \"replaceBundled\": true,\n" +
             "\n" +
-            "  // MOP never touches these objects.\n" +
+            "  // MOPR never touches these objects.\n" +
             "  \"exclude\": [],\n" +
-            "  // MOP never switches these off (their scripts keep running). It may still hide a world object\n" +
+            "  // MOPR never switches these off (their scripts keep running). It may still hide a world object\n" +
             "  // or freeze an item's or a vehicle's physics.\n" +
             "  \"keepActive\": [],\n" +
-            "  // Children that stay on while MOP switches their place or vehicle off, e.g. { \"YARD\": [ \"Handle\" ] }.\n" +
+            "  // Children that stay on while MOPR switches their place or vehicle off, e.g. { \"YARD\": [ \"Handle\" ] }.\n" +
             "  \"keepActiveIn\": {},\n" +
-            "  // Objects of a mod that MOP should switch off far away.\n" +
+            "  // Objects of a mod that MOPR should switch off far away.\n" +
             "  \"manage\": { \"objects\": [], \"renderers\": [], \"items\": [], \"vehicles\": [], \"vehiclePhysics\": [] }\n" +
             "\n" +
             "  // Also possible:\n" +
@@ -524,33 +540,36 @@ namespace MOP.Rules
             "  // Examples: \"mopr rules export <ModID>\" writes MOPR's built-in rules of a mod into this folder.\n" +
             "}\n";
 
-        /// <summary>Creates a commented template (name without extension) and opens it. Returns a message.</summary>
-        public static string NewFile(string name)
+        // 5.1: NewFile / Export / Convert print their result themselves (localized console line, English report copy).
+
+        /// <summary>Creates a commented template (name without extension) and opens it.</summary>
+        public static void NewFile(string name)
         {
             string folder = Folder;
-            if (folder == null) return "The settings folder is not known yet.";
+            if (folder == null) { ModConsole.Info("con.rules.no_folder"); return; }
             Directory.CreateDirectory(folder);
             string path = Path.Combine(folder, (string.IsNullOrEmpty(name) ? "MyRules" : name) + RuleJson.Extension);
             if (File.Exists(path))
             {
                 Open(path);
-                return "The file already exists, opened it: " + path;
+                ModConsole.Info("con.rules.exists_opened", path);
+                return;
             }
             File.WriteAllText(path, Template, new UTF8Encoding(false));
             Open(path);
-            return "Created " + path;
+            ModConsole.Info("con.rules.created", path);
         }
 
-        /// <summary>Writes the built-in rules of a mod as your own file (it then replaces them). Returns a message.</summary>
-        public static string Export(string modId)
+        /// <summary>Writes the built-in rules of a mod as your own file (it then replaces them).</summary>
+        public static void Export(string modId)
         {
             string text = BundledText(modId, out string file);
-            if (text == null) return "MOPR has no built-in rules for \"" + modId + "\".";
+            if (text == null) { ModConsole.Info("con.rules.no_builtin", modId); return; }
             string folder = Folder;
-            if (folder == null) return "The settings folder is not known yet.";
+            if (folder == null) { ModConsole.Info("con.rules.no_folder"); return; }
             Directory.CreateDirectory(folder);
             string path = Path.Combine(folder, file);
-            if (File.Exists(path)) return "The file already exists: " + path;
+            if (File.Exists(path)) { ModConsole.Info("con.rules.exists", path); return; }
 
             RuleSet set = RuleJson.Read(text, file, RuleSource.Bundled);
             set.ReplaceBundled = true;
@@ -559,18 +578,18 @@ namespace MOP.Rules
                 "A copy of MOPR's built-in rules for the \"" + set.Mod + "\" mod. While this file exists, MOPR uses it instead",
                 "of the built-in rules (\"replaceBundled\"). Delete it to go back to the built-in ones.",
             }), new UTF8Encoding(false));
-            return "Written " + path + " - it applies at the next game load.";
+            ModConsole.Info("con.rules.written", path);
         }
 
-        /// <summary>Converts an old-format file to JSON with the same meaning; the old file is kept as .bak. Returns a message.</summary>
-        public static string Convert(string name)
+        /// <summary>Converts an old-format file to JSON with the same meaning; the old file is kept as .bak.</summary>
+        public static void Convert(string name)
         {
             string config = MOP.ModConfigPath;
-            if (string.IsNullOrEmpty(config)) return "The settings folder is not known yet.";
+            if (string.IsNullOrEmpty(config)) { ModConsole.Info("con.rules.no_folder"); return; }
             if (!name.EndsWith(LegacyRules.Extension, StringComparison.OrdinalIgnoreCase) && !name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
                 name += name.Equals("Custom", StringComparison.OrdinalIgnoreCase) ? ".txt" : LegacyRules.Extension;
             string source = Path.Combine(config, name);
-            if (!File.Exists(source)) return "No old-format file " + name + " in " + config;
+            if (!File.Exists(source)) { ModConsole.Info("con.rules.no_legacy", name, config); return; }
 
             RuleSet set = LegacyRules.Read(File.ReadAllLines(source, Encoding.UTF8), Path.GetFileName(source));
             // An old <ModID>.mopconfig replaced MOPR's built-in rules of that mod: the JSON keeps doing that.
@@ -578,15 +597,15 @@ namespace MOP.Rules
             string folder = Folder;
             Directory.CreateDirectory(folder);
             string target = Path.Combine(folder, (set.Mod ?? "Custom") + RuleJson.Extension);
-            if (File.Exists(target)) return "The file already exists: " + target;
+            if (File.Exists(target)) { ModConsole.Info("con.rules.exists", target); return; }
 
             List<string> header = new List<string> { "Converted from " + set.Name + " (the old file is kept as " + set.Name + ".bak)." };
             foreach (RuleIssue i in set.Issues) header.Add((i.IsError ? "Skipped, line " : "Note, line ") + i.Line + ": " + i.Message);
             File.WriteAllText(target, RuleJson.Write(set, header), new UTF8Encoding(false));
             File.Copy(source, source + ".bak", true);
             File.Delete(source);
-            return "Written " + target + (set.Issues.Count > 0 ? $" ({set.Issues.Count} line(s) could not be converted, see the top of the file)" : "") +
-                   ". It applies at the next game load.";
+            if (set.Issues.Count > 0) ModConsole.Info("con.rules.converted_issues", target, set.Issues.Count);
+            else ModConsole.Info("con.rules.written", target);
         }
 
         /// <summary>Path of a user file by name (with or without .json), an old-format file, or null.</summary>
@@ -630,7 +649,7 @@ namespace MOP.Rules
         static void Open(string path)
         {
             try { Process.Start(path); }
-            catch (Exception ex) { ModConsole.LogWarning("[MOPR] Could not open " + path + ": " + ex.Message); }
+            catch (Exception ex) { ModConsole.Warn("con.open_failed", path, ex.Message); }
         }
 
         // ===== Bug reports ===============================================================================
@@ -639,7 +658,7 @@ namespace MOP.Rules
         public static string ReportForBugReport()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(System.Text.RegularExpressions.Regex.Replace(Report(true), "<.*?>", ""));
+            sb.AppendLine(System.Text.RegularExpressions.Regex.Replace(Report(true, Language.English), "<.*?>", ""));
             foreach (RuleSet s in Latest.Active) AppendFile(sb, s);
             foreach (RuleSet s in Latest.Inactive) AppendFile(sb, s);
             return sb.ToString();

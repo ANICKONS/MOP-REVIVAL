@@ -347,7 +347,7 @@ namespace MOP
                 }
                 else
                 {
-                    ModConsole.Log("[MOPR] Trigger diskette was null");
+                    ModConsole.Debug("Trigger diskette was null");
                 }
             }
             catch (Exception ex)
@@ -365,7 +365,7 @@ namespace MOP
                 }
                 else
                 {
-                    ModConsole.Log("[MOPR] Trigger play mode was null");
+                    ModConsole.Debug("Trigger play mode was null");
                 }
             }
             catch (Exception ex)
@@ -462,7 +462,7 @@ namespace MOP
                 ExceptionManager.New(ex, false, "MAILBOX_ERROR");
             }
 
-            ModConsole.Log("[MOPR] Finished applying fixes");
+            ModConsole.Debug("Finished applying fixes");
         }
 
         /// <summary>

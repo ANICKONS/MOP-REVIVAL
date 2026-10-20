@@ -409,6 +409,34 @@ namespace MOPR.TestBot
         /// terms = "RearViewMirrorCam,LeftSideMirrorCam". enabled = false switches the matching enabled cameras off
         /// (remembered); true switches exactly those back on.
         /// </summary>
+        static readonly List<ReflectionProbe> switchedProbes = new List<ReflectionProbe>();
+
+        /// <summary>
+        /// false: disables the enabled reflection probes whose path contains one of the comma-separated terms
+        /// (remembered); true switches exactly those back on. Measurement only (reflections change).
+        /// </summary>
+        public static string SetProbes(string terms, bool enabled, out int count)
+        {
+            count = 0;
+            if (!enabled)
+            {
+                switchedProbes.Clear();
+                string[] t = (terms ?? "").Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToArray();
+                foreach (ReflectionProbe p in UnityEngine.Object.FindObjectsOfType<ReflectionProbe>())
+                {
+                    if (p == null || !p.enabled || !t.Any(x => BotRunner.PathOf(p.transform).Contains(x))) continue;
+                    p.enabled = false;
+                    switchedProbes.Add(p);
+                }
+                count = switchedProbes.Count;
+                return count == 0 ? "no enabled reflection probe matches " + terms : null;
+            }
+            foreach (ReflectionProbe p in switchedProbes)
+                if (p != null) { p.enabled = true; count++; }
+            switchedProbes.Clear();
+            return null;
+        }
+
         public static string SetCameras(string terms, bool enabled, out int count)
         {
             count = 0;
@@ -530,6 +558,347 @@ namespace MOPR.TestBot
             foreach (var kv in counts.OrderByDescending(k => k.Value))
                 sb.Append("\n    ").Append(kv.Value.ToString().PadLeft(5)).Append("  ").Append(kv.Key);
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Everything that decides how the enabled MeshRenderers under path are lit, besides the material:
+        /// global settings, reflection probes, and per material: the renderers' probe settings, the reflection
+        /// probes Unity picks for them (by their bounds) and the light probe / ambient value at their centre.
+        /// Merged meshes (MOP_Merged_*) are listed one by one, other renderers aggregated per material.
+        /// </summary>
+        public static string LightingReport(string path)
+        {
+            GameObject root = Resolve(path);
+            if (root == null) return "object not found: " + path;
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            Camera cam = Camera.main;
+            LightProbes lp = LightmapSettings.lightProbes;
+            sb.Append($"pixelLights {QualitySettings.pixelLightCount}, path {(cam != null ? cam.actualRenderingPath.ToString() : "-")}, " +
+                      $"ambient {RenderSettings.ambientMode} {RenderSettings.ambientLight} x{RenderSettings.ambientIntensity:0.###}, " +
+                      $"reflection {RenderSettings.defaultReflectionMode} x{RenderSettings.reflectionIntensity:0.###}, " +
+                      $"light probes {(lp != null ? lp.count : 0)}");
+
+            foreach (ReflectionProbe p in UnityEngine.Object.FindObjectsOfType<ReflectionProbe>())
+            {
+                if (p == null) continue;
+                sb.Append($"\n  probe {BotRunner.PathOf(p.transform)}: enabled {p.enabled}, {p.mode}/{p.refreshMode}, importance {p.importance}, " +
+                          $"size {p.size}, centre {p.center}, box {p.boxProjection}, at {p.transform.position}, bounds {p.bounds.center}/{p.bounds.size}");
+            }
+
+            Dictionary<string, List<string>> lines = new Dictionary<string, List<string>>();
+            Dictionary<string, Dictionary<string, int>> agg = new Dictionary<string, Dictionary<string, int>>();
+            List<UnityEngine.Rendering.ReflectionProbeBlendInfo> blend = new List<UnityEngine.Rendering.ReflectionProbeBlendInfo>();
+            foreach (MeshRenderer r in root.GetComponentsInChildren<MeshRenderer>(false))
+            {
+                // Disabled renderers too (marked OFF): merged originals are disabled while the merge is shown.
+                if (r == null) continue;
+                Material m = r.sharedMaterial;
+                string mat = (r.enabled ? "" : "OFF ") + (m != null ? m.name : "(none)");
+                blend.Clear();
+                try { r.GetClosestReflectionProbes(blend); } catch { }
+                string probes = blend.Count == 0 ? "none" : string.Join("+", blend.Select(b => (b.probe != null ? b.probe.name : "?") + ":" + b.weight.ToString("0.##")).ToArray());
+                Vector3 c = r.probeAnchor != null ? r.probeAnchor.position : r.bounds.center;
+                string light = "-";
+                if (r.useLightProbes && lp != null && lp.count > 0)
+                {
+                    try
+                    {
+                        LightProbes.GetInterpolatedProbe(c, r, out UnityEngine.Rendering.SphericalHarmonicsL2 sh);
+                        light = (0.2126f * sh[0, 0] + 0.7152f * sh[1, 0] + 0.0722f * sh[2, 0]).ToString("0.###");
+                    }
+                    catch (Exception e) { light = e.GetType().Name; }
+                }
+                string desc = $"lp {r.useLightProbes}, refl {r.reflectionProbeUsage}, anchor {(r.probeAnchor != null ? r.probeAnchor.name : "-")}, " +
+                              $"lm {r.lightmapIndex}, layer {r.gameObject.layer}, shadows {r.shadowCastingMode}/{r.receiveShadows}, probes {probes}, sh {light}, " +
+                              MeshChannels(r) + ", " + PropertyBlockText(r);
+                if (m != null) mat += " [" + (m.shader != null ? m.shader.name : "?") + "]";
+                if (r.gameObject.name.StartsWith("MOP_Merged_"))
+                {
+                    if (!lines.TryGetValue(mat, out List<string> l)) lines[mat] = l = new List<string>();
+                    l.Add($"MERGED {r.gameObject.name}: centre {r.bounds.center}, size {r.bounds.size}, {desc}");
+                }
+                else
+                {
+                    if (!agg.TryGetValue(mat, out Dictionary<string, int> d)) agg[mat] = d = new Dictionary<string, int>();
+                    d[desc] = d.TryGetValue(desc, out int n) ? n + 1 : 1;
+                }
+            }
+            HashSet<string> mats = new HashSet<string>(lines.Keys);
+            foreach (string k in agg.Keys) mats.Add(k);
+            foreach (string mat in mats.OrderBy(x => x))
+            {
+                sb.Append("\n").Append(mat);
+                if (lines.TryGetValue(mat, out List<string> l)) foreach (string s in l) sb.Append("\n    ").Append(s);
+                if (agg.TryGetValue(mat, out Dictionary<string, int> d))
+                    foreach (var kv in d.OrderByDescending(x => x.Value)) sb.Append($"\n    {kv.Value,4}x {kv.Key}");
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>Vertex channels of the renderer's mesh: which exist, and the range of the vertex colours.</summary>
+        static string MeshChannels(Renderer r)
+        {
+            MeshFilter mf = r.GetComponent<MeshFilter>();
+            Mesh mesh = mf != null ? mf.sharedMesh : null;
+            if (mesh == null) return "mesh -";
+            string s = $"v {mesh.vertexCount}, n {mesh.normals.Length > 0}, t {mesh.tangents.Length > 0}, uv2 {mesh.uv2.Length > 0}";
+            Color32[] c = mesh.colors32;
+            if (c.Length == 0) return s + ", col -";
+            int min = 255, max = 0, minA = 255;
+            for (int i = 0; i < c.Length; i++)
+            {
+                int l = (c[i].r + c[i].g + c[i].b) / 3;
+                if (l < min) min = l;
+                if (l > max) max = l;
+                if (c[i].a < minA) minA = c[i].a;
+            }
+            return s + $", col {min}-{max} a{minA}";
+        }
+
+        /// <summary>Common properties set through a MaterialPropertyBlock (0 = not set).</summary>
+        static string PropertyBlockText(Renderer r)
+        {
+            MaterialPropertyBlock b = new MaterialPropertyBlock();
+            r.GetPropertyBlock(b);
+            Vector4 c = b.GetVector("_Color"), e = b.GetVector("_EmissionColor");
+            return c == Vector4.zero && e == Vector4.zero ? "block -" : $"block _Color {c} _EmissionColor {e}";
+        }
+
+        /// <summary>
+        /// What the main camera draws under path (renderers seen by a camera in the last frame): per group (the
+        /// child at depth "depth" below path) and per layer, how many, how many shadow casters, and how many are
+        /// tiny on screen (projected bounds size below 1 / 2 / 4 px at the camera's distance). Also the camera's
+        /// layer cull distances. For deciding what a distance/size cull could save without a visible change.
+        /// </summary>
+        public static string VisibilityReport(string path, int depth)
+        {
+            GameObject root = Resolve(path);
+            if (root == null) return "object not found: " + path;
+            Camera cam = Camera.main;
+            if (cam == null) return "no main camera";
+            Vector3 cp = cam.transform.position;
+            float ppm = Screen.height / (2f * Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad));
+            if (depth < 1) depth = 1;
+
+            Dictionary<string, int[]> groups = new Dictionary<string, int[]>();   // visible, casters, <1, <2, <4, vertices/1000
+            Dictionary<int, int[]> layers = new Dictionary<int, int[]>();
+            int total = 0, enabled = 0;
+            foreach (Renderer r in root.GetComponentsInChildren<Renderer>(false))
+            {
+                total++;
+                if (r == null || !r.enabled) continue;
+                enabled++;
+                if (!r.isVisible) continue;
+                Bounds b = r.bounds;
+                float size = b.size.magnitude;
+                float dist = Mathf.Max(0.01f, Vector3.Distance(cp, b.center) - b.extents.magnitude);
+                float px = size * ppm / dist;
+                int verts = 0;
+                MeshFilter mf = r.GetComponent<MeshFilter>();
+                if (mf != null && mf.sharedMesh != null) verts = mf.sharedMesh.vertexCount;
+
+                // Group: the ancestor "depth" levels below root.
+                Transform t = r.transform, g = null;
+                List<Transform> chain = new List<Transform>();
+                for (Transform x = t; x != null && x != root.transform; x = x.parent) chain.Add(x);
+                g = chain.Count >= depth ? chain[chain.Count - depth] : (chain.Count > 0 ? chain[chain.Count - 1] : t);
+                string key = g.name;
+                foreach (var d in new[] { groups })
+                {
+                    if (!d.TryGetValue(key, out int[] a)) d[key] = a = new int[6];
+                    Add(a, r, px, verts);
+                }
+                int layer = r.gameObject.layer;
+                if (!layers.TryGetValue(layer, out int[] la)) layers[layer] = la = new int[6];
+                Add(la, r, px, verts);
+            }
+            int[] sum = new int[6];
+            foreach (int[] a in groups.Values) for (int i = 0; i < 6; i++) sum[i] += a[i];
+
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append($"{path}: {total} renderers, {enabled} enabled, {sum[0]} visible ({sum[1]} shadow casters, <1px {sum[2]}, <2px {sum[3]}, <4px {sum[4]}, {sum[5]}k vertices); " +
+                      $"camera at {cp}, far {cam.farClipPlane}, spherical {cam.layerCullSpherical}");
+            float[] lcd = cam.layerCullDistances;
+            if (lcd != null)
+            {
+                sb.Append("\n  layer cull distances:");
+                for (int i = 0; i < lcd.Length; i++) if (lcd[i] > 0f) sb.Append($" L{i}={lcd[i]:0}");
+            }
+            foreach (ReflectionProbe p in UnityEngine.Object.FindObjectsOfType<ReflectionProbe>())
+            {
+                if (p == null || !p.enabled) continue;
+                sb.Append($"\n  probe {BotRunner.PathOf(p.transform)}: {p.mode}/{p.refreshMode}/{p.timeSlicingMode}, res {p.resolution}, hdr {p.hdr}, " +
+                          $"near {p.nearClipPlane} far {p.farClipPlane}, shadows {p.shadowDistance}, mask {p.cullingMask}, clear {p.clearFlags}, " +
+                          $"at {p.transform.position}, {Vector3.Distance(cp, p.transform.position):0} m from the camera");
+            }
+            foreach (Camera c in Camera.allCameras)
+                if (c != null && c != cam)
+                    sb.Append($"\n  camera {BotRunner.PathOf(c.transform)}: depth {c.depth}, mask {c.cullingMask}, far {c.farClipPlane}, target {(c.targetTexture != null ? c.targetTexture.width + "x" + c.targetTexture.height : "screen")}");
+            sb.Append("\n  by group (visible, casters, <1px, <2px, <4px, kverts):");
+            foreach (var kv in groups.OrderByDescending(x => x.Value[0]).Take(40))
+                sb.Append($"\n    {kv.Value[0],5} {kv.Value[1],5} {kv.Value[2],5} {kv.Value[3],5} {kv.Value[4],5} {kv.Value[5],6}  {kv.Key}");
+            sb.Append("\n  by layer:");
+            foreach (var kv in layers.OrderByDescending(x => x.Value[0]))
+                sb.Append($"\n    {kv.Value[0],5} {kv.Value[1],5} {kv.Value[2],5} {kv.Value[3],5} {kv.Value[4],5} {kv.Value[5],6}  L{kv.Key} {LayerMask.LayerToName(kv.Key)}");
+            return sb.ToString();
+        }
+
+        static readonly List<Renderer> tinyRenderers = new List<Renderer>();
+
+        /// <summary>Picks the enabled renderers under the roots that are smaller than px on screen now.</summary>
+        public static int PickTiny(string roots, float px)
+        {
+            SetTiny(true);
+            tinyRenderers.Clear();
+            Camera cam = Camera.main;
+            if (cam == null) return 0;
+            Vector3 cp = cam.transform.position;
+            float ppm = Screen.height / (2f * Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad));
+            foreach (string path in (roots ?? "").Split(','))
+            {
+                GameObject root = Resolve(path.Trim());
+                if (root == null) continue;
+                foreach (Renderer r in root.GetComponentsInChildren<Renderer>(false))
+                {
+                    if (r == null || !r.enabled) continue;
+                    Bounds b = r.bounds;
+                    float dist = Mathf.Max(0.01f, Vector3.Distance(cp, b.center) - b.extents.magnitude);
+                    if (b.size.magnitude * ppm / dist < px) tinyRenderers.Add(r);
+                }
+            }
+            return tinyRenderers.Count;
+        }
+
+        public static void SetTiny(bool enabled)
+        {
+            foreach (Renderer r in tinyRenderers) if (r != null) r.enabled = enabled;
+        }
+
+        // ----- LODGroup culling prototype (measurement only) ---------------------------------------------
+        static readonly List<LODGroup> tinyLods = new List<LODGroup>();
+        static readonly List<Renderer> tinyLodRenderers = new List<Renderer>();
+        static float tinyLodHeight;
+
+        /// <summary>
+        /// Adds a one-level LODGroup (culled below px pixels of screen height) to every enabled MeshRenderer under
+        /// the roots that has no LODGroup above it, no rigidbody above it, and could get that small within maxDistance.
+        /// </summary>
+        public static string AddTinyLods(string roots, float px, float maxDistance)
+        {
+            RemoveTinyLods();
+            Camera cam = Camera.main;
+            if (cam == null) return "no main camera";
+            float ppm = Screen.height / (2f * Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad));
+            tinyLodHeight = px / Screen.height;
+            int skippedLod = 0, skippedBody = 0, skippedBig = 0, skippedHas = 0;
+            foreach (string path in (roots ?? "").Split(','))
+            {
+                GameObject root = Resolve(path.Trim());
+                if (root == null) continue;
+                foreach (MeshRenderer r in root.GetComponentsInChildren<MeshRenderer>(false))
+                {
+                    if (r == null || !r.enabled) continue;
+                    bool lodAbove = false, body = false;
+                    for (Transform t = r.transform; t != null; t = t.parent)
+                    {
+                        if (t.GetComponent<LODGroup>() != null) { lodAbove = true; break; }
+                        if (t.GetComponent<Rigidbody>() != null) { body = true; break; }
+                    }
+                    if (lodAbove) { skippedLod++; continue; }
+                    if (body) { skippedBody++; continue; }
+                    Bounds b = r.bounds;
+                    float axis = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
+                    if (axis * ppm / px > maxDistance) { skippedBig++; continue; }
+                    if (r.gameObject.GetComponent<LODGroup>() != null) { skippedHas++; continue; }
+                    LODGroup g = r.gameObject.AddComponent<LODGroup>();
+                    g.SetLODS(new[] { new LOD(tinyLodHeight, new Renderer[] { r }) });
+                    g.RecalculateBounds();
+                    tinyLods.Add(g);
+                    tinyLodRenderers.Add(r);
+                }
+            }
+            return $"{tinyLods.Count} LOD groups (skipped: under a LOD group {skippedLod}, under a rigidbody {skippedBody}, " +
+                   $"never that small within {maxDistance} m {skippedBig}, own LOD group {skippedHas}), lodBias {QualitySettings.lodBias}";
+        }
+
+        /// <summary>
+        /// Every active SimpleIKSolver (the game's CCD IK): path, IsActive, enabled, joints, target, and how far
+        /// the end joint is from the target now (more than ~3.5 cm = the solver runs all 21 iterations each frame).
+        /// </summary>
+        public static string IkSolvers()
+        {
+            Type t = AppDomain.CurrentDomain.GetAssemblies().Select(a => { try { return a.GetType("SimpleIKSolver", false); } catch { return null; } })
+                .FirstOrDefault(x => x != null);
+            if (t == null) return "SimpleIKSolver type not found";
+            FieldInfo fActive = t.GetField("IsActive"), fTarget = t.GetField("Target"), fJoints = t.GetField("JointEntities"), fDamp = t.GetField("IsDamping");
+            Type je = t.GetNestedType("JointEntity");
+            FieldInfo fJoint = je != null ? je.GetField("Joint") : null;
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            UnityEngine.Object[] all = UnityEngine.Object.FindObjectsOfType(t);
+            int running = 0, unreachable = 0;
+            foreach (UnityEngine.Object o in all)
+            {
+                MonoBehaviour mb = o as MonoBehaviour;
+                if (mb == null) continue;
+                bool isActive = (bool)fActive.GetValue(mb);
+                Transform target = fTarget.GetValue(mb) as Transform;
+                Array joints = fJoints.GetValue(mb) as Array;
+                int n = joints != null ? joints.Length : 0;
+                Transform end = n > 0 && fJoint != null ? fJoint.GetValue(joints.GetValue(n - 1)) as Transform : null;
+                float d = end != null && target != null ? Vector3.Distance(end.position, target.position) : -1f;
+                bool runs = isActive && mb.enabled && mb.gameObject.activeInHierarchy;
+                if (runs) running++;
+                if (runs && d * d > 0.00125f) unreachable++;
+                sb.Append($"\n  {BotRunner.PathOf(mb.transform)}: IsActive {isActive}, enabled {mb.enabled}, joints {n}, damping {fDamp.GetValue(mb)}, " +
+                          $"target {(target != null ? BotRunner.PathOf(target) : "-")}, end-target {d:0.0000} m{(d * d > 0.00125f ? " (UNREACHED)" : "")}");
+                // What the joint writes move: colliders (physics sees every write), rigidbodies, renderers, other scripts.
+                for (int k = 0; k < n; k++)
+                {
+                    Transform j = fJoint != null ? fJoint.GetValue(joints.GetValue(k)) as Transform : null;
+                    if (j == null) continue;
+                    Collider[] cols = j.GetComponentsInChildren<Collider>(true);
+                    int triggers = cols.Count(c => c.isTrigger);
+                    Rigidbody[] rbs = j.GetComponentsInChildren<Rigidbody>(true);
+                    Rigidbody above = j.GetComponentInParent<Rigidbody>();
+                    int rend = j.GetComponentsInChildren<Renderer>(true).Length;
+                    int fsms = j.GetComponentsInChildren<PlayMakerFSM>(true).Length;
+                    int others = j.GetComponentsInChildren<MonoBehaviour>(true).Count(x => x != null && !(x is PlayMakerFSM));
+                    sb.Append($"\n      joint {k} {j.name} (parent {(j.parent != null ? j.parent.name : "-")}): colliders {cols.Length} (triggers {triggers}), rigidbodies below {rbs.Length}, " +
+                              $"rigidbody above {(above != null ? above.name + (above.isKinematic ? " kinematic" : "") + (above.IsSleeping() ? " sleeping" : "") : "-")}, " +
+                              $"renderers {rend}, FSMs {fsms}, other scripts {others}, children {j.childCount}");
+                }
+            }
+            return $"{all.Length} SimpleIKSolver, {running} running, {unreachable} running with the target out of reach" + sb;
+        }
+
+        /// <summary>Static bool switch for viewdiff/staticbool (true = the prototype LOD groups cull).</summary>
+        public static bool TinyLodCull { get { return tinyLodCulling; } set { SetTinyLods(value); } }
+        static bool tinyLodCulling;
+
+        /// <summary>true: cull below the threshold; false: transition height 0 (never culled).</summary>
+        public static void SetTinyLods(bool cull)
+        {
+            tinyLodCulling = cull;
+            for (int i = 0; i < tinyLods.Count; i++)
+                if (tinyLods[i] != null && tinyLodRenderers[i] != null)
+                    tinyLods[i].SetLODS(new[] { new LOD(cull ? tinyLodHeight : 0f, new Renderer[] { tinyLodRenderers[i] }) });
+        }
+
+        public static void RemoveTinyLods()
+        {
+            foreach (LODGroup g in tinyLods) if (g != null) UnityEngine.Object.Destroy(g);
+            tinyLods.Clear();
+            tinyLodRenderers.Clear();
+        }
+
+        static void Add(int[] a, Renderer r, float px, int verts)
+        {
+            a[0]++;
+            if (r.shadowCastingMode != UnityEngine.Rendering.ShadowCastingMode.Off) a[1]++;
+            if (px < 1f) a[2]++;
+            if (px < 2f) a[3]++;
+            if (px < 4f) a[4]++;
+            a[5] += verts / 1000;
         }
 
         /// <summary>Enabled lights within radius of the player: type, range, intensity, shadows, render mode.</summary>
@@ -673,8 +1042,43 @@ namespace MOPR.TestBot
             foreach (PlayMakerFSM f in go.GetComponentsInChildren<PlayMakerFSM>(true)) { fsms++; if (f.enabled && f.gameObject.activeInHierarchy) activeFsms++; }
             foreach (Collider c in go.GetComponentsInChildren<Collider>(true)) if (c.enabled && c.gameObject.activeInHierarchy) colliders++;
             foreach (Rigidbody b in go.GetComponentsInChildren<Rigidbody>(true)) if (b.gameObject.activeInHierarchy) rbs++;
+
+            // Merge candidates: enabled opaque single-material MeshRenderers, and what stands in the way.
+            // Unity 5.0 has no LODGroup.GetLODs: count the renderers below a LODGroup (where its levels live).
+            int lodGroups = go.GetComponentsInChildren<LODGroup>(true).Length;
+            int mr = 0, staticBatched = 0, lod = 0, opaque1 = 0, underRb = 0, underFsm = 0, reflOn = 0, candidates = 0;
+            HashSet<Material> candMats = new HashSet<Material>();
+            Dictionary<string, int> candByLayer = new Dictionary<string, int>();
+            foreach (MeshRenderer r in go.GetComponentsInChildren<MeshRenderer>(false))
+            {
+                if (r == null || !r.enabled) continue;
+                mr++;
+                if (r.isPartOfStaticBatch) staticBatched++;
+                bool isLod = r.GetComponentInParent<LODGroup>() != null;
+                if (isLod) lod++;
+                Material m = r.sharedMaterial;
+                MeshFilter mf = r.GetComponent<MeshFilter>();
+                bool single = m != null && r.sharedMaterials.Length == 1 && mf != null && mf.sharedMesh != null && mf.sharedMesh.subMeshCount == 1;
+                if (!single || m.renderQueue != 2000) continue;
+                opaque1++;
+                bool rb = r.GetComponentInParent<Rigidbody>() != null;
+                bool fsm = r.GetComponentInParent<PlayMakerFSM>() != null;
+                if (rb) underRb++;
+                if (fsm) underFsm++;
+                if (r.reflectionProbeUsage != UnityEngine.Rendering.ReflectionProbeUsage.Off && !m.shader.name.StartsWith("Legacy Shaders/")) reflOn++;
+                if (!isLod && !rb && !r.isPartOfStaticBatch)
+                {
+                    candidates++;
+                    candMats.Add(m);
+                    string k = r.gameObject.layer + (fsm ? " fsm" : "");
+                    candByLayer[k] = candByLayer.TryGetValue(k, out int n) ? n + 1 : 1;
+                }
+            }
             return $"renderers {renderers} (enabled {enabled}, visible {visible}, shadow casters {casters}), material slots {materials} ({unique.Count} unique), " +
-                   $"FSMs {fsms} (running {activeFsms}), colliders {colliders}, rigidbodies {rbs}";
+                   $"FSMs {fsms} (running {activeFsms}), colliders {colliders}, rigidbodies {rbs}; " +
+                   $"MeshRenderers {mr}: static-batched {staticBatched}, in {lodGroups} LOD groups {lod}, opaque single-material {opaque1} " +
+                   $"(under a rigidbody {underRb}, under an FSM {underFsm}, probe reflections {reflOn}); merge candidates {candidates} " +
+                   $"with {candMats.Count} materials, by layer: " + string.Join(", ", candByLayer.OrderByDescending(x => x.Value).Select(x => "L" + x.Key + " " + x.Value).ToArray());
         }
 
         // ----- MSCLoader mod settings page (main menu) ------------------------------------------------

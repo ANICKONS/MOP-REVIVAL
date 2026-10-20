@@ -1,0 +1,44 @@
+{
+  "Name": "loc-check",
+  "SettleSeconds": 5,
+  "LoadTimeoutSeconds": 600,
+  "LoadShotInterval": 2.0,
+  "MenuSteps": [
+    { "Op": "log", "Text": "Console localization (5.1): Russian in the menu and during the load (the load screen with the version mark), Polish and English in game." },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "1" },
+    { "Op": "console", "Text": "mopr version" },
+    { "Op": "console", "Text": "mopr help rules" },
+    { "Op": "console", "Text": "mopr nonsense" }
+  ],
+  "Steps": [
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "console", "Text": "mopr guard" },
+
+    { "Op": "log", "Text": "--- the Satsuma parts are unglued the first time the player is far from the car ---" },
+    { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [6.0, 1.0, 0.0] },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 4 },
+
+    { "Op": "log", "Text": "--- Polish ---" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "2" },
+    { "Op": "console", "Text": "mopr help" },
+    { "Op": "console", "Text": "mopr rules" },
+    { "Op": "console", "Text": "mopr version" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "experimentalMirrorRate", "Value": "true" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "experimentalMirrorRate", "Value": "false" },
+    { "Op": "call", "Text": "MOP.Common.LoadScreen:Show" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "screenshot", "Label": "loadscreen_pl" },
+
+    { "Op": "log", "Text": "--- English ---" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "0" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "engineSharedMouseRay", "Value": "false" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "engineSharedMouseRay", "Value": "true" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "screenshot", "Label": "loadscreen_en" },
+    { "Op": "console", "Text": "mopr log 60" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "1" },
+    { "Op": "quit" }
+  ]
+}

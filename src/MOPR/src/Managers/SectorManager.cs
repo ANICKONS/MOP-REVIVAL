@@ -49,7 +49,7 @@ namespace MOP.Managers
         {
             instance = this;
 
-            ModConsole.Log("[MOPR] Loading sectors...");
+            ModConsole.Debug("Loading sectors...");
 
             PlayerCheck = new GameObject("MOP_PlayerCheck");
             PlayerCheck.layer = 20; // This layer is ignored by MSC's player "hand" raycasting.
@@ -173,7 +173,7 @@ namespace MOP.Managers
                 }
             }
 
-            ModConsole.Log($"[MOPR] Loaded {sectors.Count} sectors");
+            ModConsole.Debug($"Loaded {sectors.Count} sectors");
 
             if (MopSettings.GenerateToggledItemsListDebug)
             {

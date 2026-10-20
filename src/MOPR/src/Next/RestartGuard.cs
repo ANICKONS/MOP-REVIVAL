@@ -279,7 +279,7 @@ namespace MOP.Next
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"MOP - REVIVAL {MOP.ModVersion} - restart guard ({DateTime.Now:yyyy-MM-dd HH:mm:ss})");
-            sb.AppendLine($"Enabled: {Enabled}. {GuardedCount} FSMs are paused (not reset) while MOP has their object disabled. " +
+            sb.AppendLine($"Enabled: {Enabled}. {GuardedCount} FSMs are paused (not reset) while MOPR has their object disabled. " +
                           $"Objects disabled right now: {SuspendedRoots}.");
             sb.AppendLine();
             foreach (string line in guardedLog.Values)

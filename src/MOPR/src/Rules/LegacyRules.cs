@@ -77,7 +77,7 @@ namespace MOP.Rules
             {
                 if (RuleSet.IsProtected(args[i]))
                 {
-                    set.Error(lineNo, $"\"{args[i]}\" is used by MOP itself and cannot have a rule");
+                    set.Error(lineNo, $"\"{args[i]}\" is used by MOPR itself and cannot have a rule");
                     return;
                 }
             }

@@ -35,7 +35,7 @@ namespace MOP.FSM.Actions
 
                 if (hoodFixedUpdate == null)
                 {
-                    global::MOP.ModConsole.LogError($"[MOPR] No PlayMakerFixedUpdate component found in {gameObject.name}.");
+                    global::MOP.ModConsole.Debug($"No PlayMakerFixedUpdate component found in {gameObject.name}.");
                     return;
                 }
 

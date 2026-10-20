@@ -606,6 +606,19 @@ namespace MOPR.TestBot
                             yield return new WaitForFixedUpdate();
                         }
                         break;
+                    case "objcount":
+                        {
+                            // Leak check: live engine objects by type, managed heap, process memory.
+                            GC.Collect();
+                            int Count<T>() where T : UnityEngine.Object => Resources.FindObjectsOfTypeAll<T>().Length;
+                            // (Process.PrivateMemorySize64 reads 0 in the game's Mono, so only the managed heap.)
+                            string line = $"GameObject {Count<GameObject>()}, Mesh {Count<Mesh>()}, Material {Count<Material>()}, " +
+                                          $"Texture2D {Count<Texture2D>()}, PlayMakerFSM {Count<PlayMakerFSM>()}, Rigidbody {Count<Rigidbody>()}, " +
+                                          $"MonoBehaviour {Count<MonoBehaviour>()}, managed {GC.GetTotalMemory(false) / 1048576f:0.0} MB";
+                            WriteArtifact("objcount_" + (step.Label ?? "x") + ".txt", line + "\n");
+                            Log($"objcount {step.Label}: {line}");
+                        }
+                        break;
                     case "placeground":
                         {
                             // Pos = world point to look down from; Value = clearance above the ground (default 0.8 m).
@@ -751,6 +764,68 @@ namespace MOPR.TestBot
                         break;
                     case "viewdiff":
                         yield return StartCoroutine(ViewDiff(step));
+                        break;
+                    case "ikprobe":
+                        {
+                            // For Seconds: does each SimpleIKSolver solve change its joints (bitwise)?
+                            string err = IkProbe.Install();
+                            if (err != null) { Log("ikprobe: " + err); break; }
+                            for (float t = 0; t < Mathf.Max(1f, step.Seconds); t += 1f) { Beat(); yield return new WaitForSeconds(1f); }
+                            IkProbe.Uninstall();
+                            string rep = IkProbe.Report();
+                            WriteArtifact("visible_ikprobe_" + (step.Label ?? "x") + ".txt", rep);
+                            Log($"ikprobe {step.Label}: " + rep.Split('\n')[0]);
+                        }
+                        break;
+                    case "iksolvers":
+                        {
+                            yield return null;
+                            string rep;
+                            try { rep = GameOps.IkSolvers(); }
+                            catch (Exception e) { rep = "error: " + e.GetType().Name + ": " + e.Message; }
+                            WriteArtifact("visible_ik_" + (step.Label ?? "x") + ".txt", rep);
+                            Log($"iksolvers {step.Label}: " + rep.Split('\n')[0]);
+                        }
+                        break;
+                    case "visible":
+                        {
+                            // What the main camera draws under Path, grouped at depth Max (default 1). visible_<label>.txt.
+                            yield return null;
+                            string rep;
+                            try { rep = GameOps.VisibilityReport(step.Path, step.Max > 0 ? step.Max : 1); }
+                            catch (Exception e) { rep = "error: " + e.GetType().Name + ": " + e.Message; }
+                            WriteArtifact("visible_" + (step.Label ?? "x") + ".txt", rep);
+                            Log($"visible {step.Label}: " + rep.Split('\n')[0]);
+                        }
+                        break;
+                    case "lightinfo":
+                        {
+                            // What decides how the renderers under Path are lit (probes, ambient, per-renderer
+                            // settings). With Text = static bool: the report is taken with it false, then true
+                            // (e.g. merged meshes vs originals). Written as lightinfo_<label>.txt.
+                            yield return null;   // switches set by an earlier step apply in the next Update
+                            yield return null;
+                            string a = GameOps.LightingReport(step.Path);
+                            string b = null;
+                            if (!string.IsNullOrEmpty(step.Text))
+                            {
+                                string err = GameOps.StaticBoolSetter(step.Text, out Action<bool> set);
+                                if (err != null) b = "static bool: " + err;
+                                else
+                                {
+                                    set(true);
+                                    yield return null;
+                                    yield return null;
+                                    b = GameOps.LightingReport(step.Path);
+                                    set(false);
+                                    yield return null;
+                                }
+                            }
+                            WriteArtifact("lightinfo_" + (step.Label ?? "x") + ".txt",
+                                "=== " + (string.IsNullOrEmpty(step.Text) ? "now" : step.Text + " = false") + " ===\n" + a +
+                                (b != null ? "\n\n=== " + step.Text + " = true ===\n" + b : ""));
+                            Log($"lightinfo {step.Label}: " + a.Split('\n')[0]);
+                        }
                         break;
                     case "cameralist":
                         {
@@ -1310,6 +1385,29 @@ namespace MOPR.TestBot
                 case "castshadows": apply = b => GameOps.SetShadowCasting(step.Path, !b, out int _); break;
                 case "dummies": apply = b => GameOps.SetDummies(b ? step.Max : 0); break;
                 case "cameras": apply = b => GameOps.SetCameras(step.Path, !b, out int _); break;
+                case "probes": apply = b => GameOps.SetProbes(step.Path, !b, out int _); break;
+                case "tiny":
+                    {
+                        // B = the enabled renderers under Path (comma-separated roots) that are smaller than Value
+                        // pixels on screen right now are switched off (picked once, before the A/B starts).
+                        float px = 2f;
+                        float.TryParse(step.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out px);
+                        int n = GameOps.PickTiny(step.Path, px);
+                        Log($"tiny {step.Path} < {px} px: {n} renderers");
+                        apply = b => GameOps.SetTiny(!b);
+                    }
+                    break;
+                case "tinylod":
+                    {
+                        // A = no LODGroups at all; B = one-level LODGroups culling below Value px (Max = max cull
+                        // distance in m, default 800). Created before the A/B, removed after it.
+                        float px = 2f;
+                        float.TryParse(step.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out px);
+                        string summary = GameOps.AddTinyLods(step.Path, px, step.Max > 0 ? step.Max : 800f);
+                        Log($"tinylod {step.Path} < {px} px: {summary}");
+                        apply = b => GameOps.SetTinyLods(b);
+                    }
+                    break;
                 case "bake":
                     {
                         // B = draw the combined meshes instead of the original renderers.
@@ -1364,6 +1462,8 @@ namespace MOPR.TestBot
             apply(false);
             if (what == "skipmethod") MethodSkipper.Uninstall();
             if (what == "bake") GameOps.Unbake();
+            if (what == "tinylod" && step.Active) GameOps.SetTinyLods(true);   // Active: keep them culling (screenshots)
+            else if (what == "tinylod") GameOps.RemoveTinyLods();
 
             AbResult r = new AbResult { Label = step.Label, A = "base", B = (what == "staticbool" ? "true: " : what + " off: ") + step.Path, Switches = switches };
             Summarize(fa, out r.FramesA, out r.AvgFpsA, out r.MedianMsA, out r.P95MsA);

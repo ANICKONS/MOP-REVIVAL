@@ -6,16 +6,66 @@
 - **PlayMaker engine optimizations** (`Next/Engine/`, Harmony). Work is skipped only when MOP can prove from
   the live state that it would change nothing; otherwise the original code runs:
   - idle `PlayMakerFSM.Update`/`LateUpdate` (no active per-frame work, no pending events);
+  - *evaluated actions*: a state whose only per-frame actions are `MousePickEvent`, `BoolTest` or
+    `FloatCompare` (for example the Satsuma part removal FSMs; about a quarter of all FSM updates at home) is
+    evaluated exactly as PlayMaker 1.6 would; if none of them would send an event this frame, the FSM update is
+    skipped like an idle one. The same `ActionHelpers.IsMouseOver` calls are made in the same order (the pure
+    tests are checked first; all picks of one state must share ray distance and layer mask, so when the original
+    has to run after all, its repeated calls are cache hits), and `Fsm.RaycastHitInfo` is written as the action
+    writes it. Only a null event counts as "sends nothing". Verify mode also watches `Fsm.Event` and the hit
+    info: 23.5 million checks at home and while driving, 0 differences. Measured (A/B against the blocking path,
+    1 s blocks): yard +4.5% FPS (204.9 vs 195.9; second run 206.3 vs 197.4), living room +6.1% (280 vs 264),
+    driving 6.50 vs 6.87 ms median frame;
+  - *shared mouse ray* (`Next/Engine/SharedMouseRay.cs`; experimental in the first 5.1 builds, now on by default,
+    setting *Fewer mouse raycasts* under the game engine switch). Every Satsuma part asks every frame whether
+    the mouse is over it; PlayMaker caches the ray for one layer mask only and the game interleaves about a
+    dozen, so next to the car about 90 picks per frame cast a new ray each (with two `Camera.main` lookups).
+    Only `ActionHelpers.DoMousePick` is replaced: it stores what `Physics.Raycast` would store, taken from one
+    ray per mask per frame, and sets PlayMaker's three cache fields itself, so `MouseOver`, `IsMouseOver`,
+    `MousePick` and `Fsm.RaycastHitInfo` keep PlayMaker's own semantics. The first version answered the queries
+    instead and differed in two ways its verify mode did not see: `MousePick` returned a trimmed hit where
+    PlayMaker returns the cached hit of a longer ray, and on a miss it stored an empty hit while Unity 5.0 only
+    clears the collider and keeps point, normal, distance and face of the previous hit (measured: every miss
+    differed). A ray is recast when `Camera.main` is another camera, the camera moved, turned or zoomed, or the
+    hit collider was disabled, deactivated, moved or turned. About 11 rays per 100 picks.
+    Verify mode now runs the original `DoMousePick` too and compares every field of the stored hit:
+    1.84 million picks at home (yard, living room, next to the car with the camera turning) and in the car
+    (seated, driving), 0 different. A/B (shared vs original, 1 s blocks): living room 236.7 vs 222.3 FPS
+    (+6.5%), yard 202.7 vs 190.3 (+6.5%), next to the car 186.2 vs 166.6 (+11.8%), driving 6.49 vs 7.00 ms median
+    frame; a second run gave +5…8%. Not provable: another collider moving INTO the ray between two FSM updates
+    of the same frame would be seen one frame later (never seen in the verify runs);
+  - *IK fast path* (`Next/Engine/IkFastPath.cs`): the game's CCD IK (`SimpleIKSolver`: Satsuma suspension
+    arms and shocks, car and floor jacks, tractor and flatbed cylinders) iterates in LateUpdate until the end
+    joint is within ~3.5 cm of its target, at most 21 times; most chains can never get that close, so all 19
+    solvers ran 21 iterations every frame (0.24 ms at home). A solve is a deterministic function of the local
+    poses (and parents) of every transform from its joints and target up to the scene root and of its own
+    fields; when a solve on such inputs left every joint bitwise as it was, the next solve on bitwise the same
+    inputs is skipped. Anything else runs the original. The skip drops only same-value transform writes
+    (`Transform.hasChanged`, which no game script reads; colliders keep their pose). Verify mode: 39,513
+    skipped solves checked (yard, next to the car, car pushed, seated, driving), 0 differences. At rest 87% of
+    the solves are skipped. A/B: yard +5.4% FPS (196.3 vs 186.3), living room +5.9% (271.6 vs 256.5), next to
+    the car −0.26 ms median frame, driving −0.11 ms;
   - `GetProperty`/`SetProperty` through compiled delegates instead of reflection;
   - redundant per-frame writes (`cInput` axis inversion save, `SetGameVolume`).
   Measured with the in-game TestBot (interleaved A/B): about +10% FPS at the spawn and at home, about 60% less
   managed garbage. Setting: *PlayMaker engine optimizations* (on by default).
 - **Verify mode** for the engine optimizations: the original code runs anyway and every difference is
   reported (`mopr engine`). About 25 million checks, 0 differences.
-- **English and Russian interface** (`src/Localization/`). The language dropdown in the mod settings switches
-  the whole page live; the first start follows the system language. Console messages and logs stay English.
+- **English, Russian and Polish** (`src/Localization/`: `Strings.*.cs` for the interface, `Console.*.cs` for
+  the console). The language dropdown in the mod settings switches the whole page live; the first start follows
+  the system language. The console follows the language too (new lines; what is already printed stays). The copy
+  MOPR keeps for mod reports and bug reports is always English. Technical details inside a message (paths,
+  object names, exception texts, rule parser messages) and the dumps of `mopr engine` / `mopr render` stay
+  English. The mod calls itself MOPR everywhere ("MOP" only means the original mod).
+- **Console format**: one line per switch ("[MOPR] Engine: Script optimization ON", "Render: Mirror optimization
+  OFF"), and when the game is ready three short blocks: *Managing* (world objects, items, vehicles, places),
+  *Mode* (with render optimization, script optimization, raycast optimization, Satsuma merging) and
+  *Experimental*. Internal progress lines (toggled lists, sectors, bolts, renderer analysis...) are no longer
+  printed; they are kept for mod reports and bug reports and shown by the new `mopr log [n]`.
 - **New loading screen** without an asset bundle: animated logo, the real loading step (waiting for mods →
   checking the Satsuma → optimizing the world → final touches), an eased progress bar, tips, a short fade-out.
+  Next to "MOP - REVIVAL" a large slanted orange "5" (the major version, with a lighter upper half, an extruded
+  shadow and a faint glow).
 - **Satsuma mesh merger** (`Next/MeshMerger.cs`, `Next/VehicleMeshMerge.cs`). Why the FPS drops near the
   assembled car: it is CPU-bound, not GPU-bound (resolution changes nothing). Unity 5.0 issues one draw call per
   renderer, the car has ~550 of them, and it is drawn even behind a wall. While nobody drives the car, about 440
@@ -37,15 +87,6 @@
   frame. Setting: *Merge the parked Satsuma* (on). Report: `mopr render`.
 - **Experimental tier** (5.1, every option off by default, in its own settings section). Measured and, where
   possible, verified, but MOP cannot prove for every frame that the game behaves exactly as without them:
-  - *Shared mouse ray* (`Next/Engine/SharedMouseRay.cs`). Every Satsuma part asks every frame whether the mouse
-    is over it; PlayMaker caches the ray for one layer mask only and the game interleaves about a dozen, so next
-    to the car 300 queries cast 107 rays per frame (each with two `Camera.main` lookups). One ray per mask per
-    frame answers every query exactly as a fresh ray of that length would; the cache is dropped when the camera
-    moves and an entry is recast when its collider was disabled. About 10 rays per frame instead of 107.
-    A/B: −0.76 ms next to the car, −0.33…−0.57 ms in the driver's seat, −0.12…−0.89 ms while driving.
-    Verify mode (Engine Lab verify setting): 1.28 million answers compared with the original, also with the
-    camera turning every frame, 0 different. Not provable because a collider moving into the ray between two
-    FSM updates of the same frame would be seen one frame later.
   - *Car mirrors at most 60 FPS* (`Next/MirrorRate.cs`). The rear-view and side mirror cameras render the world
     again every frame (0.4 ms in Peräjärvi, 1.2 ms in the home garage, measured). Above 60 FPS a mirror render is
     skipped when the mirror was rendered less than 1/60 s ago; the mirror keeps its picture (culling mask
@@ -117,6 +158,14 @@
   *Limit FPS* is on. The load distance slider is labelled *Radius* (MSCLoader draws the label and the value on
   one line, the long label ran into "Normal ×1"), and the empty row of the restart note is gone until the note
   has something to say. Every RU/EN text is shorter and plainer.
+- Settings texts: *View distance* (was *Load distance*), new mode descriptions, *Hide the engine while driving*,
+  *Mirrors at 60 FPS*; the second sentence under the render main switch is gone. *Screen resolution* is the
+  first setting under *Graphics → Other*.
+- "Found N broken SatsumaBoltsAntiReload" is no longer printed on every load. It counted entries of the original
+  MOP's bolt guard (it keeps the parts on the car "glued" while it loads and stops the bolt scripts from
+  restarting) whose object the game had destroyed by the time the parts are released: its `DUMMY_` placeholders
+  and copies of parts made after the load (on the test save 22 of 187: 5 placeholders, 17 copies). Harmless;
+  the log line for reports now names them.
 - Console: the tag is `[MOPR]` (orange, bold) and MOPR lines are colored (`Common/MoprColors.cs`, the 4.x
   palette): beige text, cyan versions and names, green for done/on, yellow for attention, red for failures, grey
   for off. Warnings and errors keep MSCLoader's "MOPR Warning:" / "MOPR Error:" prefix (no doubled tag). When the
@@ -157,6 +206,21 @@
   LateUpdate, before any camera renders. Before the fix: 72 of 783 renderers on but never drawn after four
   door cycles (all four tyres among them); after it: 0, and with the merger switched off every renderer
   matches the baseline (state, mesh, material, visibility).
+- Satsuma mesh merger (pre-release builds): the cabin looked lighter or darker than without the merger,
+  changing with the surroundings (user report). Cause, measured with the TestBot (`merge-light`, new ops
+  `lightinfo` and diff images): the merged renderers kept Unity's default *blend probes*, while the game draws
+  the interior (`interior_panels`, `dashboard_console`, gauges...) with reflection probes off. Merged, those
+  parts reflected the realtime probes (`RefProbeMap`, in the garage `RefProbeGarage`). Parts are now merged only
+  with parts of the same reflection probe setting, and for shaders that sample probes (everything except Unity's
+  legacy shaders) only when the merged mesh gets exactly the same probes and weights as each part
+  (`Renderer.GetClosestReflectionProbes`, checked at build). While merged, the probes are compared every
+  frame (on, active, position, box, importance) and all probe groups are checked again when the car moved by
+  more than the pose tolerance; any difference hands the originals back. Parts with a probe anchor (or light
+  probes in the scene) are not merged. Screenshots into the cabin, merged vs originals: before 1.61–1.77% of
+  the pixels differed (noise 0.40–0.45%, the merged cabin brighter); after 0.16–0.23% (noise 0.37–0.42%).
+  With the garage probe moved over the car: 71 parts stay unmerged, 0.20% (noise 0.44%); over the front only:
+  5 parts, 0.11–0.17% (noise 0.31–0.49%). The gain stays: +6.8% and +6.4% FPS at 6.5 m in front (36 meshes
+  instead of 33).
 
 - **Bugs of the original MOP 3.10.4** (collected from Nexus, Reddit and Steam reports, then confirmed in the code;
   checked in game with the TestBot, `tests/scenarios/batch1.json`, against the build before these fixes):
@@ -241,6 +305,11 @@
 - **Sudden death in the Satsuma** (`b5-death`): death is the game's "Death" FSM on `DriverHeadPivot` seeing its
   ConfigurableJoint gone. MOP switches that object (player farther than 10 m), which restarts the FSM into its
   10 s wait; the joint itself stays (break force unchanged). Not reproduced without driving.
+- **FPS dropping after a few minutes** (`b7-fps`): FPS at one spot at home, then 12 rounds home -> Teimo ->
+  repair shop -> home (about 5 minutes, MOP switching everything each time), then the same spot again. MOPR
+  194 -> 249 fps (vanilla 90 -> 106). After `GC.Collect`: GameObjects, meshes, textures, FSMs, rigidbodies and
+  MonoBehaviours unchanged, MOP's lists unchanged (303 items, 59 world objects...). Materials +96 and managed
+  heap +15 MB, the vanilla game the same way (+72, +12.5 MB): the game's own.
 - **Gifu septic pump** (reported against MOPR 4.0.x): reproduced the job in game with the TestBot
   (`tests/scenarios/gifu-pump.json`). With MOPR 5.1 the well drains at the rate the game's FSM predicts
   (rpm / 90 / 500 per second) with the player at 3 m, at 9 m (MOP has frozen the truck physics), at 40 m

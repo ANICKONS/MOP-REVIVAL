@@ -30,6 +30,8 @@
 //              foreach active action: Init(state); OnUpdate()
 //                                              -> required: the action type overrides neither Init nor
 //                                                 OnUpdate, and Init would write the values it already has
+//                                                 (5.1: or it is an "evaluated" action that would send nothing,
+//                                                 see "Evaluated actions" below)
 //              CheckAllActionsFinished()       -> no-op while actions are active (or the state is inactive)
 //       UpdateStateChanges():
 //         while (switchToState != null) ...    -> required: no pending state switch
@@ -75,7 +77,8 @@ namespace MOP.Next.Engine
         public const int RunActionOverride = 10;
         public const int RunActionInit = 11;
         public const int RunLoopCount = 12;
-        public const int ReasonCount = 13;
+        public const int RunEvaluatedActive = 13;   // 5.1: an evaluated action would send an event this frame
+        public const int ReasonCount = 14;
 
         public const int SkipIdle = -1;      // state finished / nothing to update
         public const int SkipTimer = -2;     // only StateTime advances
@@ -83,17 +86,18 @@ namespace MOP.Next.Engine
         public static readonly string[] ReasonNames =
         {
             "breakpoint", "not-entered", "delayed-events", "switching", "owner", "stack", "no-active-state",
-            "state-fsm", "will-finish", "null-action", "action-override", "action-init", "loop-count"
+            "state-fsm", "will-finish", "null-action", "action-override", "action-init", "loop-count",
+            "evaluated-active"
         };
 
         // ----- Statistics -----------------------------------------------------------------------------
         public sealed class Counters
         {
-            public long Calls, SkipIdle, SkipTimer, ShadowChecked, ShadowMismatch;
+            public long Calls, SkipIdle, SkipTimer, SkipEvaluated, ShadowChecked, ShadowMismatch;
             public readonly long[] Reasons = new long[ReasonCount];
             public void Reset()
             {
-                Calls = SkipIdle = SkipTimer = ShadowChecked = ShadowMismatch = 0;
+                Calls = SkipIdle = SkipTimer = SkipEvaluated = ShadowChecked = ShadowMismatch = 0;
                 Array.Clear(Reasons, 0, Reasons.Length);
             }
         }
@@ -150,6 +154,16 @@ namespace MOP.Next.Engine
                 harmony.Patch(stateEnter, Hook("OnEnterPrefix"), null, null);
                 if (shadow)
                 {
+                    // Every Fsm.Event overload ends in Event(FsmEventTarget, FsmEvent): watch it for claimed no-ops.
+                    MethodInfo fsmEvent = null;
+                    foreach (MethodInfo m in typeof(Fsm).GetMethods(BindingFlags.Instance | BindingFlags.Public))
+                    {
+                        if (m.Name != "Event") continue;
+                        ParameterInfo[] ps = m.GetParameters();
+                        if (ps.Length == 2 && ps[0].ParameterType.Name == "FsmEventTarget" && ps[1].ParameterType == typeof(FsmEvent)) { fsmEvent = m; break; }
+                    }
+                    if (fsmEvent == null) throw new MissingMethodException("Fsm", "Event(FsmEventTarget, FsmEvent)");
+                    harmony.Patch(fsmEvent, Hook("EventPrefixShadow"), null, null);
                     harmony.Patch(pmUpdate, Hook("UpdatePrefixShadow"), Hook("UpdatePostfixShadow"), null);
                     harmony.Patch(pmLate, Hook("LatePrefixShadow"), Hook("LatePostfixShadow"), null);
                 }
@@ -172,7 +186,7 @@ namespace MOP.Next.Engine
         {
             Active = false;
             try { harmony?.UnpatchAll(HarmonyId); }
-            catch (Exception ex) { ModConsoleSafe("[MOPR] Engine: unpatch failed: " + ex.Message); }
+            catch (Exception ex) { ModConsoleSafe(ex.Message); }
             harmony = null;
             clean.Clear();
             pendingUpdate.Fsm = null;
@@ -260,15 +274,22 @@ namespace MOP.Next.Engine
         static int CheckActions(List<FsmStateAction> actions, int count, FsmState state, Fsm fsm, PlayMakerFSM owner, int hookFlag, Dictionary<Type, long> blockers)
         {
             GameObject go = null;
+            bool evaluate = false;
             for (int i = 0; i < count; i++)
             {
                 FsmStateAction a = actions[i];
                 if (a == null) return RunNullAction;
                 Type t = a.GetType();
-                if ((Flags(t) & (hookFlag | FlagInit)) != 0)
+                int f = Flags(t);
+                if ((f & (hookFlag | FlagInit)) != 0)
                 {
-                    if (DetailedStats) Bump(blockers, t);
-                    return RunActionOverride;
+                    // 5.1: a few per-frame actions are evaluated below instead of blocking (Update only).
+                    if (hookFlag != FlagUpdate || (f & FlagInit) != 0 || EvaluationOff || !IsEvaluable(t))
+                    {
+                        if (DetailedStats) Bump(blockers, t);
+                        return RunActionOverride;
+                    }
+                    evaluate = true;
                 }
                 // FsmStateAction.Init(state): fsmState = state; fsm = state.Fsm; owner = fsm.GameObject.
                 // Fsm.GameObject == Owner.gameObject, and Owner is the live component that is running now.
@@ -276,7 +297,130 @@ namespace MOP.Next.Engine
                 if (go == null) go = owner.gameObject;
                 if (!ReferenceEquals(a.Owner, go)) return RunActionInit;
             }
+
+            if (evaluate)
+            {
+                // Only once nothing else blocks. Pure tests first (no side effects at all), then the mouse picks.
+                // Anything reaching this point without FlagUpdate has no OnUpdate; with it, it is evaluable.
+                for (int i = 0; i < count; i++)
+                {
+                    FsmStateAction a = actions[i];
+                    Type t = a.GetType();
+                    if ((Flags(t) & FlagUpdate) == 0 || ReferenceEquals(t, MousePickType)) continue;
+                    if (!EvaluatePure(a, t)) return RunEvaluatedActive;
+                }
+                bool picked = false;
+                float pickDistance = 0f;
+                int pickMask = 0;
+                for (int i = 0; i < count; i++)
+                {
+                    FsmStateAction a = actions[i];
+                    if (!ReferenceEquals(a.GetType(), MousePickType)) continue;
+                    if (!EvaluateMousePick((HutongGames.PlayMaker.Actions.MousePickEvent)a, go, ref picked, ref pickDistance, ref pickMask))
+                        return RunEvaluatedActive;
+                }
+                evaluatedInert = true;
+                hitInfoPending = picked;
+            }
             return -1;
+        }
+
+        // ----- Evaluated actions (5.1) ----------------------------------------------------------------
+        //
+        // Per-frame actions that only send events (MousePickEvent, BoolTest, FloatCompare). Their OnUpdate is
+        // computed here exactly as PlayMaker 1.6 would (decompiled code, same calls in the same order): when
+        // none of them would send an event this frame, the state's Update does nothing else, and the FSM can
+        // be skipped like an idle one. The same method calls are made (ActionHelpers.IsMouseOver keeps the shared
+        // pick cache identical), and the one side effect - MousePickEvent writes Fsm.RaycastHitInfo - is applied.
+        //   MousePickEvent: over = ActionHelpers.IsMouseOver(go, rayDistance, LayerArrayToLayerMask(layerMask,
+        //                   invertMask)); over: mouseDown (+ button down), mouseOver, mouseUp (+ button up);
+        //                   not over: mouseOff. Fsm.RaycastHitInfo = ActionHelpers.mousePickInfo.
+        //   BoolTest:       Fsm.Event(value ? isTrue : isFalse)
+        //   FloatCompare:   |f1 - f2| <= tolerance: equal; f1 < f2: lessThan; f1 > f2: greaterThan
+        // Fsm.Event(null) does nothing; any non-null event (even an empty one) makes the original run.
+        // Where an Fsm would throw (a null field), the original runs and throws as it would.
+
+        //
+        // Order. The pure tests are evaluated first; they read FSM variables only. The mouse picks come last, and
+        // all picks of one state must use the same ray distance and layer mask: if a pick (or anything after it)
+        // turns out to be active, the original runs and repeats the same IsMouseOver calls, and with one
+        // (distance, mask) pair a repeated call in the same frame is a pure cache hit (MouseOver re-picks only on
+        // a new frame, a longer distance or another mask). So even a "would send" result leaves the shared pick
+        // cache exactly as PlayMaker alone would.
+
+        /// <summary>True switches the evaluation off (the actions block as before). For A/B tests and as a kill switch.</summary>
+        public static bool EvaluationOff = false;   // set by reflection (abtoggle staticbool)
+
+        // Set by ClassifyUpdate (reset on every call): the skip relies on evaluated actions / must write the hit info.
+        static bool evaluatedInert;
+        static bool hitInfoPending;
+
+        static readonly Type MousePickType = typeof(HutongGames.PlayMaker.Actions.MousePickEvent);
+        static readonly Type BoolTestType = typeof(HutongGames.PlayMaker.Actions.BoolTest);
+        static readonly Type FloatCompareType = typeof(HutongGames.PlayMaker.Actions.FloatCompare);
+
+        static bool IsEvaluable(Type t) =>
+            ReferenceEquals(t, MousePickType) || ReferenceEquals(t, BoolTestType) || ReferenceEquals(t, FloatCompareType);
+
+        /// <summary>BoolTest / FloatCompare: true if OnUpdate would call Fsm.Event(null), i.e. do nothing.</summary>
+        static bool EvaluatePure(FsmStateAction a, Type t)
+        {
+            if (ReferenceEquals(t, BoolTestType))
+            {
+                HutongGames.PlayMaker.Actions.BoolTest b = (HutongGames.PlayMaker.Actions.BoolTest)a;
+                if (b.boolVariable == null) return false;
+                return (b.boolVariable.Value ? b.isTrue : b.isFalse) == null;
+            }
+            if (ReferenceEquals(t, FloatCompareType))
+            {
+                HutongGames.PlayMaker.Actions.FloatCompare c = (HutongGames.PlayMaker.Actions.FloatCompare)a;
+                if (c.float1 == null || c.float2 == null || c.tolerance == null) return false;
+                float f1 = c.float1.Value, f2 = c.float2.Value;
+                if (Mathf.Abs(f1 - f2) <= c.tolerance.Value) return c.equal == null;
+                if (f1 < f2) return c.lessThan == null;
+                if (f1 > f2) return c.greaterThan == null;
+                return true;                                        // NaN: no branch sends anything
+            }
+            return false;
+        }
+
+        /// <summary>MousePickEvent.DoMousePickEvent without the Fsm calls. True if it would send no event.</summary>
+        static bool EvaluateMousePick(HutongGames.PlayMaker.Actions.MousePickEvent m, GameObject owner, ref bool picked, ref float pickDistance, ref int pickMask)
+        {
+            // Everything the original dereferences; a null makes it throw, so let it run (and throw) itself.
+            if (m.GameObject == null || m.rayDistance == null || m.layerMask == null || m.invertMask == null) return false;
+            GameObject target;
+            if (m.GameObject.OwnerOption != OwnerDefaultOption.UseOwner)
+            {
+                if (m.GameObject.GameObject == null) return false;
+                target = m.GameObject.GameObject.Value;
+            }
+            else target = owner;
+            FsmInt[] layers = m.layerMask;
+            for (int i = 0; i < layers.Length; i++) if (layers[i] == null) return false;
+
+            float distance = m.rayDistance.Value;
+            int mask = ActionHelpers.LayerArrayToLayerMask(layers, m.invertMask.Value);
+            if (picked)
+            {
+                // Bitwise float compare: NaN or -0 must not slip through as "equal".
+                if (BitConverter.DoubleToInt64Bits(distance) != BitConverter.DoubleToInt64Bits(pickDistance) || mask != pickMask) return false;
+            }
+            else
+            {
+                picked = true;
+                pickDistance = distance;
+                pickMask = mask;
+            }
+
+            if (ActionHelpers.IsMouseOver(target, distance, mask))
+            {
+                if (m.mouseDown != null && Input.GetMouseButtonDown(0)) return false;
+                if (m.mouseOver != null) return false;
+                if (m.mouseUp != null && Input.GetMouseButtonUp(0)) return false;
+                return true;
+            }
+            return m.mouseOff == null;
         }
 
         static void Bump(Dictionary<Type, long> d, Type t)
@@ -288,6 +432,8 @@ namespace MOP.Next.Engine
         static int ClassifyUpdate(Fsm fsm, PlayMakerFSM owner, out FsmState state)
         {
             state = null;
+            evaluatedInert = false;
+            hitInfoPending = false;
             if (Fsm.HitBreakpoint) return RunBreakpoint;
             if (!ReferenceEquals(fsm.Owner, owner)) return RunOwner;
             if (FsmExecutionStack.StackCount >= FsmExecutionStack.MaxStackCount) return RunStack;
@@ -384,6 +530,9 @@ namespace MOP.Next.Engine
 
             FsmTime.RealtimeBugFix();
             if (code == SkipTimer) FsmAccess.AddStateTime(state, Time.deltaTime);
+            if (evaluatedInert) UpdateStats.SkipEvaluated++;
+            // MousePickEvent's only side effect besides the pick cache (already updated by the same calls).
+            if (hitInfoPending) ___fsm.RaycastHitInfo = ActionHelpers.mousePickInfo;
             return false;
         }
 
@@ -410,6 +559,9 @@ namespace MOP.Next.Engine
             public int DelayedCount;
             public float StateTime;
             public int MaxStack;
+            public bool EventSent;          // set by the Fsm.Event hook while this FSM's claimed no-op runs
+            public bool HitInfo;            // evaluated MousePickEvent: expected Fsm.RaycastHitInfo / pick cache
+            public RaycastHit Hit;
         }
 
         static Pending pendingUpdate, pendingLate;
@@ -420,6 +572,8 @@ namespace MOP.Next.Engine
             p.State = state;
             p.Code = code;
             p.MaxStack = FsmExecutionStack.MaxStackCount;
+            p.EventSent = false;
+            p.HitInfo = false;
             // LateUpdate never touches delayed events, so they may legitimately be pending: compare, don't require 0.
             p.DelayedCount = fsm.DelayedEvents.Count;
             if (state != null)
@@ -452,6 +606,13 @@ namespace MOP.Next.Engine
                 else if (p.State.StateTime != p.StateTime) problem = "state time " + p.StateTime.ToString("R") + " vs " + p.State.StateTime.ToString("R");
             }
             if ((ff & FsmAccess.EnteredBit) == 0 && p.State != null) problem = problem ?? "entered flag cleared";
+            // Even an event without a transition (no visible state change) breaks the claim.
+            if (p.EventSent) problem = problem ?? "event sent";
+            if (p.HitInfo && problem == null)
+            {
+                if (!SameHit(fsm.RaycastHitInfo, p.Hit)) problem = "raycast hit info differs";
+                else if (!SameHit(ActionHelpers.mousePickInfo, p.Hit)) problem = "pick cache changed";
+            }
 
             if (problem != null)
             {
@@ -472,8 +633,31 @@ namespace MOP.Next.Engine
             if (___fsm == null || ___fsm.Finished) return true;
             int code = ClassifyUpdate(___fsm, __instance, out FsmState state);
             Count(UpdateStats, code);
-            if (code < 0) Arm(ref pendingUpdate, ___fsm, state, code, code == SkipTimer);
+            if (code < 0)
+            {
+                Arm(ref pendingUpdate, ___fsm, state, code, code == SkipTimer);
+                if (evaluatedInert) UpdateStats.SkipEvaluated++;
+                if (hitInfoPending)
+                {
+                    pendingUpdate.HitInfo = true;
+                    pendingUpdate.Hit = ActionHelpers.mousePickInfo;
+                }
+            }
             return true;
+        }
+
+        static void EventPrefixShadow(Fsm __instance)
+        {
+            if (pendingUpdate.Fsm != null && ReferenceEquals(pendingUpdate.Fsm, __instance)) pendingUpdate.EventSent = true;
+            if (pendingLate.Fsm != null && ReferenceEquals(pendingLate.Fsm, __instance)) pendingLate.EventSent = true;
+        }
+
+        static bool SameHit(RaycastHit a, RaycastHit b)
+        {
+            Vector3 pa = a.point, pb = b.point, na = a.normal, nb = b.normal;
+            return ReferenceEquals(a.collider, b.collider) && a.distance.Equals(b.distance) &&
+                   pa.x.Equals(pb.x) && pa.y.Equals(pb.y) && pa.z.Equals(pb.z) &&
+                   na.x.Equals(nb.x) && na.y.Equals(nb.y) && na.z.Equals(nb.z);
         }
 
         static void UpdatePostfixShadow(PlayMakerFSM __instance, Fsm ___fsm)
@@ -518,7 +702,7 @@ namespace MOP.Next.Engine
         {
             double pct(long v) => c.Calls > 0 ? 100.0 * v / c.Calls : 0.0;
             sb.AppendLine($"{name}: {c.Calls} calls, skipped idle {pct(c.SkipIdle):0.0}%" +
-                          (timer ? $", skipped timer-only {pct(c.SkipTimer):0.0}%" : "") +
+                          (timer ? $", skipped timer-only {pct(c.SkipTimer):0.0}% (evaluated {pct(c.SkipEvaluated):0.0}%)" : "") +
                           (Shadow ? $", shadow checked {c.ShadowChecked}, MISMATCHES {c.ShadowMismatch}" : ""));
             for (int i = 0; i < ReasonCount; i++)
                 if (c.Reasons[i] > 0) sb.AppendLine($"    run: {ReasonNames[i],-16} {pct(c.Reasons[i]),5:0.0}%");
@@ -534,9 +718,9 @@ namespace MOP.Next.Engine
                 sb.AppendLine($"    {list[i].Value,10}  {list[i].Key.Name}");
         }
 
-        static void ModConsoleSafe(string s)
+        static void ModConsoleSafe(string error)
         {
-            try { MSCLoader.ModConsole.Log(global::MOP.Common.MoprColors.ConsoleLine(s)); } catch { }
+            try { global::MOP.ModConsole.Warn("con.engine.unpatch_failed", error); } catch { }
         }
     }
 }

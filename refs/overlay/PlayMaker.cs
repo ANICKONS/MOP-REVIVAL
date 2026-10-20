@@ -66,7 +66,21 @@ namespace HutongGames.PlayMaker
     {
         public static bool GlobalVariablesSynced { get { throw null; } set { } }
     }
-    public partial class FsmOwnerDefault { }
+    // Evaluated actions (Next/Engine/FsmFastPath.cs, 5.1), same source: FsmOwnerDefault.OwnerOption {get; set},
+    // enum OwnerDefaultOption, Fsm.RaycastHitInfo {get; set}, ActionHelpers.LayerArrayToLayerMask(FsmInt[], bool).
+    public partial class FsmOwnerDefault
+    {
+        public OwnerDefaultOption OwnerOption { get { throw null; } set { } }
+    }
+    public enum OwnerDefaultOption
+    {
+        UseOwner,
+        SpecifyGameObject
+    }
+    public partial class Fsm
+    {
+        public global::UnityEngine.RaycastHit RaycastHitInfo { get { throw null; } set { } }
+    }
 
     // Shared mouse ray (Next/Engine/SharedMouseRay.cs), verified against the decompiled PlayMaker 1.6
     // (_reference/decomp/PlayMaker/HutongGames.PlayMaker/ActionHelpers.cs).
@@ -76,6 +90,7 @@ namespace HutongGames.PlayMaker
         public static bool IsMouseOver(global::UnityEngine.GameObject gameObject, float distance, int layerMask) { throw null; }
         public static global::UnityEngine.RaycastHit MousePick(float distance, int layerMask) { throw null; }
         public static global::UnityEngine.GameObject MouseOver(float distance, int layerMask) { throw null; }
+        public static int LayerArrayToLayerMask(FsmInt[] layers, bool invert) { throw null; }
     }
 
     public partial class NamedVariable

@@ -1,0 +1,20 @@
+{
+  "Name": "map-lod",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Item 4 prototype: Unity's own LOD culling for small objects (one-level LODGroup per static MeshRenderer, culled below 2 px of screen height). A/B culling vs never culling, and screenshots of the same view (the difference must be tiny)." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-12.0, 2.0, 6.0], "Target": "YARD/Building" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "abtoggle", "Label": "yard-lod-2px", "Var": "tinylod", "Path": "MAP,YARD", "Value": "2", "Max": 800, "Seconds": 20, "Block": 1, "Active": true },
+    { "Op": "viewdiff", "Label": "yard_lod", "Path": "MOPR.TestBot.GameOps.TinyLodCull" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [6.0, 1.8, -10.0], "Target": "YARD/Building" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "abtoggle", "Label": "yard2-lod-2px", "Var": "staticbool", "Path": "MOPR.TestBot.GameOps.TinyLodCull", "Seconds": 16, "Block": 1 },
+    { "Op": "viewdiff", "Label": "yard2_lod", "Path": "MOPR.TestBot.GameOps.TinyLodCull" },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "abtoggle", "Label": "living-lod-2px", "Var": "staticbool", "Path": "MOPR.TestBot.GameOps.TinyLodCull", "Seconds": 16, "Block": 1 },
+    { "Op": "quit" }
+  ]
+}

@@ -474,7 +474,7 @@ namespace MOP.Rules
             }
             if (RuleSet.IsProtected(name))
             {
-                set.Error(line, $"\"{name}\" is used by MOP itself and cannot have a rule");
+                set.Error(line, $"\"{name}\" is used by MOPR itself and cannot have a rule");
                 return null;
             }
             return name;

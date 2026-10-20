@@ -1,0 +1,213 @@
+// MOP - REVIVAL
+// Copyright(C) 2026 ANICKON. Licensed under GPLv3 (see Loc.cs).
+//
+// English console messages. This table is the reference: every "con.*" key must exist here.
+// The English text is also the copy MOPR keeps for mod reports and bug reports (see ModConsole).
+// "[MOPR] " is added by ModConsole; MSCLoader starts warnings and errors with "MOPR Warning:" / "MOPR Error:".
+// Don't use <color=yellow|green|red> here: the report copy turns those into [WARNING]/[SYSTEM]/[ERROR].
+
+using System.Collections.Generic;
+
+namespace MOP.Localization
+{
+    internal static class ConsoleEn
+    {
+        internal static readonly Dictionary<string, string> Table = new Dictionary<string, string>
+        {
+            // === Words ===
+            { "con.on", "ON" },
+            { "con.off", "OFF" },
+            { "con.verify", "VERIFY" },
+
+            // === Optimizations: "Engine: Script optimization ON" ===
+            { "con.engine.line", "Engine: {0} {1}" },
+            { "con.render.line", "Render: {0} {1}" },
+            { "con.name.scripts", "Script optimization" },
+            { "con.name.rays", "Raycast optimization" },
+            { "con.name.engine_bay", "Engine bay optimization" },
+            { "con.name.mirrors", "Mirror optimization" },
+            { "con.name.render", "Render optimization" },
+            { "con.name.merge", "Parked Satsuma merging" },
+            { "con.engine.failed", "Engine: script optimization switched off: {0}" },
+            { "con.engine.part_unavailable", "Engine: {0} unavailable: {1}" },
+            { "con.engine.detail", "Engine: detailed statistics {0}" },
+            { "con.engine.unpatch_failed", "Engine: could not remove the patches: {0}" },
+
+            // === Loading and the summary ===
+            { "con.loading", "Loading MOPR..." },
+            { "con.loaded", "Loaded successfully!" },
+            { "con.sum.managed", "Managing:" },
+            { "con.sum.count", "    {0}: {1}" },
+            { "con.sum.world_objects", "World objects" },
+            { "con.sum.items", "Items" },
+            { "con.sum.vehicles", "Vehicles" },
+            { "con.sum.places", "Places" },
+            { "con.sum.mode", "Mode: {0}" },
+            { "con.sum.flag", "    {0} {1}" },
+            { "con.sum.experimental", "Experimental:" },
+            { "con.restart_scene", "Reloading the scene to finish loading the Satsuma..." },
+            { "con.restart_procedure", "Starting the scene reload..." },
+            { "con.restart_succeeded", "Restart succeeded!" },
+            { "con.restart_failed", "Restart attempt failed. Safe Mode is switched on." },
+            { "con.report_bug", "Please report it with MSCLoader's \"Report bug\" button for MOP - REVIVAL (the logs are attached)." },
+            { "con.stopped_working", "MOPR has stopped working! Restart attempt {0}/{1}..." },
+            { "con.load_timeout", "MOPR failed to load in time." },
+            { "con.prerelease", "WARNING!\nYOU ARE USING A PRE-RELEASE VERSION OF MOP - REVIVAL!" },
+            { "con.stub_build", "This build was compiled against reference stubs instead of the real game assemblies. It is meant for testing only." },
+            { "con.initialized", "MOP - REVIVAL {0} <color=#3FB950>initialized!</color>" },
+            { "con.conflict", "MOP - REVIVAL could not be loaded, because this mod is present: {0}" },
+            { "con.place_missing", "Place {0} not found!" },
+            { "con.vehicle_missing", "Could not find the vehicle {0}." },
+            { "con.satsuma_excluded", "The satsuma_ignore rule is active: the Satsuma is left entirely to another mod." },
+            { "con.bolts_few", "Only {0} of the expected {1} bolts have been reset!" },
+            { "con.fsm_hook_failed", "Could not hook state \"{0}\" of FSM \"{1}\" on {2}." },
+            { "con.audit", "FSM audit: {0} FSMs scanned, {1} potential restart hazards. Report: {2}" },
+
+            // === Saving ===
+            { "con.save.no_mute_state", "Save point {0} has no \"Mute audio\" state." },
+            { "con.save.hook_failed", "Hooked {0} save points, {1} could not be hooked. Saving there may store objects MOPR switched off." },
+            { "con.save.no_access", "Could not access the save file at this moment." },
+            { "con.save.permadeath", "The save file was not checked: it is after a permadeath." },
+            { "con.save.ok", "Save check: no problems found :)" },
+            { "con.save.attributes_failed", "Could not remove the read-only attribute from the save files. Remove it by hand from defaultES2File.txt and items.txt." },
+            { "con.save.barrier", "Save barrier: still off before saving - items {0}, place objects {1}, vehicles {2}.\n{3}" },
+
+            // === Settings and language ===
+            { "con.settings_page", "Settings page: {0}" },
+            { "con.language", "Interface language: {0}" },
+            { "con.language_store_failed", "Could not store the language: {0}" },
+            { "con.language_restart", "This MSCLoader version can't rename settings live. The new language applies to the settings after a game restart." },
+            { "con.mopdata_read_failed", "Could not read MopData.json: {0}" },
+            { "con.resolution_set", "Resolution set to {0}x{1}" },
+
+            // === Errors and reports ===
+            { "con.error.log_write_failed", "Unable to write the log file: {0}" },
+            { "con.error.occurred", "An error has occurred. The log file has been saved into:\n\n{0}\nMessage: {1}\n\n" +
+                                    "To report it, use MSCLoader's \"<b>Report bug</b>\" button for MOP - REVIVAL (the logs are attached automatically)." },
+            { "con.error.occurred_continue", "An error has occurred. The log file has been saved into:\n\n{0}\nMessage: {1}\n\n" +
+                                             "To report it, use MSCLoader's \"<b>Report bug</b>\" button for MOP - REVIVAL (the logs are attached automatically).\n\n" +
+                                             "<b>You can continue playing.</b>" },
+            { "con.report_generated", "The mod report has been generated." },
+            { "con.open_failed", "Could not open {0}: {1}" },
+
+            // === Rules ===
+            { "con.rules.custom_copied", "Copied your Custom.txt rule file from the original MOP settings folder." },
+            { "con.rules.folder_failed", "Could not create the rules folder: {0}" },
+            { "con.rules.list_failed", "Could not list the rule files in {0}: {1}" },
+            { "con.rules.migrated", "Rules: removed old rule files MOPR had copied there ({0}); the same rules are now built in. Files you edited are kept." },
+            { "con.rules.manage_missing", "Rules: couldn't find {0} (manage {1})" },
+            { "con.rules.issue", "Rules: {0}" },
+            { "con.rules.more_issues", "Rules: <color=#9AA6B2>...and {0} more (mopr rules)</color>" },
+            // The summary line: "Rules: 25, files: 3 (built-in: 3), read in 12 ms".
+            { "con.rules.prefix", "Rules: " },
+            { "con.rules.none_needed", "none needed for the installed mods" },
+            { "con.rules.off", "off" },
+            { "con.rules.summary", "{0}, files: {1} ({2})" },
+            { "con.rules.n_builtin", "built-in: {0}" },
+            { "con.rules.n_yours", "yours: {0}" },
+            { "con.rules.n_legacy", "old format: {0}" },
+            { "con.rules.all_files", " (every file, installed mod or not)" },
+            { "con.rules.next_load", " - applies at the next game load" },
+            { "con.rules.read_in", ", read in {0} ms" },
+            // "mopr rules".
+            { "con.rules.src_builtin", "built-in" },
+            { "con.rules.src_yours", "yours" },
+            { "con.rules.src_legacy", "old format" },
+            { "con.rules.report_head", "<b>Rules</b>: active files: {0}, rules: {1}" },
+            { "con.rules.report_read_in_game", " (read during the game: they apply at the next load)" },
+            { "con.rules.report_folder", "Folder: {0}" },
+            { "con.rules.report_active", "Active" },
+            { "con.rules.report_rules", "rules: {0}" },
+            { "con.rules.report_problems", "problems: {0}" },
+            { "con.rules.report_unused", "Not used" },
+            { "con.rules.report_hidden", "built-in rules for mods that are not installed: {0} (mopr rules all)" },
+            { "con.rules.report_switches", "Switches" },
+            { "con.rules.sw_satsuma_excluded", "Satsuma excluded" },
+            { "con.rules.sw_satsuma_renderers", "Satsuma parts never hidden" },
+            { "con.rules.sw_bottles", "empty bottles kept" },
+            { "con.rules.sw_fury", "no Fury collider fix" },
+            { "con.rules.sw_physics_only", "all vehicles: physics only" },
+            { "con.rules.sw_no_lods", "no far-away vehicle copies" },
+            { "con.rules.report_issues", "Problems" },
+            { "con.rules.report_note", "(note) " },
+            { "con.rules.report_unmatched", "Named objects MOPR did not meet in this game" },
+            { "con.rules.report_unmatched_why", "(a typo, or the object is not there)" },
+            { "con.rules.why_none", "No rule names \"{0}\" (names are exact, case matters)." },
+            // Rule files from the console and the settings.
+            { "con.rules.no_folder", "The settings folder is not known yet." },
+            { "con.rules.created", "Created {0}" },
+            { "con.rules.exists_opened", "The file already exists, opened it: {0}" },
+            { "con.rules.exists", "The file already exists: {0}" },
+            { "con.rules.no_builtin", "MOPR has no built-in rules for \"{0}\"." },
+            { "con.rules.written", "Written {0}. It applies at the next game load." },
+            { "con.rules.no_legacy", "No old-format file {0} in {1}" },
+            { "con.rules.converted_issues", "Written {0} (lines that could not be converted: {1}, see the top of the file). It applies at the next game load." },
+
+            // === Console commands ===
+            { "con.cmd.help", "Use \"mopr help\" to see the command list!" },
+            { "con.cmd.see_help", "See \"mopr help\" for the command list." },
+            { "con.cmd.invalid", "Invalid command. Type \"mopr help\" for the command list." },
+            { "con.cmd.not_found", "Command {0} not found." },
+            { "con.cmd.usage", "Usage: {0}" },
+            { "con.cmd.version", "MOP - REVIVAL {0} for {1}" },
+            { "con.cmd.only_in_game", "Can only be used in game." },
+            { "con.cmd.render_only_in_game", "The render optimizer only runs in game." },
+            { "con.cmd.render_restored", "Render optimizer suspended and every value restored. Change any render setting to apply it again." },
+            { "con.cmd.audit_only_in_game", "The audit can only run in game." },
+            { "con.cmd.guard", "Restart guard {0}, FSMs protected: {1}. Report: {2}" },
+            { "con.cmd.no_file", "No rule file \"{0}\". Your files are in {1}" },
+            { "con.cmd.deleted", "Deleted {0}. It applies at the next game load." },
+            { "con.cmd.cat_none", "No rule file \"{0}\" and no built-in rules for a mod with that ID." },
+            { "con.cmd.genlist_warning", "For accurate results, use \"mopr load-rules false\" so that MOPR doesn't use rule files." },
+            { "con.cmd.genlist_state", "Generating the list of toggled elements: {0}" },
+            { "con.cmd.load_rules_warning", "Disabling rule files may cause serious issues with the game, or even break your save file.\n<b>USE ONLY AT YOUR OWN RISK!</b>" },
+            { "con.cmd.load_rules_state", "Loading rule files: {0}" },
+            { "con.cmd.resolution_hint", "Use 'mopr resolution [number]' to set the preferred resolution." },
+            { "con.cmd.resolution_failed", "Failed setting the resolution." },
+            { "con.cmd.quality_failed", "Failed setting the quality level." },
+            { "con.cmd.bad_argument", "Unrecognized argument: {0}" },
+            { "con.cmd.force_load_restart", "Forced Satsuma reload: {0}" },
+            { "con.cmd.stop_only_in_game", "MOPR can only be stopped in game." },
+            { "con.cmd.start_only_in_game", "MOPR can only be started in game." },
+            { "con.cmd.not_running", "MOPR is not running." },
+            { "con.cmd.already_running", "MOPR is already running." },
+            { "con.cmd.stopped", "MOPR has been stopped. Some things may be broken. Saving the game in this state may break your save!" },
+            { "con.cmd.monitor_only_in_game", "The debug monitor can only be used in game." },
+            { "con.cmd.presave", "Running the pre-save..." },
+            { "con.cmd.log_head", "Last {0} lines of the MOPR log (the same lines go to mod reports and bug reports):" },
+
+            // === "mopr help": one line per command (the command itself is not translated) ===
+            { "con.help.help", "Shows this list" },
+            { "con.help.version", "Prints the MOPR version" },
+            { "con.help.log", "The last lines of the MOPR log, internal lines included (40 by default)" },
+            { "con.help.rules", "Rule files: active, not used and why, problems (all: every built-in file)" },
+            { "con.help.rules_why", "Every rule that names this object" },
+            { "con.help.rules_export", "Writes MOPR's built-in rules of a mod into the rules folder, to edit them" },
+            { "con.help.rules_convert", "Converts an old .mopconfig or Custom.txt file to JSON (the old one is kept as .bak)" },
+            { "con.help.reload", "Reads the rule files again. \"all\": also the files of mods that are not installed" },
+            { "con.help.new", "Creates your own rule file (Rules/name.json) with explanations and opens it" },
+            { "con.help.open", "Opens a rule file (without a name: the rules folder)" },
+            { "con.help.open_config", "Opens the MOPR settings folder" },
+            { "con.help.delete", "Deletes one of your rule files" },
+            { "con.help.cat", "Prints a rule file (yours, an old one, or the built-in one of a mod)" },
+            { "con.help.generate_list", "Writes text files with the list of objects MOPR toggles" },
+            { "con.help.load_rules", "false: no rule applies from the next load (for testing)" },
+            { "con.help.force_crash", "Makes MOPR report a test error (critical: a critical one)" },
+            { "con.help.resolution", "Lists the available resolutions" },
+            { "con.help.resolution_n", "Sets a resolution from the 'mopr resolution' list" },
+            { "con.help.resolution_wh", "Sets the given resolution" },
+            { "con.help.force_load_restart", "Forces the scene reload for missing Satsuma parts" },
+            { "con.help.stop", "Stops MOPR. MIGHT BREAK THE GAME!" },
+            { "con.help.start", "Starts MOPR again" },
+            { "con.help.quality", "Sets the game's quality level" },
+            { "con.help.debug_monitor", "Shows or hides the MOPR debug monitor" },
+            { "con.help.presave", "Runs the pre-save script" },
+            { "con.help.render", "Render optimizer report (layers, shadows, lamps)" },
+            { "con.help.render_rescan", "Analyses all renderers and lamps again" },
+            { "con.help.render_restore", "Restores every visual value changed by the render optimizer" },
+            { "con.help.audit", "Looks for PlayMaker FSMs in managed objects that may reset when switched back on" },
+            { "con.help.guard", "Writes the list of FSMs protected by the restart guard" },
+            { "con.help.engine", "Game engine optimizations: switch the mode or show the statistics" },
+        };
+    }
+}

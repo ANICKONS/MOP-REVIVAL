@@ -239,8 +239,8 @@ namespace MOP.Next
                 float t0 = Time.realtimeSinceStartup;
                 o.Rescan();
                 o.ApplySettings();
-                ModConsole.Log($"[MOPR] Render optimizer: the Satsuma's shadows are now handled by the " +
-                               $"{(merger ? "mesh merger" : "shadow LOD")} ({(Time.realtimeSinceStartup - t0) * 1000f:0} ms).");
+                ModConsole.Debug($"Render optimizer: the Satsuma's shadows are now handled by the " +
+                                 $"{(merger ? "mesh merger" : "shadow LOD")} ({(Time.realtimeSinceStartup - t0) * 1000f:0} ms).");
             }
             catch (Exception ex)
             {
@@ -358,7 +358,7 @@ namespace MOP.Next
             layerStatsDirty = true;
             lastQuality = -1;
             RecomputeShadowDistances();
-            ModConsole.Log($"[MOPR] Render optimizer: {all.Length} renderers analysed, {shadowEntries.Count} small shadow casters, {lampEntries.Count} lamps.");
+            ModConsole.Debug($"Render optimizer: {all.Length} renderers analysed, {shadowEntries.Count} small shadow casters, {lampEntries.Count} lamps.");
 
             // The renderer statistics include every prefab and inactive object: release the big array now.
             all = null;

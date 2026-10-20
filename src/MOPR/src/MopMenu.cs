@@ -52,9 +52,10 @@ namespace MOP
 
         // Engine Lab (new in 5.1)
         static internal SettingsCheckBox EngineFastPath, EngineVerify;
+        static internal SettingsCheckBox EngineSharedMouseRay;  // 5.1: was experimental ("experimentalMouseRay", default off)
 
         // Experimental (5.1, off by default)
-        static internal SettingsCheckBox ExperimentalMouseRay, ExperimentalEngineBay, ExperimentalMirrorRate;
+        static internal SettingsCheckBox ExperimentalEngineBay, ExperimentalMirrorRate;
 
         // Graphics
         static internal SettingsSliderInt FramerateLimiter, ShadowDistance;
@@ -153,6 +154,9 @@ namespace MOP
             Header("menu.header.engine");
             EngineFastPath = CheckBox("enginePlayMakerFastPath", "menu.engine_fastpath", true, Next.Engine.EngineLab.ApplySettings);
             Hint("menu.engine_hint");
+            // New ID on purpose: the experimental "experimentalMouseRay" was saved as off for everyone.
+            EngineSharedMouseRay = CheckBox("engineSharedMouseRay", "menu.engine_mouse_ray", true, Next.Engine.EngineLab.ApplySettings);
+            Hint("menu.engine_mouse_ray_hint");
             Spacer();
             Subheader("menu.sub.diagnostics", MoprColors.SubheaderOther);
             EngineVerify = CheckBox("enginePlayMakerVerify", "menu.engine_verify", false, Next.Engine.EngineLab.ApplySettings);
@@ -161,8 +165,6 @@ namespace MOP
             // Experimental tier (5.1): measured, default off, not provably exact.
             Header("menu.header.experimental", MoprColors.HeaderExperimentalBackground);
             Text(() => MoprColors.Colorize(MoprColors.Note, Loc.T("menu.experimental_hint")));
-            ExperimentalMouseRay = CheckBox("experimentalMouseRay", "menu.exp_mouse_ray", false, Next.Engine.EngineLab.ApplySettings);
-            Hint("menu.exp_mouse_ray_hint");
             ExperimentalEngineBay = CheckBox("experimentalEngineBay", "menu.exp_engine_bay", false, Next.Engine.EngineLab.ApplySettings);
             Hint("menu.exp_engine_bay_hint");
             ExperimentalMirrorRate = CheckBox("experimentalMirrorRate", "menu.exp_mirrors", false, Next.Engine.EngineLab.ApplySettings);
@@ -181,11 +183,11 @@ namespace MOP
             Hint("menu.shadow_distance_hint");
             Spacer();
             Subheader("menu.sub.other", MoprColors.SubheaderOther);
+            GameResolution = DropDown("resolution", "menu.resolution", GetResolutions(out int selected), selected, OnResolutionChanged);
             DynamicDrawDistance = CheckBox("dynamicDrawDistance", "menu.dynamic_draw", true);
             Hint("menu.dynamic_draw_hint");
             KeepRunningInBackground = CheckBox("keepRunningInBackground", "menu.run_background", true, MopSettings.ToggleBackgroundRunning);
             Hint("menu.run_background_hint");
-            GameResolution = DropDown("resolution", "menu.resolution", GetResolutions(out int selected), selected, OnResolutionChanged);
 
             // Other.
             Header("menu.header.other");
@@ -272,7 +274,7 @@ namespace MOP
             for (int i = 0; i < list.Count; i++)
             {
                 try { list[i].SetVisibility(visible); }
-                catch (Exception ex) { ModConsole.LogWarning("[MOPR] Settings page: " + ex.Message); }
+                catch (Exception ex) { ModConsole.Warn("con.settings_page", ex.Message); }
             }
         }
 
@@ -310,7 +312,7 @@ namespace MOP
             if (restartNoticeText == null) return;
             restartNoticeText.SetValue(RestartNotice());
             try { restartNoticeText.SetVisibility(restartNoticeVisible); }
-            catch (Exception ex) { ModConsole.LogWarning("[MOPR] Settings page: " + ex.Message); }
+            catch (Exception ex) { ModConsole.Warn("con.settings_page", ex.Message); }
         }
 
         #region Language
@@ -336,13 +338,13 @@ namespace MOP
             {
                 data.Language = code;
                 try { MopSettings.WriteData(data); }
-                catch (Exception ex) { ModConsole.LogWarning("[MOPR] Could not store the language: " + ex.Message); }
+                catch (Exception ex) { ModConsole.Warn("con.language_store_failed", ex.Message); }
             }
 
             if (changed)
             {
                 LocalizedSettings.Refresh();
-                ModConsole.Log("[MOPR] Interface language: " + Loc.LanguageNames[(int)language]);
+                ModConsole.Info("con.language", Loc.LanguageNames[(int)language]);
             }
         }
 
@@ -353,7 +355,7 @@ namespace MOP
             try { return MopSettings.Data; }
             catch (Exception ex)
             {
-                ModConsole.LogWarning("[MOPR] Could not read MopData.json: " + ex.Message);
+                ModConsole.Warn("con.mopdata_read_failed", ex.Message);
                 return null;
             }
         }
@@ -484,7 +486,7 @@ namespace MOP
             {
                 Resolution res = Screen.resolutions[GameResolution.GetSelectedItemIndex()];
                 Screen.SetResolution(res.width, res.height, Screen.fullScreen);
-                ModConsole.Log("[MOPR] Setting resolution to " + res.width + "x" + res.height);
+                ModConsole.Info("con.resolution_set", res.width, res.height);
             }
             catch (Exception ex)
             {
@@ -511,7 +513,7 @@ namespace MOP
 
         static void NewRulesFile()
         {
-            ModConsole.Log("[MOPR] " + RulesManager.NewFile(null));
+            RulesManager.NewFile(null);
         }
 
         /// <summary>Asks before opening a link (hold Left Alt to skip the question).</summary>

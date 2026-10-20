@@ -1,10 +1,14 @@
 ### 5.1.0 "Engine"
--NEW: PlayMaker engine optimizations - idle state machines, property actions and per-frame settings writes are skipped only when MOP can prove nothing would change (+10% FPS, -60% garbage in tests)
+-NEW: PlayMaker engine optimizations - idle state machines, property actions and per-frame settings writes are skipped only when MOPR can prove nothing would change (+10% FPS, -60% garbage in tests)
+-NEW: State machines that only wait for the mouse or test a value each frame (Satsuma part removal and similar) are checked exactly as PlayMaker would and skipped when nothing would happen (+4.5% FPS in the yard, +6% in the living room)
+-NEW: The game's IK (Satsuma suspension, jacks, tractor and flatbed cylinders) is skipped when it would compute exactly the same pose again (+5.4% FPS in the yard, +5.9% in the living room)
+-NEW: Fewer mouse raycasts (on by default, game engine section): one mouse ray per frame is shared by all the parts that ask whether the mouse is on them, with the same answers the game would give (+6.5% FPS at home, +12% next to the car)
 -NEW: Verify mode for the engine optimizations (runs the original code and reports any difference)
--NEW: Interface in English and Russian, switchable in the mod settings (applies right away)
--NEW: Loading screen without an asset bundle: animated logo, real loading steps, progress bar and tips
+-NEW: Interface and console in English, Russian and Polish, switchable in the mod settings (applies right away); reports stay in English
+-NEW: Shorter console: one line per optimization switch and a summary when the game is ready (managed objects, mode, experimental); internal lines go only to reports and to the new "mopr log" command
+-NEW: Loading screen without an asset bundle: animated logo with a big "5", real loading steps, progress bar and tips
 -NEW: Satsuma mesh merger - while nobody drives the car, ~440 of its parts are drawn as 33 merged meshes (about +5-8% FPS with the car in view; any change to a part brings the originals back in the same frame)
--NEW: Experimental section (everything off by default): shared mouse ray (fewer raycasts near and in the Satsuma), car mirrors at most 60 FPS, engine not drawn from the driver's seat while the hood is closed
+-NEW: Experimental section (everything off by default): car mirrors at most 60 FPS, engine not drawn from the driver's seat while the hood is closed
 -NEW: Rule system rewritten. Rules are JSON files (Mod Settings/MOPR/Rules) with one meaning per key (exclude, keepActive, keepActiveIn, manage...); a wrong line is reported with its line number and skipped instead of breaking the whole file
 -NEW: The 43 built-in rule files live inside the DLL (no copies in the settings folder, always up to date); old .mopconfig files and Custom.txt still work
 -NEW: Rules apply at every game load (no need to reload them in the menu); the settings page shows which rules are active and can create your own file
@@ -14,38 +18,41 @@
 -Fixed the "don't destroy empty bottles" rule (bottle recycling mods) never having an effect
 -Settings page restyled like MOPR 4.x, with simpler explanations under every setting
 -Render optimization has a real main switch: off hides and turns off everything in the section, the Satsuma merger included; the FPS limit slider shows only while the limit is on
+-Settings: "View distance", clearer mode descriptions, "Hide the engine while driving", "Mirrors at 60 FPS"; the screen resolution is the first setting under Graphics - Other
 -Fixed the load distance label overlapping its value and an empty row above it on the settings page
--Console messages use the [MOPR] tag and colors; a short summary is shown when the game is ready
+-Console messages use the [MOPR] tag and colors
+-The "Found N broken SatsumaBoltsAntiReload" line is gone from the console (harmless: parts the game itself had removed)
 -Fixed physics-only items (bucket, fish trap, fuel tank...) jumping back to an old position on save when the game had turned their gravity off
 -Fixed one broken save point aborting the hooks of all save points after it
 -Fixed the item backup of the save integrity check copying the wrong file
 -Fixed "Delete all logs" throwing an error when the logs folder did not exist
 -Fixed Satsuma parts (body, tires, front seat backs) vanishing after a door was opened with the mesh merger on
+-Fixed the Satsuma's cabin looking lighter or darker with the mesh merger on (merged parts reflected the surroundings, which the game does not do for the interior)
 -Settings changed in game apply at once (dynamic draw distance switched off, the mesh merger); a mode change notes what follows at the next load
 -Fixed Safe mode chosen in game applying only after a game restart instead of after quitting to the main menu
 -Fixed the Satsuma's interior lamp showing through the roof (game model bug)
--Removed per-frame garbage in MOP's own loops
+-Removed per-frame garbage in MOPR's own loops
 -Fixed the walkers of the 2023 game update (Kale, Julli and others) never appearing
--Fixed rules for objects without a renderer (BetterMSC, LoppeHouse...) making MOP skip about 20 world objects
--Fixed MOP reading old values after quitting to the main menu and loading again
+-Fixed rules for objects without a renderer (BetterMSC, LoppeHouse...) making MOPR skip about 20 world objects
+-Fixed MOPR reading old values after quitting to the main menu and loading again
 -Fixed the kilju bucket lid coming off and spilling on load
 -Save check: removed the bolt check that could undo your own work (rear bumper, halfshafts, battery terminal) and the item counter fix that spawned duplicate items
 -The "MSCEditor" warning no longer appears for a car that simply has few bolts tightened
 -Fixed errors with modded house doors (fridge), the combine and a few silent errors in item handling
--Fixed food spoiling three times slower than in the game while MOP had it switched off
--Fixed the Satsuma's windshield, dashboard light mode and radio tuner going back to the saved state whenever MOP switched the car on again (also for the Hayosiko and world objects)
--Fixed a possible permanent freeze in MOP's door hinge fix
--Fixed MOP putting the parked Satsuma back to its old place when the game or a mod had moved it (teleports, towing, the rally parc ferme)
+-Fixed food spoiling three times slower than in the game while MOPR had it switched off
+-Fixed the Satsuma's windshield, dashboard light mode and radio tuner going back to the saved state whenever MOPR switched the car on again (also for the Hayosiko and world objects)
+-Fixed a possible permanent freeze in MOPR's door hinge fix
+-Fixed MOPR putting the parked Satsuma back to its old place when the game or a mod had moved it (teleports, towing, the rally parc ferme)
 -GifuPump rule: only the truck's tank mesh stays on, the rest of the GIFU is optimized again
 
 ### 5.0.0 "Reborn"
 -Rebuilt on the original, battle-tested MOP 3.10.4 code instead of a rewrite
 -Ported to MSCLoader 1.4 (no obsolete APIs, no Mod Loader Pro code)
--NEW: Automatic restart guard - state machines that would reload your last save when MOP re-enables an object are paused instead
+-NEW: Automatic restart guard - state machines that would reload your last save when MOPR re-enables an object are paused instead
 -NEW: Render optimizer - smart small object culling, shadow LOD for small objects, distant lamp shadows (visual only)
 -NEW: Compatibility rules are bundled with the mod, no rule servers needed
 -NEW: satsuma_ignore rule for full Satsuma overhaul mods (e.g. Satsuma LX)
 -NEW: "mop audit", "mop guard" and "mop render" console commands
--Fixed MOP writing the same error to the log on every loop tick
--Fixed MOP crashing on MSCLoader 1.3.6+ because of the removed Ionic.Zip library
+-Fixed MOPR writing the same error to the log on every loop tick
+-Fixed MOPR crashing on MSCLoader 1.3.6+ because of the removed Ionic.Zip library
 -Rule files now accept '#' comments and UTF-8 BOM

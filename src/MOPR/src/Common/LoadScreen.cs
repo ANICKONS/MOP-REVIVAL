@@ -51,6 +51,10 @@ namespace MOP.Common
         const float FadeTime = 0.35f;       // fade-out after loading
         const float CreepTime = 2.5f;       // time constant of the bar creep when a phase reports no progress
         const string Brand = "<b><color=#FF7A1A>MOP</color> - REVIVAL</b>";
+        const float MarkScale = 1.9f;       // size of the version mark against the brand
+        static readonly Color Orange = new Color(1f, 0.478f, 0.102f, 1f);       // #FF7A1A
+        static readonly Color OrangeLight = new Color(1f, 0.72f, 0.38f, 1f);    // upper half of the mark
+        static readonly Color OrangeDeep = new Color(0.30f, 0.09f, 0f, 1f);     // its extruded shadow
 
         // Share of the progress bar for each phase (same order as LoadPhase).
         static readonly float[] PhaseStart = { 0.00f, 0.40f, 0.40f, 0.50f, 0.85f };
@@ -61,13 +65,14 @@ namespace MOP.Common
         static readonly string[] AprilFools =
         {
             "MOADING LOP...", "LOADINP MOG...", "...POM GNIDAOL", "LDNG MP...",
-            "WOADING MOP UWU", "MOP?", "REVIVING MOP...", "UNLOADING MOP...",
-            "ŁADOWANIE MOP...", "MOP LADEN...", "LADATAAN MOP...", "ЗАГРУЖАЕМ ШВАБРУ...",
+            "WOADING MOPR UWU", "MOPR?", "REVIVING MOP...", "UNLOADING MOPR...",
+            "ŁADOWANIE MOPR...", "MOPR LADEN...", "LADATAAN MOPR...", "ЗАГРУЖАЕМ ШВАБРУ...",
         };
 
         Texture2D background, pixel;
         Texture2D[] frames;
-        GUIStyle brandStyle, captionStyle, tipStyle, percentStyle;
+        GUIStyle brandStyle, markStyle, captionStyle, tipStyle, percentStyle;
+        GUIContent brandContent, markContent;
         int styledHeight = -1;
 
         PlayMakerFSM cursorFsm;
@@ -106,11 +111,17 @@ namespace MOP.Common
             }
             catch (Exception ex)
             {
-                ModConsole.LogWarning("[MOPR] Load screen: cursor FSM not found (" + ex.Message + ")");
+                ModConsole.Debug("Load screen: cursor FSM not found (" + ex.Message + ")");
             }
 
             ChooseOverrideCaption();
             tip = UnityEngine.Random.Range(0, StringsEn.TipCount);
+
+            // The version mark is the major version ("5" for 5.x).
+            string version = MOP.ModVersion ?? "";
+            int dot = version.IndexOf('.');
+            brandContent = new GUIContent(Brand);
+            markContent = new GUIContent(dot > 0 ? version.Substring(0, dot) : "5");
         }
 
         void Activate()
@@ -213,8 +224,8 @@ namespace MOP.Common
             GUI.color = new Color(1f, 1f, 1f, a);
             GUI.DrawTexture(new Rect(0f, 0f, w, h), background, ScaleMode.StretchToFill);
 
-            // Brand.
-            GUI.Label(new Rect(0f, h * 0.08f, w, h * 0.12f), Brand, brandStyle);
+            // Brand and the version mark.
+            DrawBrand(w, h, a);
 
             // Logo.
             float logoSize = Mathf.Min(h * 0.42f, w * 0.6f);
@@ -247,6 +258,52 @@ namespace MOP.Common
             GUI.color = old;
         }
 
+        /// <summary>
+        /// "MOP - REVIVAL" and after it a large slanted "5" (5.1): orange with a lighter upper half, an extruded
+        /// dark shadow and a faint glow, set a little higher than the brand. Both are centered as one line.
+        /// </summary>
+        void DrawBrand(float w, float h, float a)
+        {
+            Vector2 brand = brandStyle.CalcSize(brandContent);
+            Vector2 mark = markStyle.CalcSize(markContent);
+            float slant = markStyle.fontSize * 0.25f;      // italic overhang on the right (CalcSize leaves it out)
+            float gap = brandStyle.fontSize * 0.4f;
+            float centerY = h * 0.14f;
+            float x = Mathf.Round((w - (brand.x + gap + mark.x + slant)) * 0.5f);
+
+            GUI.color = new Color(1f, 1f, 1f, a);
+            GUI.Label(new Rect(x, Mathf.Round(centerY - brand.y * 0.5f), brand.x + 2f, brand.y), brandContent, brandStyle);
+
+            Rect r = new Rect(Mathf.Round(x + brand.x + gap), Mathf.Round(centerY - mark.y * 0.5f - brandStyle.fontSize * 0.25f),
+                              mark.x + slant, mark.y);
+            float u = Mathf.Max(1f, Mathf.Round(markStyle.fontSize * 0.025f));
+
+            // Glow: the mark around itself, faint.
+            GUI.color = new Color(Orange.r, Orange.g, Orange.b, 0.06f * a);
+            for (int i = 0; i < 12; i++)
+            {
+                float angle = i * Mathf.PI / 6f;
+                GUI.Label(Shift(r, Mathf.Cos(angle) * u * 4f, Mathf.Sin(angle) * u * 4f), markContent, markStyle);
+            }
+
+            // Extruded shadow, down and to the right.
+            GUI.color = new Color(OrangeDeep.r, OrangeDeep.g, OrangeDeep.b, 0.95f * a);
+            for (int i = 3; i >= 1; i--)
+                GUI.Label(Shift(r, u * i, u * i), markContent, markStyle);
+
+            // Face, then the lighter upper half on top of it (clipped by a group).
+            GUI.color = new Color(Orange.r, Orange.g, Orange.b, a);
+            GUI.Label(r, markContent, markStyle);
+            GUI.BeginGroup(new Rect(r.x, r.y, r.width, Mathf.Round(r.height * 0.5f)));
+            GUI.color = new Color(OrangeLight.r, OrangeLight.g, OrangeLight.b, a);
+            GUI.Label(new Rect(0f, 0f, r.width, r.height), markContent, markStyle);
+            GUI.EndGroup();
+
+            GUI.color = new Color(1f, 1f, 1f, a);
+        }
+
+        static Rect Shift(Rect r, float dx, float dy) => new Rect(r.x + dx, r.y + dy, r.width, r.height);
+
         void OnDestroy()
         {
             // The screen can be destroyed by a scene change while still visible: never leave the cursor FSM off.
@@ -270,12 +327,26 @@ namespace MOP.Common
 
             brandStyle = new GUIStyle(GUI.skin.label)
             {
-                alignment = TextAnchor.MiddleCenter,
+                alignment = TextAnchor.MiddleLeft,
                 fontStyle = FontStyle.Bold,
                 richText = true,
+                wordWrap = false,
+                clipping = TextClipping.Overflow,
                 fontSize = Mathf.Clamp(Mathf.RoundToInt(h * 0.06f), 24, 96),
             };
             brandStyle.normal.textColor = Color.white;
+
+            // The version mark: white, tinted with GUI.color when drawn.
+            markStyle = new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleLeft,
+                fontStyle = FontStyle.BoldAndItalic,
+                richText = false,
+                wordWrap = false,
+                clipping = TextClipping.Overflow,
+                fontSize = Mathf.RoundToInt(brandStyle.fontSize * MarkScale),
+            };
+            markStyle.normal.textColor = Color.white;
 
             captionStyle = new GUIStyle(GUI.skin.label)
             {

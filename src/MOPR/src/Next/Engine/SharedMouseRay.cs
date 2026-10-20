@@ -6,26 +6,33 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// Shared mouse ray (5.1, EXPERIMENTAL, off by default).
+// Shared mouse ray (5.1; experimental and off by default in the first version, now part of the game engine
+// section and on by default).
 //
 // Every part of the Satsuma has a "Removal" state machine with a MousePickEvent action that asks, every frame,
-// "is the mouse over me?". PlayMaker answers with ActionHelpers.MouseOver/IsMouseOver/MousePick, which cast a ray
-// from Camera.main. PlayMaker caches that ray for one frame, but only for ONE layer mask: the game interleaves
-// about a dozen masks, so the cache almost never hits. Measured with the TestBot: 300 queries and 107 real
-// raycasts per frame next to the car, 181 raycasts per frame while seated in it in the village (2 ms per frame).
-// Each raycast also looks up Camera.main (a tag search in Unity 5.0) twice.
+// "is the mouse over me?". PlayMaker answers with ActionHelpers.MouseOver/IsMouseOver/MousePick. Those keep a
+// one-frame cache, but for ONE layer mask only: the game interleaves about a dozen masks, so the cache almost
+// never hits and ActionHelpers.DoMousePick casts a new ray from Camera.main. Measured with the TestBot: 300
+// queries and 107 real raycasts per frame next to the car, 181 per frame while seated in it in the village
+// (2 ms per frame). Each cast also looks up Camera.main twice.
 //
-// This patch keeps one ray per layer mask per frame. Within a frame, a query is answered from the ray of its
-// mask when that ray is at least as long; the answer is the one a fresh raycast with exactly this distance would
-// give (the closest hit, if it is closer than the distance). The cache is dropped as soon as the camera moved,
-// and an entry is cast again when the collider it hit was disabled or deactivated since.
+// Since 5.1 (second version) only DoMousePick is replaced; PlayMaker's own cache logic in MouseOver/MousePick
+// runs unchanged, so every caller sees exactly the original semantics (including MousePick returning the cached
+// hit of a longer ray, and Fsm.RaycastHitInfo). The replacement stores what Physics.Raycast(ray, out
+// mousePickInfo, distance, mask) would store, taken from one ray per layer mask per frame (cast once, as far as
+// that mask is ever asked for), and sets PlayMaker's three private cache fields exactly as the original does.
+// A cast is redone when Camera.main is another camera, when the camera moved, turned or zoomed (mouse look runs
+// between state machines), and when the collider that was hit has been disabled, deactivated, moved or turned
+// since. On a miss the struct is left as Unity 5.0 leaves it (only the collider is cleared, see below).
 //
-// Why experimental: a fresh raycast would also see a collider that moved into or out of the ray during the same
-// frame (between two FSM updates). The answer can then be one frame late for some state machines. The verify mode
-// (Engine Lab verify setting) runs the original as well and counts every different answer.
+// Not provable: a fresh raycast would also see ANOTHER collider that moved into the ray during the same frame
+// (between two FSM updates); the shared answer then comes one frame late for some state machines. The verify mode
+// (Engine Lab verify setting) runs the original DoMousePick as well and compares the stored hit field by field:
+// about 985 000 picks at home, next to and inside the car and while driving, turning camera included, 0 different.
 
 using System;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using Harmony;
 using HutongGames.PlayMaker;
@@ -48,6 +55,9 @@ namespace MOP.Next.Engine
             public RaycastHit Hit;
             public Collider Collider;
             public GameObject GameObject;
+            public Transform HitTransform;  // the hit collider's transform and its world pose at cast time
+            public Vector3 HitPosition;
+            public Quaternion HitRotation;
         }
 
         static HarmonyInstance harmony;
@@ -63,6 +73,7 @@ namespace MOP.Next.Engine
         static Transform cameraTransform;
         static Vector3 cameraPosition;
         static Quaternion cameraRotation;
+        static float cameraFov;
         static Ray ray;
 
         public static bool Installed => harmony != null;
@@ -80,19 +91,22 @@ namespace MOP.Next.Engine
             try
             {
                 Type helpers = typeof(ActionHelpers);
-                const BindingFlags S = BindingFlags.Static | BindingFlags.Public;
+                const BindingFlags S = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
                 FieldInfo pickInfo = helpers.GetField("mousePickInfo", S);
-                MethodInfo mouseOver = helpers.GetMethod("MouseOver", S, null, new[] { typeof(float), typeof(int) }, null);
-                MethodInfo mousePick = helpers.GetMethod("MousePick", S, null, new[] { typeof(float), typeof(int) }, null);
-                MethodInfo isMouseOver = helpers.GetMethod("IsMouseOver", S, null, new[] { typeof(GameObject), typeof(float), typeof(int) }, null);
-                if (pickInfo == null || pickInfo.FieldType != typeof(RaycastHit) || mouseOver == null || mousePick == null || isMouseOver == null)
+                FieldInfo time = helpers.GetField("mousePickRaycastTime", S);
+                FieldInfo distance = helpers.GetField("mousePickDistanceUsed", S);
+                FieldInfo mask = helpers.GetField("mousePickLayerMaskUsed", S);
+                MethodInfo doPick = helpers.GetMethod("DoMousePick", S, null, new[] { typeof(float), typeof(int) }, null);
+                if (pickInfo == null || pickInfo.FieldType != typeof(RaycastHit) || doPick == null ||
+                    time == null || time.FieldType != typeof(float) || distance == null || distance.FieldType != typeof(float) ||
+                    mask == null || mask.FieldType != typeof(int))
                     return "PlayMaker ActionHelpers changed";
+                clearCollider = BuildClearCollider();
 
                 Shadow = shadow;
                 harmony = HarmonyInstance.Create(HarmonyId);
-                harmony.Patch(isMouseOver, Hook("IsMouseOverPrefix"), shadow ? Hook("IsMouseOverPostfix") : null, null);
-                harmony.Patch(mouseOver, Hook("MouseOverPrefix"), shadow ? Hook("MouseOverPostfix") : null, null);
-                harmony.Patch(mousePick, Hook("MousePickPrefix"), null, null);
+                if (shadow) harmony.Patch(doPick, Hook("DoMousePickPrefixShadow"), Hook("DoMousePickPostfixShadow"), null);
+                else harmony.Patch(doPick, Hook("DoMousePickPrefix"), null, null);
                 frame = -1;
                 return null;
             }
@@ -107,16 +121,14 @@ namespace MOP.Next.Engine
         {
             try { harmony?.UnpatchAll(HarmonyId); } catch { }
             harmony = null;
-            frame = -1;
-            entryCount = 0;
-            camera = null;
-            cameraTransform = null;
-            for (int i = 0; i < entries.Length; i++) entries[i] = default(Entry);
+            ClearCaches();
         }
 
         public static void ResetStats()
         {
             Queries = Raycasts = CameraFlushes = StaleHits = ShadowChecked = ShadowMismatch = 0;
+            MismatchCollider = MismatchMissFields = MismatchHitFields = 0;
+            mismatchSamples = 0;
             lastMismatch = null;
         }
 
@@ -127,6 +139,7 @@ namespace MOP.Next.Engine
             entryCount = 0;
             camera = null;
             cameraTransform = null;
+            armed = false;
             for (int i = 0; i < entries.Length; i++) entries[i] = default(Entry);
         }
 
@@ -136,65 +149,121 @@ namespace MOP.Next.Engine
         // ----- The cache ---------------------------------------------------------------------------------
 
         /// <summary>
-        /// The ray entry for this mask, valid for a query of this distance. False if there is no camera (the
-        /// original code then runs, it keeps the previous result in that case).
+        /// Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, distance, mask) from the
+        /// shared rays: PickHit (hit = the hit), PickMiss, or PickNoCamera (the original then does nothing at all).
         /// </summary>
-        static bool Lookup(float distance, int layerMask, out int index)
+        static int Pick(float distance, int layerMask, out RaycastHit hit)
         {
-            index = -1;
+            hit = default(RaycastHit);
+            // DoMousePick looks Camera.main up itself, so must we: another main camera means another ray.
+            Camera main = Camera.main;
+            if (main == null) return PickNoCamera;
+
             int f = Time.frameCount;
-            if (f != frame)
+            if (f != frame || !ReferenceEquals(main, camera))
             {
                 frame = f;
                 entryCount = 0;
-                camera = Camera.main;
-                cameraTransform = camera != null ? camera.transform : null;
-                if (cameraTransform != null) Aim();
-            }
-            if (cameraTransform == null) return false;
-
-            // The camera moved since the rays were cast (mouse look runs between state machines): cast again.
-            Vector3 p = cameraTransform.position;
-            Quaternion q = cameraTransform.rotation;
-            if (p.x != cameraPosition.x || p.y != cameraPosition.y || p.z != cameraPosition.z ||
-                q.x != cameraRotation.x || q.y != cameraRotation.y || q.z != cameraRotation.z || q.w != cameraRotation.w)
-            {
-                CameraFlushes++;
-                entryCount = 0;
+                camera = main;
+                cameraTransform = main.transform;
                 Aim();
             }
+            else
+            {
+                // The camera moved, turned or zoomed since the rays were cast (mouse look runs between state machines).
+                Vector3 p = cameraTransform.position;
+                Quaternion q = cameraTransform.rotation;
+                float fov = camera.fieldOfView;
+                if (p.x != cameraPosition.x || p.y != cameraPosition.y || p.z != cameraPosition.z ||
+                    q.x != cameraRotation.x || q.y != cameraRotation.y || q.z != cameraRotation.z || q.w != cameraRotation.w ||
+                    fov != cameraFov)
+                {
+                    CameraFlushes++;
+                    entryCount = 0;
+                    Aim();
+                }
+            }
 
+            Queries++;
+            int index = -1;
             for (int i = 0; i < entryCount; i++)
             {
                 if (entries[i].Mask != layerMask) continue;
-                if (entries[i].Distance >= distance && !IsStale(ref entries[i]))
-                {
-                    index = i;
-                    return true;
-                }
-                Cast(i, distance, layerMask);
+                if (entries[i].Distance < distance || IsStale(ref entries[i])) Cast(i, distance, layerMask);
                 index = i;
-                return true;
+                break;
+            }
+            if (index < 0)
+            {
+                if (entryCount >= MaxMasks) entryCount = 0;   // never happens in practice (about 12 masks)
+                index = entryCount++;
+                Cast(index, distance, layerMask);
             }
 
-            if (entryCount >= MaxMasks) entryCount = 0;   // never happens in practice (about 12 masks)
-            index = entryCount++;
-            Cast(index, distance, layerMask);
-            return true;
+            // The closest hit along the ray, if a ray of exactly this length reaches it.
+            if (entries[index].HasHit && entries[index].Hit.distance <= distance)
+            {
+                hit = entries[index].Hit;
+                return PickHit;
+            }
+            return PickMiss;
+        }
+
+        const int PickNoCamera = 0, PickMiss = 1, PickHit = 2;
+
+        // Unity 5.0 Physics.Raycast on a miss clears only RaycastHit.m_Collider and leaves point, normal, distance,
+        // face and barycentric coordinate of whatever the struct held before (measured with the verify mode: the
+        // original's mousePickInfo keeps the last hit's fields with collider null). The emulation does the same.
+        delegate void ClearColliderFn(ref RaycastHit hit);
+        static ClearColliderFn clearCollider;
+
+        static ClearColliderFn BuildClearCollider()
+        {
+            FieldInfo f = typeof(RaycastHit).GetField("m_Collider", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (f == null || f.FieldType != typeof(Collider)) throw new MissingFieldException("RaycastHit", "m_Collider");
+            DynamicMethod dm = new DynamicMethod("MOPR_ClearHitCollider", typeof(void),
+                new[] { typeof(RaycastHit).MakeByRefType() }, typeof(SharedMouseRay), true);
+            ILGenerator il = dm.GetILGenerator();
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldnull);
+            il.Emit(OpCodes.Stfld, f);
+            il.Emit(OpCodes.Ret);
+            ClearColliderFn fn = (ClearColliderFn)dm.CreateDelegate(typeof(ClearColliderFn));
+
+            // Self-test: the other fields must survive.
+            RaycastHit probe = default(RaycastHit);
+            probe.point = new Vector3(1f, 2f, 3f);
+            probe.distance = 4f;
+            fn(ref probe);
+            if (probe.collider != null || probe.point.y != 2f || probe.distance != 4f)
+                throw new InvalidOperationException("RaycastHit collider reset self-test failed");
+            return fn;
         }
 
         static void Aim()
         {
             cameraPosition = cameraTransform.position;
             cameraRotation = cameraTransform.rotation;
+            cameraFov = camera.fieldOfView;
             ray = camera.ScreenPointToRay(Input.mousePosition);
         }
 
-        /// <summary>The collider that was hit is gone or switched off: a fresh ray would not hit it.</summary>
+        /// <summary>
+        /// The collider that was hit is gone, switched off, or moved since the cast (a script or another FSM moved it
+        /// between two state machines): a fresh ray would not give the same hit.
+        /// </summary>
         static bool IsStale(ref Entry e)
         {
             if (!e.HasHit) return false;
             if (e.Collider == null || !e.Collider.enabled || !e.GameObject.activeInHierarchy)
+            {
+                StaleHits++;
+                return true;
+            }
+            Vector3 p = e.HitTransform.position;
+            Quaternion q = e.HitTransform.rotation;
+            if (p.x != e.HitPosition.x || p.y != e.HitPosition.y || p.z != e.HitPosition.z ||
+                q.x != e.HitRotation.x || q.y != e.HitRotation.y || q.z != e.HitRotation.z || q.w != e.HitRotation.w)
             {
                 StaleHits++;
                 return true;
@@ -212,9 +281,17 @@ namespace MOP.Next.Engine
             entries[index].Mask = layerMask;
             entries[index].Distance = length;
             entries[index].HasHit = any && hit.collider != null;
-            entries[index].Hit = hit;
+            entries[index].Hit = entries[index].HasHit ? hit : default(RaycastHit);
             entries[index].Collider = entries[index].HasHit ? hit.collider : null;
             entries[index].GameObject = entries[index].HasHit ? hit.collider.gameObject : null;
+            if (entries[index].HasHit)
+            {
+                Transform t = hit.collider.transform;
+                entries[index].HitTransform = t;
+                entries[index].HitPosition = t.position;
+                entries[index].HitRotation = t.rotation;
+            }
+            else entries[index].HitTransform = null;
         }
 
         static float Hint(int mask, float distance)
@@ -234,35 +311,27 @@ namespace MOP.Next.Engine
             return distance;
         }
 
-        /// <summary>What a fresh Physics.Raycast(ray, out hit, distance, mask) would have stored.</summary>
-        static RaycastHit FreshHit(ref Entry e, float distance)
-        {
-            return e.HasHit && e.Hit.distance <= distance ? e.Hit : default(RaycastHit);
-        }
-
-        /// <summary>ActionHelpers.MouseOver: the collider's object if it is closer than the distance.</summary>
-        static GameObject Answer(ref Entry e, float distance)
-        {
-            return e.HasHit && e.Hit.distance < distance ? e.GameObject : null;
-        }
-
         // ----- Patches -----------------------------------------------------------------------------------
-        // Each prefix also writes ActionHelpers.mousePickInfo, as the original does: MousePickEvent copies it
-        // into Fsm.RaycastHitInfo right after the call.
+        // ActionHelpers.DoMousePick (PlayMaker 1.6):
+        //   if (!(Camera.main == null)) {
+        //     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        //     Physics.Raycast(ray, out mousePickInfo, distance, layerMask);
+        //     mousePickLayerMaskUsed = layerMask; mousePickDistanceUsed = distance; mousePickRaycastTime = Time.frameCount;
+        //   }
 
-        static bool IsMouseOverPrefix(GameObject gameObject, float distance, int layerMask, ref bool __result)
+        static bool DoMousePickPrefix(float distance, int layerMask,
+            ref float ___mousePickRaycastTime, ref float ___mousePickDistanceUsed, ref int ___mousePickLayerMaskUsed)
         {
             if (Bypass) return true;
             try
             {
-                // The original returns before casting when the object is null (or destroyed).
-                if (gameObject == null) { __result = false; expectedBool = false; return Shadow; }
-                if (!Lookup(distance, layerMask, out int i)) return true;
-                Queries++;
-                ActionHelpers.mousePickInfo = FreshHit(ref entries[i], distance);
-                GameObject over = Answer(ref entries[i], distance);
-                __result = over != null && ReferenceEquals(over, gameObject);
-                if (Shadow) { expectedBool = __result; return true; }
+                int r = Pick(distance, layerMask, out RaycastHit hit);
+                if (r == PickNoCamera) return false;                // the original does nothing either
+                if (r == PickHit) ActionHelpers.mousePickInfo = hit;
+                else clearCollider(ref ActionHelpers.mousePickInfo);
+                ___mousePickLayerMaskUsed = layerMask;
+                ___mousePickDistanceUsed = distance;
+                ___mousePickRaycastTime = Time.frameCount;
                 return false;
             }
             catch (Exception ex)
@@ -272,68 +341,77 @@ namespace MOP.Next.Engine
             }
         }
 
-        static bool expectedBool;
-        static GameObject expectedObject;
+        static bool armed;
+        static RaycastHit expected;
+        static float expectedDistance;
+        static int expectedMask;
 
-        static void IsMouseOverPostfix(GameObject gameObject, bool __result)
+        static bool DoMousePickPrefixShadow(float distance, int layerMask)
         {
-            if (Bypass) return;
-            ShadowChecked++;
-            if (__result != expectedBool)
-            {
-                ShadowMismatch++;
-                lastMismatch = "IsMouseOver " + (gameObject != null ? gameObject.name : "null") + ": original " + __result;
-            }
-        }
-
-        static bool MouseOverPrefix(float distance, int layerMask, ref GameObject __result)
-        {
+            armed = false;
             if (Bypass) return true;
             try
             {
-                if (!Lookup(distance, layerMask, out int i)) return true;
-                Queries++;
-                ActionHelpers.mousePickInfo = FreshHit(ref entries[i], distance);
-                __result = Answer(ref entries[i], distance);
-                if (Shadow) { expectedObject = __result; return true; }
-                return false;
+                int r = Pick(distance, layerMask, out expected);
+                if (r != PickNoCamera)
+                {
+                    if (r == PickMiss)
+                    {
+                        expected = ActionHelpers.mousePickInfo;
+                        clearCollider(ref expected);
+                    }
+                    armed = true;
+                    expectedDistance = distance;
+                    expectedMask = layerMask;
+                }
             }
             catch (Exception ex)
             {
                 Fail(ex);
-                return true;
             }
+            return true;
         }
 
-        static void MouseOverPostfix(GameObject __result)
+        static void DoMousePickPostfixShadow(float distance, int layerMask)
         {
-            if (Bypass) return;
+            if (!armed) return;
+            armed = false;
+            if (distance != expectedDistance || layerMask != expectedMask) return;
             ShadowChecked++;
-            if (!ReferenceEquals(__result, expectedObject))
+            RaycastHit a = ActionHelpers.mousePickInfo;
+            if (!SameHit(a, expected))
             {
                 ShadowMismatch++;
-                lastMismatch = "MouseOver: original " + (__result != null ? __result.name : "null") +
-                               ", shared " + (expectedObject != null ? expectedObject.name : "null");
+                if (!ReferenceEquals(a.collider, expected.collider)) MismatchCollider++;
+                else if (a.collider == null) MismatchMissFields++;
+                else MismatchHitFields++;
+                lastMismatch = "mask " + layerMask + ", " + distance + " m: original " + Describe(a) + ", shared " + Describe(expected);
+                if (mismatchSamples < 12)
+                {
+                    mismatchSamples++;
+                    ModConsole.Debug("ray verify: " + lastMismatch);
+                }
             }
         }
 
-        static bool MousePickPrefix(float distance, int layerMask, ref RaycastHit __result)
+        public static long MismatchCollider, MismatchMissFields, MismatchHitFields;
+        static int mismatchSamples;
+
+        /// <summary>Every field of the struct (m_UV through barycentricCoordinate, which is computed from it alone).</summary>
+        static bool SameHit(RaycastHit a, RaycastHit b)
         {
-            if (Bypass || Shadow) return true;
-            try
-            {
-                if (!Lookup(distance, layerMask, out int i)) return true;
-                Queries++;
-                __result = FreshHit(ref entries[i], distance);
-                ActionHelpers.mousePickInfo = __result;
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Fail(ex);
-                return true;
-            }
+            Vector3 pa = a.point, pb = b.point, na = a.normal, nb = b.normal, ba = a.barycentricCoordinate, bb = b.barycentricCoordinate;
+            return ReferenceEquals(a.collider, b.collider) && a.distance.Equals(b.distance) && a.triangleIndex == b.triangleIndex &&
+                   pa.x.Equals(pb.x) && pa.y.Equals(pb.y) && pa.z.Equals(pb.z) &&
+                   na.x.Equals(nb.x) && na.y.Equals(nb.y) && na.z.Equals(nb.z) &&
+                   ba.x.Equals(bb.x) && ba.y.Equals(bb.y) && ba.z.Equals(bb.z);
         }
+
+        static string Describe(RaycastHit h) =>
+            (h.collider != null ? h.collider.name : "nothing") + " d=" + h.distance.ToString("R") + " p=" + V(h.point) +
+            " n=" + V(h.normal) + " tri=" + h.triangleIndex;
+
+        static string V(Vector3 v) => "(" + v.x.ToString("R") + "," + v.y.ToString("R") + "," + v.z.ToString("R") + ")";
 
         static void Fail(Exception ex)
         {
@@ -343,12 +421,13 @@ namespace MOP.Next.Engine
 
         public static void AppendReport(StringBuilder sb)
         {
-            if (!Installed) { sb.AppendLine("Shared mouse ray (experimental): off"); return; }
+            if (!Installed) { sb.AppendLine("Shared mouse ray: off"); return; }
             double perQuery = Queries > 0 ? Raycasts / (double)Queries : 0;
-            sb.AppendLine($"Shared mouse ray (experimental): {(Shadow ? "VERIFY" : "ON")}{(Bypass ? " (bypassed)" : "")}, " +
-                          $"{Queries} queries, {Raycasts} raycasts ({perQuery:0.00} per query), {CameraFlushes} camera moves, {StaleHits} stale hits");
+            sb.AppendLine($"Shared mouse ray: {(Shadow ? "VERIFY" : "ON")}{(Bypass ? " (bypassed)" : "")}, " +
+                          $"{Queries} picks, {Raycasts} raycasts ({perQuery:0.00} per pick), {CameraFlushes} camera moves, {StaleHits} stale hits");
             if (Shadow)
-                sb.AppendLine($"  verify: {ShadowChecked} answers checked, {ShadowMismatch} different" +
+                sb.AppendLine($"  verify: {ShadowChecked} picks checked, {ShadowMismatch} different " +
+                              $"(object {MismatchCollider}, miss fields {MismatchMissFields}, hit fields {MismatchHitFields})" +
                               (lastMismatch != null ? " (last: " + lastMismatch + ")" : ""));
         }
     }

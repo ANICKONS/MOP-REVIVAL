@@ -1,0 +1,39 @@
+{
+  "Name": "merge-light",
+  "SettleSeconds": 3,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "User report: the Satsuma's cabin gets lighter/darker with the mesh merger (merged meshes had Unity's default reflection probe use). Merged vs originals: screenshots into the cabin and the lighting inputs, in the yard, fully in the garage (its own reflection probe) and half in the garage; plus the merger's FPS gain." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-1.6, 1.25, 0.2], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "watch", "Label": "yard_state", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged", "report=static|MOP.Next.VehicleMeshMerge.Report" ] },
+    { "Op": "lightinfo", "Label": "yard", "Path": "SATSUMA(557kg, 248)", "Text": "MOP.Next.VehicleMeshMerge.AbDrawOriginals" },
+    { "Op": "viewdiff", "Label": "yard_cabin_side", "Path": "MOP.Next.VehicleMeshMerge.AbDrawOriginals", "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.35, 2.3], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "viewdiff", "Label": "yard_cabin_front", "Path": "MOP.Next.VehicleMeshMerge.AbDrawOriginals", "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.5, 6.5], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "watch", "Label": "f65_state", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged", "report=static|MOP.Next.VehicleMeshMerge.Report" ] },
+    { "Op": "abtoggle", "Label": "f65-merged-vs-original", "Var": "staticbool", "Path": "MOP.Next.VehicleMeshMerge.AbDrawOriginals", "Seconds": 20, "Block": 1 },
+
+    { "Op": "log", "Text": "--- the garage's reflection probe (importance 2, box 6.5 x 10 x 10) moved over the whole car ---" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-1.6, 1.25, 0.2], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "place", "Path": "YARD/RefProbeGarage", "Target": "SATSUMA(557kg, 248)", "Pos": [0.0, 0.5, 0.0] },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "watch", "Label": "garage_state", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged", "report=static|MOP.Next.VehicleMeshMerge.Report" ] },
+    { "Op": "lightinfo", "Label": "garage", "Path": "SATSUMA(557kg, 248)", "Text": "MOP.Next.VehicleMeshMerge.AbDrawOriginals" },
+    { "Op": "viewdiff", "Label": "garage_cabin_side", "Path": "MOP.Next.VehicleMeshMerge.AbDrawOriginals", "Target": "SATSUMA(557kg, 248)" },
+
+    { "Op": "log", "Text": "--- the probe's box over the front 1.3 m of the car only ---" },
+    { "Op": "place", "Path": "YARD/RefProbeGarage", "Target": "SATSUMA(557kg, 248)", "Pos": [0.0, 0.5, 5.5] },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "watch", "Label": "half_state", "Seconds": 0, "Probes": [ "merged=static|MOP.Next.VehicleMeshMerge.IsSatsumaMerged", "report=static|MOP.Next.VehicleMeshMerge.Report", "pos=SATSUMA(557kg, 248)|@pos" ] },
+    { "Op": "lightinfo", "Label": "half", "Path": "SATSUMA(557kg, 248)", "Text": "MOP.Next.VehicleMeshMerge.AbDrawOriginals" },
+    { "Op": "viewdiff", "Label": "half_cabin_side", "Path": "MOP.Next.VehicleMeshMerge.AbDrawOriginals", "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [3.0, 1.6, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "viewdiff", "Label": "half_car_side", "Path": "MOP.Next.VehicleMeshMerge.AbDrawOriginals", "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "quit" }
+  ]
+}

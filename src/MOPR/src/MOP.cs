@@ -141,13 +141,12 @@ namespace MOP
 
             if (!string.IsNullOrEmpty(SubVersion))
             {
-                ModConsole.Log("<size=60><color=magenta>\n\nWARNING!\nYOU ARE USING A PRE-RELEASE VERSION OF MOP - REVIVAL!\n\n</color></size>");
+                ModConsole.Log("<size=60><color=magenta>\n\n" + Loc.T("con.prerelease") + "\n\n</color></size>");
             }
 
             if (BuildInfo.BuiltWithStubs)
             {
-                ModConsole.LogWarning("[MOPR] This build was compiled against reference stubs instead of the real game assemblies. " +
-                                      "It is meant for testing only.");
+                ModConsole.Warn("con.stub_build");
             }
         }
 
@@ -181,7 +180,7 @@ namespace MOP
             }
             SaveManager.VerifySave();
 
-            ModConsole.Log("[MOPR] MOP - REVIVAL " + MoprColors.Version("v" + ModVersion.Replace("_", " ")) + " " + MoprColors.Success("initialized!"));
+            ModConsole.Info("con.initialized", MoprColors.Version("v" + ModVersion.Replace("_", " ")));
         }
 
         static bool consoleCommandAdded;
@@ -199,7 +198,7 @@ namespace MOP
             MopSettings.UpdateMiscSettings();
             if (CompatibilityManager.IsConfilctingModPresent(out string modName))
             {
-                ModConsole.LogError($"[MOPR] MOP - REVIVAL could not be loaded, because the following mod is present: <color=yellow>{modName}</color>");
+                ModConsole.Err("con.conflict", modName);
                 return;
             }
 

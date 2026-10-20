@@ -44,7 +44,7 @@ namespace MOP.Next
             MeshFilter cowlMf = cowl != null ? cowl.GetComponent<MeshFilter>() : null;
             if (bodyMf == null || cowlMf == null || lamp == null || bodyMf.sharedMesh == null || cowlMf.sharedMesh == null)
             {
-                ModConsole.Log("[MOPR] Roof lamp fix: not a stock Satsuma roof, skipped.");
+                ModConsole.Debug("Roof lamp fix: not a stock Satsuma roof, skipped.");
                 return;
             }
 
@@ -53,7 +53,7 @@ namespace MOP.Next
             List<Vector3> lampPoints = LampPoints(car, lamp);
             if (lampPoints.Count == 0)
             {
-                ModConsole.Log("[MOPR] Roof lamp fix: the lamp has no mesh, skipped.");
+                ModConsole.Debug("Roof lamp fix: the lamp has no mesh, skipped.");
                 return;
             }
             Vector3 centre = car.InverseTransformPoint(lamp.position);
@@ -65,7 +65,7 @@ namespace MOP.Next
             List<Vector3> roof = RoofTriangles(car, bodyMf, centre, out why);
             if (roof.Count == 0)
             {
-                ModConsole.Log($"[MOPR] Roof lamp fix: no roof found above the lamp ({why}), skipped.");
+                ModConsole.Debug($"Roof lamp fix: no roof found above the lamp ({why}), skipped.");
                 return;
             }
 
@@ -115,7 +115,7 @@ namespace MOP.Next
             if (lower > 0f) lamp.position -= car.up * lower;
             fixedLampPosition = lamp.localPosition;
 
-            ModConsole.Log($"[MOPR] Roof lamp fix: {moved} vertices of the lamp housing lowered (it stuck out of the roof " +
+            ModConsole.Debug($"Roof lamp fix: {moved} vertices of the lamp housing lowered (it stuck out of the roof " +
                            $"by up to {stuckOut * 1000f:0.0} mm), lamp lowered by {lower * 1000f:0.0} mm.");
         }
 

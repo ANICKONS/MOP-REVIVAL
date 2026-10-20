@@ -29,7 +29,7 @@ namespace MOP.FSM.Actions
         {
             Transform parts = gm.transform.Find("Parts");
             items = parts.GetComponentsInChildren<Transform>(true).Where(t => t.parent == parts).ToArray();
-            MSCLoader.ModConsole.Log(string.Join(", ", items.Select(g => g.name).ToArray()));
+            global::MOP.ModConsole.Debug("Package parts: " + string.Join(", ", items.Select(g => g.name).ToArray()));
         }
 
         public override void OnEnter()

@@ -67,7 +67,7 @@ namespace MOP.Helpers
             }
             catch (UnauthorizedAccessException)
             {
-                ModConsole.Log("[MOPR] " + MoprColors.Error("Could not access the save file at this moment."));
+                ModConsole.Err("con.save.no_access");
             }
             catch (Exception ex)
             {
@@ -186,7 +186,7 @@ namespace MOP.Helpers
 
             if (IsSaveFileAfterPermadeath())
             {
-                ModConsole.Log($"[MOPR] Save file wasn't checked, as it is post-permadeath.");
+                ModConsole.Info("con.save.permadeath");
                 return;
             }
 
@@ -224,7 +224,7 @@ namespace MOP.Helpers
             {
                 if (!IsSaveTagPresent("TractorTrailerAttached"))
                 {
-                    ModConsole.Log("[MOPR] Save Verification: TractorTrailerAttached hasn't been found. Transform fix will be skipped...");
+                    ModConsole.Debug("Save Verification: TractorTrailerAttached hasn't been found. Transform fix will be skipped...");
                 }
                 else
                 { 
@@ -305,7 +305,7 @@ namespace MOP.Helpers
             }
             else
             {
-                ModConsole.Log("[MOPR] " + MoprColors.Success("Save check: no problems found :)"));
+                ModConsole.Success("con.save.ok");
             }
         }
 
@@ -452,13 +452,13 @@ namespace MOP.Helpers
             // It would be really weird, if someone installed a single part, not bolt it, then have that error appear.
             if (installedCount < MinimumNumberOfPartsToCheckMSCEditorTampering)
             {
-                ModConsole.Log($"[MOPR] Only {installedCount} parts are installed.");
+                ModConsole.Debug($"Only {installedCount} parts are installed.");
                 return false;
             }
 
             double percentageOfPartsBolted = boltedCount / (double)installedCount;
-            ModConsole.Log($"[MOPR] {((1d - percentageOfPartsBolted) * 100):0.00}% of Satsuma parts are installed, but not bolted.\n" +
-                           $"{boltedCount}/{installedCount} parts are bolted and installed.");
+            ModConsole.Debug($"{((1d - percentageOfPartsBolted) * 100):0.00}% of Satsuma parts are installed, but not bolted. " +
+                             $"{boltedCount}/{installedCount} parts are bolted and installed.");
 
             // MOP - REVIVAL 5.1 (fix, original MOP bug): "15% or fewer of the installed parts bolted" no longer counts
             // as MSCEditor. A car the player is still assembling (or taking apart) looks exactly like that: players
@@ -471,7 +471,7 @@ namespace MOP.Helpers
             }
             catch (Exception ex)
             {
-                ModConsole.Log("[MOPR] Engine block check skipped: " + ex.Message);
+                ModConsole.Debug("Engine block check skipped: " + ex.Message);
                 return false;
             }
         }
@@ -508,7 +508,7 @@ namespace MOP.Helpers
             string path = Path.Combine(Paths.LogFolder, Paths.SaveFileBugsReport + ".txt");
             using (StreamWriter writer = new StreamWriter(path))
             {
-                writer.WriteLine("=== Generated with MOP " + MOP.ModVersion + " ===\n\n");
+                writer.WriteLine("=== Generated with MOPR " + MOP.ModVersion + " ===\n\n");
                 foreach (SaveBugs bug in saveBugs)
                 {
                     writer.WriteLine($"{bug.BugName}");
