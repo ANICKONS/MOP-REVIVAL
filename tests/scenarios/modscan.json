@@ -1,0 +1,18 @@
+{
+  "Name": "modscan",
+  "SettleSeconds": 15,
+  "LoadTimeoutSeconds": 600,
+  "MenuSteps": [
+    { "Op": "log", "Text": "Auto-protection measurement: rules off, so MOPR manages everything; then every managed object is scanned for components, PlayMaker actions and FSM hooks of other mods (ModScan.cs). Compare with the built-in rule files of the installed mods." },
+    { "Op": "console", "Text": "mopr load-rules false" }
+  ],
+  "Steps": [
+    { "Op": "modscan", "Label": "load" },
+    { "Op": "mopstate", "Label": "norules" },
+    { "Op": "teleport", "Path": "TRAFFIC/VehiclesHighway/TRUCK", "Local": false, "Pos": [0.0, 2.0, 8.0] },
+    { "Op": "wait", "Seconds": 12 },
+    { "Op": "modscan", "Label": "highway" },
+    { "Op": "console", "Text": "mopr load-rules true" },
+    { "Op": "quit" }
+  ]
+}

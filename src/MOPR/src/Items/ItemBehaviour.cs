@@ -81,6 +81,9 @@ namespace MOP.Items
         // the player): every save (ToggleAll(true)) then teleported such an item back to a stale position.
         bool physicsFrozenByMop;
 
+        // MOP - REVIVAL 5.1: a frozen item moved farther than this (squared, 25 cm) was moved by someone else.
+        const float ExternalMoveSqr = 0.25f * 0.25f;
+
         FsmBool batteryOnCharged;
         readonly FsmFloat floorJackTriggerY;
         bool kiljuInitialReset;
@@ -321,12 +324,11 @@ namespace MOP.Items
                             return;
                         break;
                     // Don't despawn floor or car jack if it's not in it's default position.
+                    // MOP - REVIVAL 5.1: without the jack's "Y" variable (a mod changed the jack's trigger, seen with
+                    // Better MSC) this threw on every switch and the jack was never switched. Same result, no exception.
                     case "floor jack(itemx)":
-                        if (floorJackTriggerY.Value >= 0.15f)
-                            return;
-                        break;
                     case "car jack(itemx)":
-                        if (floorJackTriggerY.Value >= 0.15f)
+                        if (floorJackTriggerY == null || floorJackTriggerY.Value >= 0.15f)
                             return;
                         break;
                     // Fixes infinitely burnign garbage barrel fire.
@@ -479,7 +481,12 @@ namespace MOP.Items
                 {
                     if (enabled)
                     {
-                        transform.position = position;
+                        // MOP - REVIVAL 5.1 (fix): back to where MOPR froze it only if nothing else moved it meanwhile.
+                        // A frozen item is kinematic, so it can't drift; a real move came from the game or a mod (an
+                        // inventory taking it out, a teleport or recovery mod) and is kept. Before, such an item jumped
+                        // back to the old spot when it was unfrozen (YAIM: from the player's hands into the sky).
+                        if ((transform.position - position).sqrMagnitude <= ExternalMoveSqr)
+                            transform.position = position;
                         rb.velocity = Vector3.zero;
                     }
                     else

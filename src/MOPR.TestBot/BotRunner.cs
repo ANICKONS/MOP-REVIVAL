@@ -765,6 +765,24 @@ namespace MOPR.TestBot
                     case "viewdiff":
                         yield return StartCoroutine(ViewDiff(step));
                         break;
+                    case "modscan":
+                        {
+                            // Objects MOPR switches that contain something of another mod (ModScan.cs).
+                            string rep;
+                            string sum = ModScan.Run(out rep);
+                            WriteArtifact("probe_modscan_" + (step.Label ?? "x") + ".txt", rep);
+                            Log("modscan " + step.Label + ": " + sum);
+                        }
+                        break;
+                    case "yaim":
+                        {
+                            // Text: pickup / drop / state; Path: the object (YaimProbe.cs).
+                            string res;
+                            try { res = YaimProbe.Run(step.Text, step.Path); }
+                            catch (Exception e) { res = "ERROR: " + (e.InnerException ?? e).Message; }
+                            Log($"yaim {step.Text} {step.Path}: {res}");
+                        }
+                        break;
                     case "ikprobe":
                         {
                             // For Seconds: does each SimpleIKSolver solve change its joints (bitwise)?

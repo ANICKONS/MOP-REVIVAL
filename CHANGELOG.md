@@ -1,5 +1,29 @@
 # Changelog
 
+## 5.1.1 (23.10.2026)
+
+### Fixed
+- Items taken out of an inventory mod could vanish. Yet Another Inventory Mod (YAIM) keeps stored items at
+  (0, 1000, 0); MOPR froze them there as far away, and when YAIM dropped a physics-only item (bucket, fish trap,
+  pike, fuel tank, items with a `keepActive` rule) in front of the player, MOPR put it back where it had frozen it:
+  into the sky, from where it fell onto the map 1.4 km away (TestBot `yaim-tce`: 999.6 m one second after the
+  drop). Items high above the map (over 500 m, the terrain stays below about 100 m) now belong to the inventory
+  mod and MOPR leaves them alone; CarryMore and Advanced Backpack are both checked when both are installed.
+  After the fix (`yaim-tce2`): the bucket stays 1.6 m in front of the player, and a bucket and a fish trap kept in
+  the inventory survive a real save and load.
+- Generally: an item MOPR froze (physics only) and someone else moved while it was frozen - an inventory, a teleport
+  or recovery mod, the game - is no longer put back to the old spot when it is unfrozen. Only a move of up to 25 cm
+  is undone; a frozen item is kinematic and can't drift by itself.
+- Traffic Car Expansion: `TRAFFIC_VEHICLES_ERROR` ("Couldn't find the renderers of TrafficModCarSpawner") on every
+  load. The mod puts its car spawner and the container of its cars under `TRAFFIC/VehiclesHighway`; MOPR threw on the
+  first one and skipped the rest of the list. MOPR now manages only the game's own highway cars there, each on its
+  own, and does not switch the highway on at load while a mod has objects there (Traffic Car Expansion would spawn
+  10-25 cars just for that). Its cars spawn as before (16 on the highway in the test). The
+  `NullReferenceException` in `TrafficCarExpansion.FlashLights.OnDisable` is the mod's own: it appears without MOPR
+  too, whenever the game switches the highway off.
+- The floor jack and the car jack threw a `NullReferenceException` on every switch when a mod had changed their
+  trigger (seen with Better MSC); they were never switched either way. Same behaviour, no exception.
+
 ## 5.1.0 "Engine" (2026-10-20)
 
 The first public release of the 5.x line; it includes everything of 5.0 below.

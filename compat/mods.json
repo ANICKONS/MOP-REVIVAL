@@ -1,0 +1,101 @@
+{
+  "$comment": "MOP - REVIVAL compatibility list: the single source of the website (site/). See compat/README.md.",
+  "mods": [
+    { "id": "ActualMop", "status": "untested", "origin": "mop",
+      "notes": {
+        "en": "The original MOP had a rule for this mod, but it had no effect, so MOP - REVIVAL does nothing special for it. Not checked yet.",
+        "ru": "У оригинального MOP было правило для этого мода, но оно ни на что не влияло, поэтому MOP - REVIVAL ничего особого для него не делает. Ещё не проверен.",
+        "pl": "Oryginalny MOP miał regułę dla tego moda, ale nic nie zmieniała, więc MOP - REVIVAL nie robi dla niego nic specjalnego. Jeszcze nie sprawdzony."
+      } },
+    { "id": "AthlonsTweaksPack", "status": "fix", "origin": "mop" },
+    { "id": "BetterMSC", "name": "Better MSC", "author": "Tomson91", "status": "fix", "origin": "mop", "code": true,
+      "notes": {
+        "en": "Since 5.1.1 also no error from the floor jack, which Better MSC changes.",
+        "ru": "С 5.1.1 ещё и нет ошибки от домкрата, который меняет Better MSC.",
+        "pl": "Od 5.1.1 nie ma też błędu z podnośnikiem, który zmienia Better MSC."
+      } },
+    { "id": "BodyPillow", "status": "fix", "origin": "mop" },
+    { "id": "BottleRecycling", "status": "fix", "origin": "mop" },
+    { "id": "CallYourCousin", "name": "Call Your Cousin", "author": "sykovanz", "status": "fix", "origin": "mop" },
+    { "id": "CDPlayer", "status": "fix", "origin": "mop" },
+    { "id": "ColorfulGauges3", "name": "ColorfulGauges", "author": "RedJonh260", "status": "fix", "origin": "mop" },
+    { "id": "dazyWoodDash", "status": "fix", "origin": "mop" },
+    { "id": "DonnerTech_ECU_Mod", "status": "fix", "origin": "mop" },
+    { "id": "DrivableBus", "status": "fix", "origin": "mop" },
+    { "id": "DriveableSvoboda", "status": "fix", "origin": "mop" },
+    { "id": "Expanded_Winter_Features", "status": "fix", "origin": "mop" },
+    { "id": "FishingMod", "status": "fix", "origin": "mop" },
+    { "id": "FURY", "status": "fix", "origin": "mop" },
+    { "id": "GAZ24", "status": "fix", "origin": "mop" },
+    { "id": "GifuPump", "status": "fix", "origin": "mop" },
+    { "id": "GlassesBox", "status": "fix", "origin": "mop" },
+    { "id": "GT_Interior", "status": "untested", "origin": "mop",
+      "notes": {
+        "en": "The original MOP had a rule for this mod, but it had no effect, so MOP - REVIVAL does nothing special for it. Not checked yet.",
+        "ru": "У оригинального MOP было правило для этого мода, но оно ни на что не влияло, поэтому MOP - REVIVAL ничего особого для него не делает. Ещё не проверен.",
+        "pl": "Oryginalny MOP miał regułę dla tego moda, ale nic nie zmieniała, więc MOP - REVIVAL nie robi dla niego nic specjalnego. Jeszcze nie sprawdzony."
+      } },
+    { "id": "g_Box", "status": "fix", "origin": "mop" },
+    { "id": "HayosikoColorfulGauges", "status": "fix", "origin": "mop" },
+    { "id": "JetSky", "status": "fix", "origin": "mop" },
+    { "id": "JONNEZ_Basket", "status": "fix", "origin": "mop" },
+    { "id": "KekmetAddons", "status": "fix", "origin": "mop" },
+    { "id": "KekmetBeaconV2", "status": "fix", "origin": "mop" },
+    { "id": "LiquorStore", "status": "fix", "origin": "mop" },
+    { "id": "LoppeHouse", "status": "fix", "origin": "mop" },
+    { "id": "Manual_Ferndale", "status": "fix", "origin": "mop" },
+    { "id": "MSCStill", "status": "fix", "origin": "mop" },
+    { "id": "OffroadHayosiko", "status": "fix", "origin": "mop" },
+    { "id": "Partition", "status": "fix", "origin": "mop" },
+    { "id": "Police_Ferndale", "status": "fix", "origin": "mop" },
+    { "id": "Projector_Headlights", "status": "fix", "origin": "mop" },
+    { "id": "PsychovanzRentApartment", "status": "fix", "origin": "mop" },
+    { "id": "Repairable_Ruscko", "status": "fix", "origin": "mop" },
+    { "id": "Roofless", "status": "fix", "origin": "mop" },
+    { "id": "SatsumaDigidash", "status": "fix", "origin": "mop" },
+    { "id": "SatsumaTurboCharger", "status": "fix", "origin": "mop" },
+    { "id": "Satsuma_LX", "name": "Satsuma LX", "author": "Bosorkanamettle", "status": "fix", "origin": "mop" },
+    { "id": "SecondFerndale", "status": "fix", "origin": "mop" },
+    { "id": "SuperchargerForSatsuma", "status": "fix", "origin": "mop" },
+    { "id": "TangerinePickup", "status": "fix", "origin": "mop" },
+    { "id": "VHSPlayer", "name": "VHS Player", "author": "piotrulos", "status": "fix", "origin": "mop" },
+
+    { "id": "YAIM", "name": "Yet Another Inventory Mod", "author": "Ceres et al.", "url": "https://www.nexusmods.com/mysummercar/mods/7483",
+      "status": "fix", "code": true, "since": "5.1.1", "tested": "2026-10-22",
+      "notes": {
+        "en": "Items in the inventory are left alone and stay where YAIM drops them, also over a save and load. Before 5.1.1, a bucket, fish trap or fuel tank taken out of the inventory could fly back to YAIM's storage spot in the sky.",
+        "ru": "Предметы в инвентаре MOPR не трогает, и они остаются там, куда их выложил YAIM, в том числе после сохранения и загрузки. До 5.1.1 ведро, верша или бензобак, вынутые из инвентаря, могли улететь обратно в хранилище YAIM в небе.",
+        "pl": "Przedmioty w ekwipunku nie są ruszane i zostają tam, gdzie YAIM je położy, także po zapisie i wczytaniu. Przed 5.1.1 wiadro, sieć na ryby lub bak wyjęte z ekwipunku mogły odlecieć z powrotem do schowka YAIM w niebie."
+      } },
+    { "id": "TrafficCarExpansion", "name": "Traffic Car Expansion", "author": "Homura",
+      "status": "fix", "code": true, "since": "5.1.1", "tested": "2026-10-22",
+      "notes": {
+        "en": "MOPR leaves the mod's own highway objects to it (before 5.1.1: TRAFFIC_VEHICLES_ERROR on every load). The NullReferenceException in TrafficCarExpansion.FlashLights comes from the mod itself and appears without MOPR too.",
+        "ru": "Свои объекты на трассе мод ведёт сам, MOPR их не трогает (до 5.1.1 при каждой загрузке была ошибка TRAFFIC_VEHICLES_ERROR). NullReferenceException в TrafficCarExpansion.FlashLights — ошибка самого мода, она есть и без MOPR.",
+        "pl": "MOPR zostawia modowi jego własne obiekty na autostradzie (przed 5.1.1: TRAFFIC_VEHICLES_ERROR przy każdym wczytaniu). NullReferenceException w TrafficCarExpansion.FlashLights pochodzi z samego moda i pojawia się też bez MOPR."
+      } },
+    { "id": "FridgeAPI", "name": "Fridge API", "author": "Maceeiko", "status": "partial", "since": "5.1.0", "tested": "2026-10-19",
+      "notes": {
+        "en": "Food handled by Fridge API keeps its own spoiling: while MOPR has it switched off far away, it doesn't spoil. The game's own food spoils as usual.",
+        "ru": "Еда, которой управляет Fridge API, портится по его правилам: пока MOPR держит её выключенной вдали, она не портится. Обычная еда игры портится как обычно.",
+        "pl": "Jedzenie obsługiwane przez Fridge API psuje się po swojemu: gdy MOPR wyłącza je w oddali, nie psuje się. Zwykłe jedzenie z gry psuje się normalnie."
+      } },
+    { "id": "CarryMore", "name": "Carry More (backpack)", "author": "Wampa842", "url": "https://www.nexusmods.com/mysummercar/mods/1",
+      "status": "fix", "code": true, "origin": "mop",
+      "notes": { "en": "Items in the backpack are left alone.", "ru": "Предметы в рюкзаке MOPR не трогает.", "pl": "Przedmioty w plecaku nie są ruszane." } },
+    { "id": "AdvancedBackpack", "name": "Advanced Backpack", "status": "fix", "code": true, "origin": "mop",
+      "notes": { "en": "Items in the backpack are left alone.", "ru": "Предметы в рюкзаке MOPR не трогает.", "pl": "Przedmioty w plecaku nie są ruszane." } },
+
+    { "id": "MOP", "name": "MOP (Modern Optimization Plugin)", "author": "Athlon", "url": "https://www.nexusmods.com/mysummercar/mods/146",
+      "status": "incompatible",
+      "notes": {
+        "en": "MOP - REVIVAL is its continuation and replaces it: remove MOP.dll. Rule files of the original MOP still work.",
+        "ru": "MOP - REVIVAL — его продолжение и заменяет его: удалите MOP.dll. Файлы правил оригинального MOP продолжают работать.",
+        "pl": "MOP - REVIVAL jest jego kontynuacją i go zastępuje: usuń MOP.dll. Pliki reguł oryginalnego MOP nadal działają."
+      } },
+    { "id": "KruFPS", "author": "Krutonium", "url": "https://github.com/Krutonium/KruFPS", "status": "incompatible" },
+    { "id": "ImproveFPS", "status": "incompatible" },
+    { "id": "OptimizeMSC", "status": "incompatible" },
+    { "id": "DisableAll", "aliases": [ "ZZDisableAll" ], "status": "incompatible" }
+  ]
+}

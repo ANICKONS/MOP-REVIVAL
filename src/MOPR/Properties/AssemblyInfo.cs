@@ -22,7 +22,7 @@ namespace MOP
     /// <summary>Single source of truth for the mod version.</summary>
     internal static class BuildInfo
     {
-        public const string Version = "5.1.0";
+        public const string Version = "5.1.1";
 
 #if STUB_REFERENCES
         /// <summary>True when this DLL was compiled against compile-only stubs instead of the real game assemblies.</summary>

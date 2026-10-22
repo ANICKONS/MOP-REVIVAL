@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MOP - REVIVAL · Mod compatibility</title>
+  <meta name="description" content="Which My Summer Car mods work with MOP - REVIVAL, and what it does for them.">
+  <meta name="theme-color" content="#0f1115">
+  <link rel="icon" href="icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip" href="#list" data-i18n="skip">Skip to the list</a>
+
+  <header class="top">
+    <a class="brand" href="./" aria-label="MOP - REVIVAL 5">
+      <img src="icon.png" alt="" width="36" height="36">
+      <span class="brand-text"><span class="brand-mop">MOP</span> - REVIVAL</span>
+      <span class="brand-mark" aria-hidden="true">5</span>
+    </a>
+    <nav class="links" aria-label="Links">
+      <a class="btn btn-primary" href="https://github.com/ANICKONS/MOP-REVIVAL/releases/latest" data-i18n="download">Download</a>
+      <a class="btn" href="https://www.nexusmods.com/mysummercar/mods/11595">Nexus</a>
+      <a class="btn" href="https://github.com/ANICKONS/MOP-REVIVAL">GitHub</a>
+    </nav>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en">EN</button>
+      <button type="button" data-lang="ru">RU</button>
+      <button type="button" data-lang="pl">PL</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1 data-i18n="title">Mod compatibility</h1>
+      <p class="lead" data-i18n="lead">Which mods work with MOP - REVIVAL, and what it does for them. Most mods need nothing at all.</p>
+    </section>
+
+    <section class="tools" aria-label="Filter">
+      <label class="search">
+        <span class="sr-only" data-i18n="searchLabel">Search mods</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 0 1 5.9 12.1l4.8 4.8-1.4 1.4-4.8-4.8A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"/></svg>
+        <input id="q" type="search" autocomplete="off" spellcheck="false">
+      </label>
+      <div class="filters" id="filters" role="group" aria-label="Status"></div>
+      <label class="toggle">
+        <input id="testedOnly" type="checkbox">
+        <span data-i18n="testedOnly">Tested in 5.x only</span>
+      </label>
+    </section>
+
+    <p class="count" id="count" aria-live="polite"></p>
+    <section id="list" class="list" aria-label="Mods"></section>
+
+    <section class="cta">
+      <div>
+        <h2 data-i18n="reqTitle">Your mod isn't listed?</h2>
+        <p data-i18n="reqText">Most mods work with MOP - REVIVAL out of the box. If one doesn't, tell us which: we test it, and the fix comes with the next update.</p>
+      </div>
+      <a class="btn btn-primary" id="request" href="#" data-i18n="reqBtn">Request support</a>
+    </section>
+    <p class="note" data-i18n="reportText">Something broke right now? Press Report bug next to MOP - REVIVAL in MSCLoader's mod list: the logs are attached for you.</p>
+
+    <section class="legend" aria-label="Statuses" id="legend"></section>
+  </main>
+
+  <footer class="foot" id="foot"></footer>
+
+  <noscript><p class="note">This page needs JavaScript to show the list.</p></noscript>
+  <script src="data/mods.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

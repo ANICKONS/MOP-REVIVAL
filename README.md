@@ -15,6 +15,8 @@
 
 <p align="center">
   <a href="https://github.com/ANICKONS/MOP-REVIVAL/releases/latest"><b>Download</b></a> ·
+  <a href="https://www.nexusmods.com/mysummercar/mods/11595"><b>Nexus</b></a> ·
+  <a href="https://anickons.github.io/MOP-REVIVAL/"><b>Mod compatibility</b></a> ·
   <a href="CHANGELOG.md"><b>Changelog</b></a> ·
   <a href="https://github.com/ANICKONS/MOP-REVIVAL/issues"><b>Report a bug</b></a>
 </p>
@@ -50,6 +52,9 @@ That's it. The settings are in MSCLoader's mod list, next to MOP - REVIVAL.
 <sub>Coming from MOPR 4.x? `Mods\References\MOPRNET.dll` is no longer needed and can be deleted.</sub>
 
 ## Compatibility
+
+**[Check your mods on the compatibility site](https://anickons.github.io/MOP-REVIVAL/)**: what works, what MOP - REVIVAL
+does for each mod, and a button to request support for a new one.
 
 Rules for these mods are built in and switch on by themselves:
 

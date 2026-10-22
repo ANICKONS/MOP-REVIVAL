@@ -1,3 +1,9 @@
+### 5.1.1
+-Fixed items taken out of an inventory mod (YAIM) vanishing: a bucket, fish trap or fuel tank flew back to the inventory's storage spot in the sky. Items stored by inventory mods are no longer touched
+-Fixed items moved by another mod while MOPR had their physics frozen jumping back to their old spot
+-Fixed the TRAFFIC_VEHICLES_ERROR with Traffic Car Expansion: MOPR now leaves the mod's highway objects to it
+-Fixed an error with the floor jack when a mod had changed it (Better MSC)
+
 ### 5.1.0 "Engine"
 -NEW: PlayMaker engine optimizations - idle state machines, property actions and per-frame settings writes are skipped only when MOPR can prove nothing would change (+10% FPS, -60% garbage in tests)
 -NEW: State machines that only wait for the mouse or test a value each frame (Satsuma part removal and similar) are checked exactly as PlayMaker would and skipped when nothing would happen (+4.5% FPS in the yard, +6% in the living room)

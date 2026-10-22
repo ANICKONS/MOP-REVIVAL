@@ -44,6 +44,9 @@ namespace MOP
     internal class Hypervisor : MonoBehaviour
     {
         static Hypervisor instance;
+
+        /// <summary>The game's own cars under TRAFFIC/VehiclesHighway (two LAMOREs and three VICTROs share a name).</summary>
+        static readonly string[] VanillaHighwayCars = { "TRUCK", "SVOBODA", "LAMORE", "VICTRO", "MENACE", "FITTAN", "POLSA" };
         public static Hypervisor Instance => instance;
 
         Transform player;
@@ -500,17 +503,41 @@ namespace MOP
             }
 
             // VehiclesHighway renderers.
+            // MOP - REVIVAL 5.1 (fix): only the game's own highway cars. Mods put their own objects there too (Traffic
+            // Car Expansion: its car spawner and the container of its cars, both without renderers at load). MOP
+            // threw on the first of them (TRAFFIC_VEHICLES_ERROR, "Couldn't find the renderers") and skipped the rest
+            // of the list and the switch-on below. Such objects belong to their mod; each car is added on its own.
             try
             {
                 Transform vehiclesHighway = GameObject.Find("TRAFFIC").transform.Find("VehiclesHighway");
+                List<string> foreign = new List<string>();
                 foreach (var f in vehiclesHighway.GetComponentsInChildren<Transform>(true).Where(f => f.parent == vehiclesHighway))
                 {
-                    var traffic = worldObjectManager.Add(f.gameObject, DisableOn.Distance, 600, ToggleModes.MultipleRenderers);
-                    if (traffic != null) traffic.MinimumToggleDistance = 400;
+                    if (!VanillaHighwayCars.Contains(f.name))
+                    {
+                        foreign.Add(f.name);
+                        continue;
+                    }
+
+                    try
+                    {
+                        var traffic = worldObjectManager.Add(f.gameObject, DisableOn.Distance, 600, ToggleModes.MultipleRenderers);
+                        if (traffic != null) traffic.MinimumToggleDistance = 400;
+                    }
+                    catch (Exception ex)
+                    {
+                        ExceptionManager.New(ex, false, "TRAFFIC_VEHICLE_ERROR_" + f.name);
+                    }
                 }
 
                 // Also we gonna fix the lag on initial traffic load.
-                vehiclesHighway.gameObject.SetActive(true);
+                // MOP - REVIVAL 5.1: not when a mod has its own objects there. Switching the highway on makes the mod act
+                // (Traffic Car Expansion spawns 10-25 cars when its spawner is switched on), and at home MOPR switches
+                // the highway off again right away.
+                if (foreign.Count == 0)
+                    vehiclesHighway.gameObject.SetActive(true);
+                else
+                    ModConsole.Debug("Highway traffic: left to their mods: " + string.Join(", ", foreign.ToArray()));
             }
             catch (Exception ex)
             {

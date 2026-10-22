@@ -1,0 +1,47 @@
+{
+  "Name": "yaim-tce",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "User report: an item taken out of the YAIM inventory disappears (bucket), and Traffic Car Expansion gives TRAFFIC_VEHICLES_ERROR. Needs YAIM and TrafficCarExpansion in the Mods folder." },
+    { "Op": "tree", "Path": "TRAFFIC/VehiclesHighway", "Max": 1, "Label": "highway" },
+    { "Op": "census", "Path": "TRAFFIC/VehiclesHighway/TrafficModCarSpawner" },
+    { "Op": "census", "Path": "TRAFFIC/VehiclesHighway/TrafficModCars" },
+
+    { "Op": "log", "Text": "--- bucket (MOPR keeps it active and freezes only its physics far away) ---" },
+    { "Op": "yaim", "Text": "state", "Path": "ITEMS/bucket(itemx)" },
+    { "Op": "teleport", "Path": "ITEMS/bucket(itemx)", "Local": false, "Pos": [1.5, 0.5, 0.0], "Target": "ITEMS/bucket(itemx)" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "yaim", "Text": "state", "Path": "ITEMS/bucket(itemx)" },
+    { "Op": "yaim", "Text": "pickup", "Path": "ITEMS/bucket(itemx)" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "yaim", "Text": "state", "Path": "ITEMS/bucket(itemx)" },
+    { "Op": "yaim", "Text": "drop", "Path": "ITEMS/bucket(itemx)" },
+    { "Op": "wait", "Seconds": 0.5 },
+    { "Op": "yaim", "Text": "state", "Path": "ITEMS/bucket(itemx)" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "yaim", "Text": "state", "Path": "ITEMS/bucket(itemx)" },
+
+    { "Op": "log", "Text": "--- sausages (MOPR switches the whole item off far away) ---" },
+    { "Op": "yaim", "Text": "state", "Path": "ITEMS/sausages(itemx)" },
+    { "Op": "yaim", "Text": "pickup", "Path": "ITEMS/sausages(itemx)" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "yaim", "Text": "state", "Path": "ITEMS/sausages(itemx)" },
+    { "Op": "yaim", "Text": "drop", "Path": "ITEMS/sausages(itemx)" },
+    { "Op": "wait", "Seconds": 0.5 },
+    { "Op": "yaim", "Text": "state", "Path": "ITEMS/sausages(itemx)" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "yaim", "Text": "state", "Path": "ITEMS/sausages(itemx)" },
+
+    { "Op": "log", "Text": "--- fish trap in the inventory while the game saves (pre-save switches everything back on) ---" },
+    { "Op": "yaim", "Text": "pickup", "Path": "ITEMS/fish trap(itemx)" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "yaim", "Text": "state", "Path": "ITEMS/fish trap(itemx)" },
+    { "Op": "console", "Text": "mopr log 25" },
+    { "Op": "console", "Text": "mopr presave" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "yaim", "Text": "state", "Path": "ITEMS/fish trap(itemx)" },
+    { "Op": "census", "Path": "TRAFFIC/VehiclesHighway/TrafficModCars" },
+    { "Op": "quit" }
+  ]
+}

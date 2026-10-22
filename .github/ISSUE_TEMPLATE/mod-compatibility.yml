@@ -1,0 +1,53 @@
+name: Mod compatibility
+description: A mod doesn't work with MOP - REVIVAL, or you want it checked.
+title: "[Compat] "
+labels: [ "compatibility" ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! Check the [compatibility list](https://anickons.github.io/MOP-REVIVAL/) first: your mod may already be there.
+  - type: input
+    id: mod
+    attributes:
+      label: Mod
+      description: Name and, if you know it, the ID from MSCLoader's mod list.
+      placeholder: "Yet Another Inventory Mod (YAIM)"
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Where to get it
+      description: Nexus, GitHub or another link.
+      placeholder: "https://www.nexusmods.com/mysummercar/mods/..."
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens
+      description: What goes wrong, and what you did right before. "Works fine, please check it" is fine too.
+      placeholder: "I put the bucket into the inventory, took it out, and it disappeared."
+    validations:
+      required: true
+  - type: dropdown
+    id: safe
+    attributes:
+      label: Does it also happen in Safe mode?
+      description: MOP - REVIVAL settings -> Performance mode -> Safe, then quit to the main menu and load again.
+      options:
+        - I didn't try
+        - "Yes, also in Safe mode"
+        - "No, only in the other modes"
+  - type: textarea
+    id: report
+    attributes:
+      label: Mod report
+      description: MOP - REVIVAL settings -> Logs and bug reports -> Create mod report. Paste the file, or a link to it (pastebin.com, justpaste.it).
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: MOP - REVIVAL version
+      placeholder: "5.1.0"

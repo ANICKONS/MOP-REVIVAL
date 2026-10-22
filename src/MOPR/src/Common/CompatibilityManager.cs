@@ -36,6 +36,14 @@ namespace MOP.Common
         static readonly Vector3 AdvancedBackpackPosition = new Vector3(630f, 10f, 1140f);
         const int AdvancedBackpackDistance = 30;
 
+        // MOP - REVIVAL 5.1: inventory mods that keep the stored items high above the map. Nothing of the game is ever
+        // up there (the terrain stays below about 100 m), so an item that high is held by such a mod. Yet Another
+        // Inventory Mod (YAIM) keeps its items kinematic at (0, 1000, 0) and only moves them on pickup and drop.
+        // MOPR used to freeze them there as "far away" and, when YAIM dropped one in front of the player, put a
+        // physics-only item (bucket, fish trap, pike...) back where it had frozen it: into the sky, where it fell
+        // onto the map 1.4 km away (TestBot yaim-tce: 999.6 m one second after the drop).
+        const float StorageHeight = 500f;
+
         // MOP - REVIVAL: the original MOP ("MOP") would optimize the same objects twice.
         static readonly string[] incompatibleMods = { "MOP", "KruFPS", "ImproveFPS", "OptimizeMSC", "ZZDisableAll", "DisableAll" };
 
@@ -45,17 +53,17 @@ namespace MOP.Common
             AdvancedBackpack = global::MOP.FSM.LoaderCompat.GetMod("AdvancedBackpack") != null;
         }
 
+        /// <summary>
+        /// True if an inventory mod holds the item: MOPR leaves it alone (no switching, no freezing). 5.1: every
+        /// installed mod is checked (before, Advanced Backpack was not when CarryMore was there too), plus any item
+        /// high above the map (YAIM and other mods that store items in the sky).
+        /// </summary>
         public static bool IsInBackpack(ItemBehaviour behaviour)
         {
-            if (CarryMore)
-            {
-                return behaviour.transform.position.y < -900;
-            }
-            else if (AdvancedBackpack)
-            {
-                return Vector3.Distance(behaviour.transform.position, AdvancedBackpackPosition) < AdvancedBackpackDistance;
-            }
-
+            Vector3 position = behaviour.transform.position;
+            if (position.y > StorageHeight) return true;
+            if (CarryMore && position.y < -900) return true;
+            if (AdvancedBackpack && (position - AdvancedBackpackPosition).sqrMagnitude < AdvancedBackpackDistance * AdvancedBackpackDistance) return true;
             return false;
         }
 

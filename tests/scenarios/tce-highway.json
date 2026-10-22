@@ -1,0 +1,18 @@
+{
+  "Name": "tce-highway",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Traffic Car Expansion: does the highway traffic get switched off when the player goes home, and does TCE then throw in FlashLights.OnDisable? Run with -Variant vanilla and mopr." },
+    { "Op": "tree", "Path": "TRAFFIC/VehiclesHighway", "Max": 0, "Label": "home_start" },
+    { "Op": "teleport", "Path": "TRAFFIC/VehiclesHighway/TRUCK", "Local": false, "Pos": [0.0, 2.0, 8.0] },
+    { "Op": "wait", "Seconds": 15 },
+    { "Op": "tree", "Path": "TRAFFIC/VehiclesHighway", "Max": 0, "Label": "highway" },
+    { "Op": "census", "Path": "TRAFFIC/VehiclesHighway/TrafficModCars" },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.3, 0.0] },
+    { "Op": "wait", "Seconds": 15 },
+    { "Op": "tree", "Path": "TRAFFIC/VehiclesHighway", "Max": 0, "Label": "home_end" },
+    { "Op": "census", "Path": "TRAFFIC/VehiclesHighway/TrafficModCars" },
+    { "Op": "quit" }
+  ]
+}
