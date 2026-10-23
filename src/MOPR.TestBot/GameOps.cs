@@ -323,6 +323,44 @@ namespace MOPR.TestBot
             return null;
         }
 
+        static readonly Dictionary<Behaviour, bool> savedBehaviours = new Dictionary<Behaviour, bool>();
+
+        /// <summary>
+        /// Disables every enabled Behaviour under path whose type name is typeName (all types if empty), remembering
+        /// the state, or restores them. Returns the count.
+        /// </summary>
+        public static string SetBehaviours(string path, string typeName, bool enabled, out int count)
+        {
+            count = 0;
+            if (enabled)
+            {
+                foreach (KeyValuePair<Behaviour, bool> kv in savedBehaviours.ToList())
+                {
+                    if (kv.Key != null) { kv.Key.enabled = kv.Value; count++; }
+                }
+                savedBehaviours.Clear();
+                return null;
+            }
+            // Path "*": every active object of the scene.
+            Behaviour[] all;
+            if (path == "*") all = UnityEngine.Object.FindObjectsOfType<Behaviour>();
+            else
+            {
+                GameObject go = Resolve(path);
+                if (go == null) return "object not found: " + path;
+                all = go.GetComponentsInChildren<Behaviour>(true);
+            }
+            foreach (Behaviour b in all)
+            {
+                if (b == null || !b.enabled) continue;
+                if (!string.IsNullOrEmpty(typeName) && b.GetType().Name != typeName) continue;
+                if (!savedBehaviours.ContainsKey(b)) savedBehaviours[b] = true;
+                b.enabled = false;
+                count++;
+            }
+            return null;
+        }
+
         /// <summary>Turns shadow casting off for every renderer under path (remembering it) or restores it.</summary>
         public static string SetShadowCasting(string path, bool enabled, out int count)
         {

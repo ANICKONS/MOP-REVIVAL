@@ -24,6 +24,7 @@ namespace MOP.Localization
             { "con.render.line", "Render: {0} {1}" },
             { "con.name.scripts", "Script optimization" },
             { "con.name.rays", "Raycast optimization" },
+            { "con.name.mod_scripts", "Other mods' scripts" },
             { "con.name.engine_bay", "Engine bay optimization" },
             { "con.name.mirrors", "Mirror optimization" },
             { "con.name.render", "Render optimization" },
@@ -98,17 +99,16 @@ namespace MOP.Localization
             { "con.rules.manage_missing", "Rules: couldn't find {0} (manage {1})" },
             { "con.rules.issue", "Rules: {0}" },
             { "con.rules.more_issues", "Rules: <color=#9AA6B2>...and {0} more (mopr rules)</color>" },
-            // The summary line: "Rules: 25, files: 3 (built-in: 3), read in 12 ms".
+            // The summary line: "Rules: loaded for 2 mods." ({1} = the number in color).
             { "con.rules.prefix", "Rules: " },
             { "con.rules.none_needed", "none needed for the installed mods" },
             { "con.rules.off", "off" },
-            { "con.rules.summary", "{0}, files: {1} ({2})" },
-            { "con.rules.n_builtin", "built-in: {0}" },
-            { "con.rules.n_yours", "yours: {0}" },
-            { "con.rules.n_legacy", "old format: {0}" },
+            { "con.rules.loaded_for_one", "loaded for {1} mod" },
+            { "con.rules.loaded_for_many", "loaded for {1} mods" },
+            { "con.rules.plus_yours", " + your files: {0}" },
+            { "con.rules.only_yours", "your files: {0}" },
             { "con.rules.all_files", " (every file, installed mod or not)" },
             { "con.rules.next_load", " - applies at the next game load" },
-            { "con.rules.read_in", ", read in {0} ms" },
             // "mopr rules".
             { "con.rules.src_builtin", "built-in" },
             { "con.rules.src_yours", "yours" },
@@ -150,6 +150,11 @@ namespace MOP.Localization
             { "con.cmd.not_found", "Command {0} not found." },
             { "con.cmd.usage", "Usage: {0}" },
             { "con.cmd.version", "MOP - REVIVAL {0} for {1}" },
+            { "con.update.available", "A new version is out: {0} (you have {1}). Download: {2}" },
+            { "con.update.latest", "You have the latest version ({0})." },
+            { "con.update.ahead", "Your version {0} is newer than the latest release {1}." },
+            { "con.update.failed", "Could not check for updates: {0}" },
+            { "con.update.running", "The update check is already running." },
             { "con.cmd.only_in_game", "Can only be used in game." },
             { "con.cmd.render_only_in_game", "The render optimizer only runs in game." },
             { "con.cmd.render_restored", "Render optimizer suspended and every value restored. Change any render setting to apply it again." },
@@ -208,6 +213,7 @@ namespace MOP.Localization
             { "con.help.audit", "Looks for PlayMaker FSMs in managed objects that may reset when switched back on" },
             { "con.help.guard", "Writes the list of FSMs protected by the restart guard" },
             { "con.help.engine", "Game engine optimizations: switch the mode or show the statistics" },
+            { "con.help.update", "Checks GitHub for a newer version of MOPR" },
         };
     }
 }

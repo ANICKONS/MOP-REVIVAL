@@ -10,13 +10,19 @@
     { "id": "AthlonsTweaksPack", "status": "fix", "origin": "mop" },
     { "id": "BetterMSC", "name": "Better MSC", "author": "Tomson91", "status": "fix", "origin": "mop", "code": true,
       "notes": {
-        "en": "Since 5.1.1 also no error from the floor jack, which Better MSC changes.",
-        "ru": "С 5.1.1 ещё и нет ошибки от домкрата, который меняет Better MSC.",
-        "pl": "Od 5.1.1 nie ma też błędu z podnośnikiem, który zmienia Better MSC."
+        "en": "Since 5.1.1: no error from the floor jack, which Better MSC changes, and its lamp bulbs are faster (setting \"Speed up other mods' scripts\"): +19% FPS in the house.",
+        "ru": "С 5.1.1 нет ошибки от домкрата, который меняет Better MSC, а его лампочки работают быстрее (настройка «Ускорить скрипты других модов»): +19% FPS в доме.",
+        "pl": "Od 5.1.1 nie ma błędu z podnośnikiem, który zmienia Better MSC, a jego żarówki działają szybciej (ustawienie „Przyspiesz skrypty innych modów”): +19% FPS w domu."
       } },
     { "id": "BodyPillow", "status": "fix", "origin": "mop" },
     { "id": "BottleRecycling", "status": "fix", "origin": "mop" },
-    { "id": "CallYourCousin", "name": "Call Your Cousin", "author": "sykovanz", "status": "fix", "origin": "mop" },
+    { "id": "CallYourCousin", "name": "Call Your Cousin", "author": "sykovanz", "status": "fix", "origin": "mop", "code": true,
+      "since": "5.1.1", "tested": "2026-10-23",
+      "notes": {
+        "en": "Pena comes to the house and drives off with you. Before 5.1.1 his car did not move after you got in: MOP moved the car out of the traffic, and Call Your Cousin no longer saw you in it.",
+        "ru": "Пена приезжает к дому и уезжает вместе с вами. До 5.1.1 его машина не трогалась, когда вы садились: MOP переносил машину из трафика, и Call Your Cousin больше не видел вас в ней.",
+        "pl": "Pena przyjeżdża pod dom i odjeżdża razem z Tobą. Przed 5.1.1 jego auto nie ruszało po wejściu: MOP przenosił auto poza ruch drogowy i Call Your Cousin przestawał Cię w nim widzieć."
+      } },
     { "id": "CDPlayer", "status": "fix", "origin": "mop" },
     { "id": "ColorfulGauges3", "name": "ColorfulGauges", "author": "RedJonh260", "status": "fix", "origin": "mop" },
     { "id": "dazyWoodDash", "status": "fix", "origin": "mop" },

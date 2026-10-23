@@ -422,6 +422,11 @@ namespace UnityEngine
     {
         public Vector3 up { get { throw null; } set { } }
         public Vector3 InverseTransformPoint(Vector3 position) { throw null; }
+        public bool IsChildOf(Transform parent) { throw null; }  // 5.1.1 SimpleObjectToggle player guard
+    }
+    public partial class Component
+    {
+        public Component GetComponent(string type) { throw null; }  // 5.1.1 Engine Lab, other mods' scripts
     }
 
     // ----- Item toggle errors (5.1, Items/ItemBehaviour.cs): written to output_log.txt only. -----

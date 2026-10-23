@@ -102,7 +102,38 @@ namespace MOP.Next.Engine
                 ExceptionManager.New(ex, false, "ENGINE_SETTINGS");
             }
             ApplyMouseRay(on, verify);
+            ApplyModScripts(on, verify);
             ApplyExperimental();
+        }
+
+        /// <summary>Other mods' scripts (5.1.1): under the main switch like the mouse ray, same verify mode.</summary>
+        static void ApplyModScripts(bool engineOn, bool verify)
+        {
+            try
+            {
+                bool wanted = engineOn && MopMenu.EngineModScripts != null && MopMenu.EngineModScripts.GetValue();
+                if (!wanted)
+                {
+                    if (ModScripts.Installed)
+                    {
+                        ModScripts.Remove();
+                        ModConsole.Info("con.engine.line", Loc.Word("con.name.mod_scripts"), ModeWord(ModeOff));
+                    }
+                }
+                else if (!ModScripts.Installed || ModScripts.Shadow != verify)
+                {
+                    string err = ModScripts.Install(verify);
+                    if (err != null)
+                        ModConsole.Warn("con.engine.part_unavailable", "other mods' scripts", err);
+                    else if (ModScripts.Installed)
+                        ModConsole.Info("con.engine.line", Loc.Word("con.name.mod_scripts"), ModeWord(verify ? ModeShadow : ModeOn));
+                    ModScripts.ResetStats();
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionManager.New(ex, false, "ENGINE_MOD_SCRIPTS_SETTINGS");
+            }
         }
 
         /// <summary>Shared mouse ray (5.1): part of the game engine section, under its main switch, same verify mode.</summary>
@@ -197,6 +228,7 @@ namespace MOP.Next.Engine
             FsmPropertyFastPath.ResetStats();
             SharedMouseRay.ResetStats();
             IkFastPath.ResetStats();
+            ModScripts.ResetStats();
         }
 
         /// <summary>Called when a scene was loaded: the caches must not keep objects of the previous scene alive.</summary>
@@ -218,7 +250,7 @@ namespace MOP.Next.Engine
 
         public static long ShadowMismatches =>
             FsmFastPath.UpdateStats.ShadowMismatch + FsmFastPath.LateStats.ShadowMismatch + RedundantWrites.AxisShadowMismatch +
-            FsmPropertyFastPath.ShadowMismatch + IkFastPath.ShadowMismatch;
+            FsmPropertyFastPath.ShadowMismatch + IkFastPath.ShadowMismatch + ModScripts.ShadowMismatch;
 
         /// <summary>Machine-readable counters: "key=value;key=value".</summary>
         public static string Counters()
@@ -236,6 +268,9 @@ namespace MOP.Next.Engine
             sb.Append(";ik.calls=").Append(IkFastPath.Calls).Append(";ik.skipped=").Append(IkFastPath.Skipped)
               .Append(";ik.noopRuns=").Append(IkFastPath.NoOpRuns).Append(";ik.changedRuns=").Append(IkFastPath.ChangedRuns)
               .Append(";ik.shadowChecked=").Append(IkFastPath.ShadowChecked).Append(";ik.shadowMismatch=").Append(IkFastPath.ShadowMismatch);
+            sb.Append(";mods.installed=").Append(ModScripts.Installed).Append(";mods.calls=").Append(ModScripts.Calls)
+              .Append(";mods.skipped=").Append(ModScripts.Skipped).Append(";mods.shadowChecked=").Append(ModScripts.ShadowChecked)
+              .Append(";mods.shadowMismatch=").Append(ModScripts.ShadowMismatch);
             for (int i = 0; i < FsmFastPath.ReasonCount; i++)
             {
                 if (u.Reasons[i] > 0) sb.Append(";update.run.").Append(FsmFastPath.ReasonNames[i]).Append('=').Append(u.Reasons[i]);
@@ -256,6 +291,7 @@ namespace MOP.Next.Engine
                 IkFastPath.AppendReport(sb);
             }
             SharedMouseRay.AppendReport(sb);
+            ModScripts.AppendReport(sb);
             sb.AppendLine(MirrorRate.Report());
             sb.AppendLine(EngineBayCulling.Report());
             return sb.ToString().TrimEnd();

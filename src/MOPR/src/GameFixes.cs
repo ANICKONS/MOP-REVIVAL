@@ -140,20 +140,14 @@ namespace MOP
                 ExceptionManager.New(ex, false, "ITEMS_FIXES_ERROR");
             }
 
-            // Applying a script to vehicles that can pick up and drive the player as a passanger to his house.
-            // This script makes it so when the player enters the car, the parent of the vehicle is set to null.
-            try
-            {
-                GameObject fittan = GameObject.Find("TRAFFIC").transform.Find("VehiclesDirtRoad/Rally/FITTAN").gameObject;
-                GameObject kuski = GameObject.Find("NPC_CARS").transform.Find("KUSKI").gameObject;
-                global::MOP.FSM.LoaderCompat.FsmHookInject(fittan.transform.Find("PlayerTrigger/DriveTrigger").gameObject, "Player in car", () => fittan.transform.parent = null);
-                global::MOP.FSM.LoaderCompat.FsmHookInject(kuski.transform.Find("PlayerTrigger/DriveTrigger").gameObject, "Player in car", () => kuski.transform.parent = null);
-
-            }
-            catch (Exception ex)
-            {
-                ExceptionManager.New(ex, true, "TAXI_MANAGERS_ERROR");
-            }
+            // MOP - REVIVAL 5.1.1 (fix, original MOP behaviour): MOP 3.10 hooked "Player in car" of Pena's car
+            // (TRAFFIC/VehiclesDirtRoad/Rally/FITTAN) and the drunk driver's car (NPC_CARS/KUSKI) and moved the car to
+            // the scene root when the player got in as a passenger, so switching TRAFFIC / NPC_CARS off at home would
+            // not take the player with it. The car never went back, and everything that finds it by its place in the
+            // scene lost it. Call Your Cousin checks "the player is under TRAFFIC" to know the player got in; with the
+            // car moved out it never saw it and kept Pena stopped at the house (it stops him every physics frame
+            // while the player is within 10 m), so the car did not move with the player inside. Now nothing is moved:
+            // a world object the player is in is never switched off (SimpleObjectToggle).
 
             // Fixed Ventii bet resetting to default on cabin load.
             Transform cabin = GameObject.Find("CABIN").transform;

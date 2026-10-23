@@ -730,9 +730,14 @@ namespace MOP
 
             try
             {
-                traffic = worldObjectManager.Get("TRAFFIC");
-                trafficDirt = worldObjectManager.Get("VehiclesDirtRoad");
-                trafficHighway = worldObjectManager.Get("VehiclesHighway");
+                // MOP - REVIVAL 5.1.1 (fix, original MOP bug): a rule that excludes the traffic (Call Your Cousin:
+                // TRAFFIC, VehiclesDirtRoad) left these null, and Update threw a NullReferenceException every frame
+                // in Balanced and Quality mode. Update only reads whether the traffic is on, so the objects themselves
+                // are used when MOPR doesn't manage them.
+                GameObject trafficRoot = GameObject.Find("TRAFFIC");
+                traffic = worldObjectManager.Get("TRAFFIC") ?? trafficRoot;
+                trafficDirt = worldObjectManager.Get("VehiclesDirtRoad") ?? trafficRoot?.transform.Find("VehiclesDirtRoad")?.gameObject;
+                trafficHighway = worldObjectManager.Get("VehiclesHighway") ?? trafficRoot?.transform.Find("VehiclesHighway")?.gameObject;
             }
             catch (Exception ex)
             {
@@ -782,11 +787,14 @@ namespace MOP
                     .Print();
 
                 bool engine = MopMenu.EngineFastPath != null && MopMenu.EngineFastPath.GetValue();
-                new ModConsole.Block("con.sum.mode", Loc.Word(ModeKey(MopSettings.Mode), MoprColors.AccentHex))
+                ModConsole.Block mode = new ModConsole.Block("con.sum.mode", Loc.Word(ModeKey(MopSettings.Mode), MoprColors.AccentHex))
                     .Line("con.sum.flag", Loc.Word("con.name.render"), Loc.OnOff(MopMenu.RenderOptimizerEnabled != null && MopMenu.RenderOptimizerEnabled.GetValue()))
                     .Line("con.sum.flag", Loc.Word("con.name.scripts"), Loc.OnOff(engine))
-                    .Line("con.sum.flag", Loc.Word("con.name.rays"), Loc.OnOff(Next.Engine.SharedMouseRay.Installed))
-                    .Line("con.sum.flag", Loc.Word("con.name.merge"), Loc.OnOff(VehicleMeshMerge.Enabled))
+                    .Line("con.sum.flag", Loc.Word("con.name.rays"), Loc.OnOff(Next.Engine.SharedMouseRay.Installed));
+                // Only when a supported mod is installed (5.1.1).
+                if (Next.Engine.ModScripts.Installed)
+                    mode.Line("con.sum.flag", Loc.Word("con.name.mod_scripts"), Loc.OnOff(true));
+                mode.Line("con.sum.flag", Loc.Word("con.name.merge"), Loc.OnOff(VehicleMeshMerge.Enabled))
                     .Print();
 
                 new ModConsole.Block("con.sum.experimental")
@@ -1314,13 +1322,14 @@ namespace MOP
             if (MopSettings.Mode > PerformanceMode.Performance)
             {
                 // Pointless to checck if traffic is about to collide with other vehicles, if traffic is disabled.
-                if (!traffic.activeSelf)
+                // (A missing object - a mod removed it - means there is no such traffic.)
+                if (traffic == null || !traffic.activeSelf)
                 {
                     return;
                 }
 
                 // Same for traffic highway and dirt road traffic.
-                if (!trafficHighway.activeSelf && !trafficDirt.activeSelf)
+                if ((trafficHighway == null || !trafficHighway.activeSelf) && (trafficDirt == null || !trafficDirt.activeSelf))
                 {
                     return;
                 }

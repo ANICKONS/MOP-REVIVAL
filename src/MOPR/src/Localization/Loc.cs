@@ -127,14 +127,17 @@ namespace MOP.Localization
             on ? new LocWord("con.on", Common.MoprColors.SuccessHex) : new LocWord("con.off", Common.MoprColors.MutedHex);
 
         /// <summary>Picks the singular or the plural key ("{key}_one" / "{key}_many") and formats it with <paramref name="count"/>.</summary>
-        internal static string Plural(string key, int count, params object[] extra)
+        internal static string Plural(string key, int count, params object[] extra) => PluralIn(current, key, count, extra);
+
+        /// <summary><see cref="Plural"/> in a given language (the English copy of a console line, for reports).</summary>
+        internal static string PluralIn(Language language, string key, int count, params object[] extra)
         {
             object[] args = new object[1 + (extra != null ? extra.Length : 0)];
             args[0] = count;
             if (extra != null) Array.Copy(extra, 0, args, 1, extra.Length);
-            string suffix = PluralSuffix(current, count);
-            if (suffix == "_few" && !tables[(int)current].ContainsKey(key + suffix)) suffix = "_many";
-            return F(key + suffix, args);
+            string suffix = PluralSuffix(language, count);
+            if (suffix == "_few" && !tables[(int)language].ContainsKey(key + suffix)) suffix = "_many";
+            return FIn(language, key + suffix, args);
         }
 
         /// <summary>"_one", "_few" or "_many". Russian and Polish have a "few" form (2-4, not 12-14).</summary>

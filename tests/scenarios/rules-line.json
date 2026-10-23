@@ -1,0 +1,22 @@
+{
+  "Name": "rules-line",
+  "StayInMenu": true,
+  "Steps": [
+    { "Op": "log", "Text": "The rules summary line in the console, in Russian (the user's language), then English and Polish after 'mopr reload' in each language, and with the rules off." },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "console", "Text": "mopr log 14" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "0" },
+    { "Op": "console", "Text": "mopr reload" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "2" },
+    { "Op": "console", "Text": "mopr reload" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "1" },
+    { "Op": "console", "Text": "mopr reload all" },
+    { "Op": "console", "Text": "mopr load-rules false" },
+    { "Op": "console", "Text": "mopr reload" },
+    { "Op": "console", "Text": "mopr load-rules true" },
+    { "Op": "console", "Text": "mopr reload" },
+    { "Op": "console", "Text": "mopr log 3" },
+    { "Op": "screenshot", "Label": "console" },
+    { "Op": "quit" }
+  ]
+}

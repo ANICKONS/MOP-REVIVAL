@@ -1,0 +1,16 @@
+{
+  "Name": "update-check",
+  "StayInMenu": true,
+  "Steps": [
+    { "Op": "log", "Text": "Update check in the main menu: the automatic check (once per game start, GitHub releases/latest through Windows' WinHTTP), then 'mopr update' by hand, then 'mopr update preview' (the message for the latest release, whatever the version) with a screenshot." },
+    { "Op": "wait", "Seconds": 15 },
+    { "Op": "console", "Text": "mopr log 12" },
+    { "Op": "console", "Text": "mopr update" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "console", "Text": "mopr update preview" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "screenshot", "Label": "update-window" },
+    { "Op": "console", "Text": "mopr log 6" },
+    { "Op": "quit" }
+  ]
+}

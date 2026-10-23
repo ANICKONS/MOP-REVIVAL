@@ -1,0 +1,26 @@
+{
+  "Name": "bmsc-tour",
+  "SettleSeconds": 20,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Better MSC FPS: the same four spots (yard, living room, country road, Peraejaervi) with frame times and a script profile. Run with and without -DisableMods BetterMSC, -Variant mopr and vanilla, and compare the same spot across runs." },
+    { "Op": "census", "Path": "MAP/MESH" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-12.0, 2.0, 6.0], "Target": "YARD/Building" },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "measure", "Label": "yard", "Seconds": 8 },
+    { "Op": "profile", "Label": "yard", "Seconds": 8, "Extended": true },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "measure", "Label": "living", "Seconds": 8 },
+    { "Op": "profile", "Label": "living", "Seconds": 8, "Extended": true },
+    { "Op": "teleport", "Path": "Waypoint Manager/TeimoBicycleIn/Waypoint 6", "Pos": [0.0, 1.5, 0.0], "Target": "Waypoint Manager/TeimoBicycleIn/Waypoint 9" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "measure", "Label": "road", "Seconds": 8 },
+    { "Op": "profile", "Label": "road", "Seconds": 8, "Extended": true },
+    { "Op": "teleport", "Path": "Waypoint Manager/TeimoBicycleIn/Waypoint 31", "Pos": [0.0, 1.5, 0.0], "Target": "Waypoint Manager/TeimoBicycleIn/Waypoint 36" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "measure", "Label": "village", "Seconds": 8 },
+    { "Op": "profile", "Label": "village", "Seconds": 8, "Extended": true },
+    { "Op": "quit" }
+  ]
+}

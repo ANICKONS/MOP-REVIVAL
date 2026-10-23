@@ -23,6 +23,7 @@ namespace MOP.Localization
             { "con.render.line", "Renderowanie: {0} {1}" },
             { "con.name.scripts", "Optymalizacja skryptów" },
             { "con.name.rays", "Optymalizacja promieni" },
+            { "con.name.mod_scripts", "Skrypty innych modów" },
             { "con.name.engine_bay", "Optymalizacja silnika" },
             { "con.name.mirrors", "Optymalizacja lusterek" },
             { "con.name.render", "Optymalizacja renderowania" },
@@ -97,17 +98,17 @@ namespace MOP.Localization
             { "con.rules.manage_missing", "Reguły: nie znaleziono {0} (manage {1})" },
             { "con.rules.issue", "Reguły: {0}" },
             { "con.rules.more_issues", "Reguły: <color=#9AA6B2>…i jeszcze {0} (mopr rules)</color>" },
-            // Podsumowanie: „Reguły: 25, plików: 3 (wbudowanych: 3), wczytano w 12 ms”.
+            // Podsumowanie: „Reguły: wczytano dla 2 modów.” ({1} = liczba w kolorze).
             { "con.rules.prefix", "Reguły: " },
             { "con.rules.none_needed", "niepotrzebne dla zainstalowanych modów" },
             { "con.rules.off", "wyłączone" },
-            { "con.rules.summary", "{0}, plików: {1} ({2})" },
-            { "con.rules.n_builtin", "wbudowanych: {0}" },
-            { "con.rules.n_yours", "Twoich: {0}" },
-            { "con.rules.n_legacy", "w starym formacie: {0}" },
+            { "con.rules.loaded_for_one", "wczytano dla {1} modu" },
+            { "con.rules.loaded_for_few", "wczytano dla {1} modów" },
+            { "con.rules.loaded_for_many", "wczytano dla {1} modów" },
+            { "con.rules.plus_yours", " + Twoich plików: {0}" },
+            { "con.rules.only_yours", "Twoich plików: {0}" },
             { "con.rules.all_files", " (wszystkie pliki, także dla niezainstalowanych modów)" },
             { "con.rules.next_load", " - zadziałają przy następnym wczytaniu gry" },
-            { "con.rules.read_in", ", wczytano w {0} ms" },
             // „mopr rules”.
             { "con.rules.src_builtin", "wbudowany" },
             { "con.rules.src_yours", "Twój" },
@@ -149,6 +150,11 @@ namespace MOP.Localization
             { "con.cmd.not_found", "Nie znaleziono polecenia {0}." },
             { "con.cmd.usage", "Użycie: {0}" },
             { "con.cmd.version", "MOP - REVIVAL {0} dla {1}" },
+            { "con.update.available", "Wyszła nowa wersja: {0} (masz {1}). Pobierz: {2}" },
+            { "con.update.latest", "Masz najnowszą wersję ({0})." },
+            { "con.update.ahead", "Twoja wersja {0} jest nowsza niż najnowsze wydanie {1}." },
+            { "con.update.failed", "Nie udało się sprawdzić aktualizacji: {0}" },
+            { "con.update.running", "Sprawdzanie aktualizacji już trwa." },
             { "con.cmd.only_in_game", "Działa tylko w grze." },
             { "con.cmd.render_only_in_game", "Optymalizator renderowania działa tylko w grze." },
             { "con.cmd.render_restored", "Optymalizator renderowania wstrzymany, wszystkie wartości przywrócone. Zmień dowolne ustawienie renderowania, aby zastosować je ponownie." },
@@ -207,6 +213,7 @@ namespace MOP.Localization
             { "con.help.audit", "Szuka w zarządzanych obiektach FSM PlayMakera, które mogą się zresetować po włączeniu" },
             { "con.help.guard", "Zapisuje listę FSM chronionych przed resetem" },
             { "con.help.engine", "Optymalizacje silnika gry: zmiana trybu lub statystyki" },
+            { "con.help.update", "Sprawdza na GitHubie, czy jest nowsza wersja MOPR" },
         };
     }
 }

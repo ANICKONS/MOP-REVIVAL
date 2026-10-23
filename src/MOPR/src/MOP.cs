@@ -118,6 +118,9 @@ namespace MOP
                 helper.AddComponent<MenuHelper>();
             }
 
+            // MOP - REVIVAL 5.1.1: once per game start (MenuHelper lives across scenes).
+            UpdateChecker.OnMenuLoad(MenuHelper.Instance);
+
             MopSettings.Restarts++;
             if (MopSettings.Restarts > MopSettings.MaxRestarts && !MopSettings.RestartWarningShown)
             {
@@ -185,6 +188,7 @@ namespace MOP
 
         static bool consoleCommandAdded;
         static bool settingsLoaded;
+        internal static bool SettingsLoaded => settingsLoaded;
 
         /// <summary>
         /// Called once in MSCLoader's phase 3. The heavy initialization in Hypervisor waits until every

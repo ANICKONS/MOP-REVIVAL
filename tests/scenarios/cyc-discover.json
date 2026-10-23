@@ -1,0 +1,19 @@
+{
+  "Name": "cyc-discover",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Call Your Cousin: Pena's car (TRAFFIC/VehiclesDirtRoad/Rally/FITTAN), its objects and FSMs, then a call from home and his drive to the house. Needs CallYourCousin in the Mods folder." },
+    { "Op": "tree", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN", "Max": 3, "Label": "fittan" },
+    { "Op": "dumpfsm", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN", "Recursive": true, "Label": "fittan" },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.3, 0.0] },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "cyc", "Text": "state" },
+    { "Op": "cyc", "Text": "call" },
+    { "Op": "repeat", "Label": "drive", "Max": 30, "Steps": [
+      { "Op": "wait", "Seconds": 5 },
+      { "Op": "cyc", "Text": "state" }
+    ] },
+    { "Op": "quit" }
+  ]
+}

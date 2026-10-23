@@ -34,7 +34,10 @@ param(
     [string]$MoprDll = '',
     # Files copied into Mods\Config\Mod Settings\MOPR for this run only (rule files, MopData.json...).
     # That folder is ALWAYS backed up before the run and restored after it, with or without this parameter.
-    [string]$ModConfig = ''
+    [string]$ModConfig = '',
+    # Other mods left out of this run, comma separated DLL names without ".dll" (e.g. "BetterMSC"): moved out of
+    # Mods for the run and moved back after it. The settings of every other mod are backed up and restored anyway.
+    [string]$DisableMods = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -78,6 +81,11 @@ if ($Variant -eq 'mopr' -and -not (Test-Path $MoprDll)) { Step "MOPR DLL not fou
 $MoprCfgDir = Join-Path $ModsDir 'Config\Mod Settings\MOPR'
 if ($ModConfig -and -not [IO.Path]::IsPathRooted($ModConfig)) { $ModConfig = Join-Path $RepoRoot $ModConfig }
 if ($ModConfig -and -not (Test-Path $ModConfig)) { Step "ModConfig folder not found: $ModConfig" 'Red'; exit 1 }
+$Disabled = @($DisableMods -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+foreach ($d in $Disabled) {
+    if ($d -match '[\\/:*?"<>|]' -or $d -ieq 'MOPR' -or $d -ieq 'MOPR.TestBot') { Step "DisableMods: invalid mod name '$d'" 'Red'; exit 1 }
+    if (-not (Test-Path (Join-Path $ModsDir "$d.dll"))) { Step "DisableMods: $d.dll is not in $ModsDir" 'Red'; exit 1 }
+}
 $BotDll  = Join-Path $RepoRoot 'src\MOPR.TestBot\bin\Release\MOPR.TestBot.dll'
 if (-not (Test-Path $BotDll)) { Step "TestBot not built: $BotDll" 'Red'; exit 1 }
 
@@ -110,12 +118,28 @@ if ($hadMoprCfg) {
     if ($cfgCount -ne $cfgBak) { Step "MOPR settings backup incomplete ($cfgBak of $cfgCount files). Aborting." 'Red'; exit 1 }
 }
 
+# The settings of the other mods (the bot may change them, e.g. "modsetting" in the menu): backed up, restored after.
+$ModSettingsDir = Join-Path $ModsDir 'Config\Mod Settings'
+$OtherCfgBackup = Join-Path $RunDir 'mod-settings-backup'
+$otherCfg = @(Get-ChildItem $ModSettingsDir -Directory -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne 'MOPR' -and $_.Name -ne 'MOPR_TestBot' })
+New-Item -ItemType Directory -Force -Path $OtherCfgBackup | Out-Null
+foreach ($dir in $otherCfg) { Copy-Item -Recurse -Force $dir.FullName (Join-Path $OtherCfgBackup $dir.Name) }
+$otherCount = @($otherCfg | ForEach-Object { Get-ChildItem $_.FullName -Recurse -File -Force }).Count
+$otherBak = @(Get-ChildItem $OtherCfgBackup -Recurse -File -Force).Count
+if ($otherCount -ne $otherBak) { Step "Mod settings backup incomplete ($otherBak of $otherCount files). Aborting." 'Red'; exit 1 }
+$DisabledStash = Join-Path $Stash 'disabled-mods'
+
 $exitCode = 0
 try {
     # --- Install the variant under test ---------------------------------------------------------
     if ($Variant -eq 'mopr') { Copy-Item $MoprDll $userMopr -Force }
     elseif ($hadUserMopr) { Remove-Item $userMopr -Force }
     Copy-Item $BotDll (Join-Path $ModsDir 'MOPR.TestBot.dll') -Force
+    if ($Disabled.Count -gt 0) {
+        New-Item -ItemType Directory -Force -Path $DisabledStash | Out-Null
+        foreach ($d in $Disabled) { Move-Item (Join-Path $ModsDir "$d.dll") (Join-Path $DisabledStash "$d.dll") -Force }
+        Step "Left out for this run: $($Disabled -join ', ')"
+    }
     if ($ModConfig) {
         New-Item -ItemType Directory -Force -Path $MoprCfgDir | Out-Null
         Copy-Item -Recurse -Force (Join-Path $ModConfig '*') $MoprCfgDir
@@ -278,6 +302,18 @@ finally {
         @{ Name = 'mopr';  Do = {
             if ($hadUserMopr) { Copy-Item (Join-Path $Stash 'MOPR.dll') $userMopr -Force }
             elseif (Test-Path $userMopr) { Remove-Item $userMopr -Force } } },
+        @{ Name = 'disabled-mods'; Do = {
+            foreach ($d in $Disabled) {
+                $s = Join-Path $DisabledStash "$d.dll"
+                if (Test-Path $s) { Move-Item $s (Join-Path $ModsDir "$d.dll") -Force }
+                if (-not (Test-Path (Join-Path $ModsDir "$d.dll"))) { throw "$d.dll is not back in Mods" }
+            } } },
+        @{ Name = 'mod-settings'; Do = {
+            foreach ($dir in @(Get-ChildItem $OtherCfgBackup -Directory -Force)) {
+                $dst = Join-Path $ModSettingsDir $dir.Name
+                if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
+                Copy-Item -Recurse -Force $dir.FullName $dst
+            } } },
         @{ Name = 'mopr-config'; Do = {
             # The run's state of the folder is kept for inspection, then the user's folder comes back exactly.
             if (Test-Path $MoprCfgDir) { Copy-Item -Recurse -Force $MoprCfgDir (Join-Path $RunDir 'mopr-config-after') }
@@ -305,6 +341,12 @@ finally {
         if ($cfgDiff -eq 0) { Step "MOPR settings verified: $(@($nowCfg).Count) files identical to the backup." 'Green' }
         else { Step "MOPR SETTINGS MISMATCH ($cfgDiff differences)! Backup is in $CfgBackup" 'Red'; $exitCode = 7 }
     }
+
+    $nowOther = @(Get-ChildItem $OtherCfgBackup -Directory -Force | ForEach-Object { & $hashList (Join-Path $ModSettingsDir $_.Name) | ForEach-Object { $_ } })
+    $bakOther = @(Get-ChildItem $OtherCfgBackup -Directory -Force | ForEach-Object { & $hashList $_.FullName | ForEach-Object { $_ } })
+    $otherDiff = @(Compare-Object $nowOther $bakOther).Count
+    if ($otherDiff -eq 0) { Step "Other mods' settings verified: $($nowOther.Count) files identical to the backup." 'Green' }
+    else { Step "OTHER MOD SETTINGS MISMATCH ($otherDiff differences)! Backup is in $OtherCfgBackup" 'Red'; $exitCode = 8 }
 }
 
 # --- Summary --------------------------------------------------------------------------------------

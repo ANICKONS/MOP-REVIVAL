@@ -765,6 +765,23 @@ namespace MOPR.TestBot
                     case "viewdiff":
                         yield return StartCoroutine(ViewDiff(step));
                         break;
+                    case "cyc":
+                        {
+                            // Text: call / state (CycProbe.cs, the Call Your Cousin mod).
+                            string res;
+                            try { res = CycProbe.Run(step.Text, step.Seconds); }
+                            catch (Exception e) { res = "ERROR: " + (e.InnerException ?? e).Message; }
+                            Log($"cyc {step.Text}: {res}");
+                        }
+                        break;
+                    case "cycwait":
+                        {
+                            // Until Pena waits at the house, at most Seconds.
+                            float waited = 0f;
+                            while (waited < step.Seconds && !CycProbe.Arrived()) { Beat(); yield return new WaitForSeconds(1f); waited += 1f; }
+                            Log($"cycwait: {(CycProbe.Arrived() ? "arrived" : "NOT arrived")} after {waited:0} s");
+                        }
+                        break;
                     case "modscan":
                         {
                             // Objects MOPR switches that contain something of another mod (ModScan.cs).
@@ -1401,6 +1418,8 @@ namespace MOPR.TestBot
                 case "renderers": apply = b => GameOps.SetRenderers(step.Path, !b, out int _); break;
                 case "colliders": apply = b => GameOps.SetColliders(step.Path, !b, out int _); break;
                 case "castshadows": apply = b => GameOps.SetShadowCasting(step.Path, !b, out int _); break;
+                // Text = component type name (e.g. VignetteAndChromaticAberration); B = those enabled under Path off.
+                case "behaviours": apply = b => GameOps.SetBehaviours(step.Path, step.Text, !b, out int _); break;
                 case "dummies": apply = b => GameOps.SetDummies(b ? step.Max : 0); break;
                 case "cameras": apply = b => GameOps.SetCameras(step.Path, !b, out int _); break;
                 case "probes": apply = b => GameOps.SetProbes(step.Path, !b, out int _); break;

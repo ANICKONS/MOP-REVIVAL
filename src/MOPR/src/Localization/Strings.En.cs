@@ -83,6 +83,9 @@ namespace MOP.Localization
             { "menu.engine_mouse_ray", "Fewer mouse raycasts" },
             { "menu.engine_mouse_ray_hint", "Car parts and other objects ask every frame whether the mouse is on them. MOPR casts one ray " +
                                             "per frame for them all and gives each the answer the game would. About +5% FPS at home." },
+            { "menu.engine_mod_scripts", "Speed up other mods' scripts" },
+            { "menu.engine_mod_scripts_hint", "Better MSC: every lamp bulb of the house looks for a component that doesn't exist, every frame. " +
+                                              "MOPR answers \"not found\" right away, as Unity would. About +19% FPS in the house." },
             { "menu.sub.diagnostics", "For bug hunting" },
             { "menu.engine_verify", "Check mode" },
             { "menu.engine_verify_hint", "No speed-up: MOPR only compares its result with the game's and records any difference " +
@@ -119,6 +122,8 @@ namespace MOP.Localization
             { "menu.disable_empty_hint", "Emptied packs and cans are hidden while you are not holding them." },
             { "menu.skidmarks", "No tire marks" },
             { "menu.skidmarks_hint", "Tire marks are not drawn. On long drives they slowly eat memory." },
+            { "menu.check_updates", "Check for updates" },
+            { "menu.check_updates_hint", "When the game starts, MOPR asks GitHub for its latest version and tells you when a newer one is out." },
 
             // === Settings: mod compatibility (rules) ===
             { "menu.header.rules", "Mod compatibility" },
@@ -188,6 +193,11 @@ namespace MOP.Localization
             { "msg.no_logs", "No logs exist." },
             { "msg.delete_logs_one", "Are you sure you want to delete <color=yellow>{0}</color> log?" },
             { "msg.delete_logs_many", "Are you sure you want to delete <color=yellow>{0}</color> logs?" },
+            { "msg.title.update", "MOP - REVIVAL - Update" },
+            { "msg.update_available", "A new version of MOP - REVIVAL is out: <color=yellow>{0}</color>\nYou have {1}.\n\n" +
+                                      "Download it from Nexus Mods." },
+            { "msg.btn.open_nexus", "OPEN NEXUS MODS" },
+            { "msg.btn.later", "LATER" },
 
             // === Save integrity verification ===
             { "save.title", "MOP - REVIVAL - Save Integrity Verification" },

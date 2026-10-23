@@ -1,0 +1,32 @@
+{
+  "Name": "bmsc-bulbs",
+  "SettleSeconds": 20,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "MOPR patch of Better MSC's BulbScript.Update (Engine Lab, other mods' scripts): the patch's effect (interleaved A/B, bypass = Unity answers as without the patch), what is left of the method's cost with the patch, the setting off and on again (unpatch), and the verify mode. In the living room, Better MSC installed." },
+    { "Op": "console", "Text": "mopr engine" },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "measure", "Label": "living", "Seconds": 6 },
+    { "Op": "profile", "Label": "living-patched", "Seconds": 6 },
+    { "Op": "abtoggle", "Label": "living-patch", "Var": "staticbool", "Path": "MOP.Next.Engine.ModScripts.Bypass", "Seconds": 20, "Block": 1 },
+    { "Op": "abtoggle", "Label": "living-rest-of-bulbs", "Var": "skipmethod", "Path": "BetterMSC.BulbScript:Update", "Seconds": 16, "Block": 1 },
+    { "Op": "console", "Text": "mopr engine" },
+    { "Op": "log", "Text": "--- setting off: the original method must be back ---" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "engineModScripts", "Value": "false" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "console", "Text": "mopr engine" },
+    { "Op": "profile", "Label": "living-setting-off", "Seconds": 6 },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "engineModScripts", "Value": "true" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "profile", "Label": "living-setting-on", "Seconds": 6 },
+    { "Op": "log", "Text": "--- verify mode ---" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "enginePlayMakerVerify", "Value": "true" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "console", "Text": "mopr engine" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "enginePlayMakerVerify", "Value": "false" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "console", "Text": "mopr engine" },
+    { "Op": "quit" }
+  ]
+}

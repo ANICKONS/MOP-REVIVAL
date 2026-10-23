@@ -15,6 +15,14 @@
     New version: raise BuildInfo.Version, update CHANGELOG.md and src/MOPR/Resources/changelog.txt, commit, push,
     then run this script.
 
+    Same version again (-Update): the release of the current version already exists and gets the new build. Same
+    checks and build; the title and the description can be kept (the SHA-256 in the footer is updated) or replaced.
+    The new MOPR.dll is uploaded next to the old one first, then the text is changed, the tag moves to the pushed
+    commit, and only then the old file is deleted and the new one renamed to MOPR.dll. If something fails before the
+    old file is deleted, everything is put back. Editing a release notifies nobody.
+    Players who already have this version are not told about the update: the mod's update check compares the
+    version number only.
+
 .PARAMETER Title
     Release title (otherwise asked; default "MOP - REVIVAL <version>").
 .PARAMETER Notes
@@ -33,6 +41,10 @@
     Don't ask for confirmation.
 .PARAMETER AllowDirty
     For tests only: build even with uncommitted changes (the tag would point to a commit without them).
+.PARAMETER Update
+    Update the existing release of this version instead of publishing a new one (see above).
+.PARAMETER KeepNotes
+    With -Update: keep the current description without asking (only its SHA-256 line is updated).
 
 .EXAMPLE
     .\scripts\release.ps1
@@ -40,6 +52,10 @@
     .\scripts\release.ps1 -DryRun
 .EXAMPLE
     .\scripts\release.ps1 -Title 'MOP - REVIVAL 5.1.1' -Notes '.' -Yes
+.EXAMPLE
+    .\scripts\release.ps1 -Update
+.EXAMPLE
+    .\scripts\release.ps1 -Update -Notes '.'
 #>
 [CmdletBinding()]
 param(
@@ -52,6 +68,8 @@ param(
     [switch]$DryRun,
     [switch]$Yes,
     [switch]$AllowDirty,
+    [switch]$Update,
+    [switch]$KeepNotes,
     [string]$GameDir = ''
 )
 
@@ -112,7 +130,8 @@ if ($Sub) { $Prerelease = $true }
 Step "MOP - REVIVAL $Version$(if ($Sub) { " $Sub" }) -> tag $Tag on $Repo"
 
 # --- Git state --------------------------------------------------------------------------------------
-Git fetch origin --tags --quiet | Out-Null
+# --force: a tag moved on GitHub by -Update replaces the local one (a plain fetch would fail on it).
+Git fetch origin --tags --force --quiet | Out-Null
 $branch = (Git rev-parse --abbrev-ref HEAD) | Select-Object -First 1
 $default = ((Git symbolic-ref --short refs/remotes/origin/HEAD) | Select-Object -First 1) -replace '^origin/', ''
 if ($branch -ne $default) {
@@ -168,13 +187,32 @@ function Api([string]$Method, [string]$Path, $Body = $null) {
     }
 }
 
-if (@(Git ls-remote --tags origin "refs/tags/$Tag") | Where-Object { $_ }) {
-    Fail "$Tag is already released. Raise BuildInfo.Version in src\MOPR\Properties\AssemblyInfo.cs (and the changelogs), commit, push, run again."
-}
 $existing = @(Api GET "repos/$Repo/releases?per_page=100") | Where-Object { $_.tag_name -eq $Tag }
-if ($existing) {
-    $e = $existing | Select-Object -First 1
-    Fail "There is already a $(if ($e.draft) { 'draft ' })release for $Tag ($($e.html_url)). Publish or delete it on GitHub first."
+$Old = $null
+$OldTagCommit = ''
+if ($Update) {
+    if ($Draft) { Fail '-Draft does not go with -Update: the release stays as it is (published or draft).' }
+    if (-not $existing) { Fail "There is no release for $Tag to update. Run without -Update to publish it." }
+    $Old = $existing | Select-Object -First 1
+    # The commit the tag points to now (an annotated tag points to a tag object first).
+    try {
+        $ref = Api GET "repos/$Repo/git/ref/tags/$Tag"
+        $OldTagCommit = if ($ref.object.type -eq 'tag') { (Api GET "repos/$Repo/git/tags/$($ref.object.sha)").object.sha } else { $ref.object.sha }
+    }
+    catch { $OldTagCommit = '' }   # a draft has no tag yet
+    $oldAsset = $Old.assets | Where-Object { $_.name -eq 'MOPR.dll' } | Select-Object -First 1
+    Step "Updating the existing $(if ($Old.draft) { 'draft' } else { 'release' }) $Tag ($($Old.html_url))."
+}
+else {
+    if ($KeepNotes) { Fail '-KeepNotes only goes with -Update.' }
+    if (@(Git ls-remote --tags origin "refs/tags/$Tag") | Where-Object { $_ }) {
+        Fail "$Tag is already released. To replace its file and description run: .\scripts\release.ps1 -Update`n" +
+             "For a new version raise BuildInfo.Version in src\MOPR\Properties\AssemblyInfo.cs (and the changelogs), commit, push, run again."
+    }
+    if ($existing) {
+        $e = $existing | Select-Object -First 1
+        Fail "There is already a $(if ($e.draft) { 'draft ' })release for $Tag ($($e.html_url)). Publish or delete it on GitHub first, or run with -Update."
+    }
 }
 
 # --- Changelogs -------------------------------------------------------------------------------------
@@ -240,10 +278,10 @@ Step ("Build OK: {0:N0} KB, SHA-256 {1}" -f ($Size / 1KB), $Sha) 'Green'
 
 # ===== 3. Title and description ======================================================================
 
-$defaultTitle = "MOP - REVIVAL $Version$(if ($Sub) { " $Sub" })"
+$defaultTitle = if ($Update -and $Old.name) { $Old.name } else { "MOP - REVIVAL $Version$(if ($Sub) { " $Sub" })" }
 if (-not $Title) {
     Write-Host ''
-    Write-Host "Title (Enter = ""$defaultTitle""):" -ForegroundColor White
+    Write-Host "Title (Enter = $(if ($Update) { 'keep ' })""$defaultTitle""):" -ForegroundColor White
     Write-Host '> ' -NoNewline
     $Title = (Read-Host).Trim()
 }
@@ -258,29 +296,43 @@ function FromGameChangelog {
     return ($lines -join "`n")
 }
 
+$keep = $false
 if ($NotesFile) {
     $Notes = [IO.File]::ReadAllText((Resolve-Path $NotesFile), [Text.Encoding]::UTF8)
 }
+elseif ($KeepNotes) { $keep = $true }
 elseif (-not $Notes) {
     Write-Host ''
     Write-Host 'Description (Markdown is fine, several lines). Finish with a line containing only "."' -ForegroundColor White
     Write-Host "Just ""."" right away = the $Version section of the in-game changelog." -ForegroundColor DarkGray
+    if ($Update) { Write-Host 'Just Enter right away = keep the current description (its SHA-256 line is updated).' -ForegroundColor DarkGray }
     $buffer = New-Object System.Collections.Generic.List[string]
+    $first = $true
     while ($true) {
         Write-Host '> ' -NoNewline
         $line = Read-Host
+        if ($first -and $Update -and $line -eq '') { $keep = $true; break }
+        $first = $false
         if ($line -eq '.') { break }
         $buffer.Add($line)
     }
-    $Notes = ($buffer -join "`n").Trim()
-    if (-not $Notes) { $Notes = '.' }
+    if (-not $keep) {
+        $Notes = ($buffer -join "`n").Trim()
+        if (-not $Notes) { $Notes = '.' }
+    }
 }
-if ($Notes.Trim() -eq '.') {
+if (-not $keep -and $Notes.Trim() -eq '.') {
     $Notes = FromGameChangelog
     if (-not $Notes) { Fail "No $Version section in src\MOPR\Resources\changelog.txt to take the description from." }
 }
 
-if (-not $NoFooter) {
+$shaPattern = '(SHA-256 of MOPR\.dll: `)[0-9a-fA-F]{64}(`)'
+if ($keep) {
+    $Notes = if ($Old.body) { [string]$Old.body } else { '' }
+    if ($Notes -match $shaPattern) { $Notes = [regex]::Replace($Notes, $shaPattern, "`${1}$Sha`${2}") }
+    else { Warn 'the current description has no SHA-256 line; it is kept as it is' }
+}
+elseif (-not $NoFooter) {
     $Notes = $Notes.TrimEnd() + "`n`n---`n" +
         "**Install:** put ``MOPR.dll`` from below into the game's ``Mods`` folder. Requires [MSCLoader](https://github.com/piotrulos/MSCModLoader/releases) 1.4.2 or newer.`n`n" +
         "**Other mods:** see the [compatibility list]($CompatSite). Full list of changes: [CHANGELOG.md](https://github.com/$Repo/blob/main/CHANGELOG.md)`n`n" +
@@ -289,64 +341,145 @@ if (-not $NoFooter) {
 
 # ===== 4. Preview ====================================================================================
 
+function Short([string]$sha) { if ($sha) { $sha.Substring(0, [Math]::Min(7, $sha.Length)) } else { '(none)' } }
+$moveTag = $Update -and $OldTagCommit -and $OldTagCommit -ne $Commit
+
 Write-Host ''
 Write-Host '==================================================================' -ForegroundColor DarkGray
-Write-Host " Title:   $Title"
-Write-Host " Tag:     $Tag  on  $CommitInfo"
-Write-Host (" File:    MOPR.dll  ({0:N0} bytes)" -f $Size)
-Write-Host " Type:    $(if ($Prerelease) { 'pre-release' } else { 'release (shown as Latest)' })$(if ($Draft) { ', kept as draft' })"
+if ($Update) {
+    Write-Host " UPDATE:  $(if ($Old.draft) { 'draft' } else { 'published release' }) $Tag  ($($Old.html_url))" -ForegroundColor White
+    Write-Host " Title:   $(if ($Title -eq $Old.name) { "$Title  (unchanged)" } else { "$($Old.name)  ->  $Title" })"
+    if (-not $OldTagCommit) { Write-Host " Tag:     $Tag  on  $CommitInfo  (created when the draft is published)" }
+    elseif ($moveTag) { Write-Host " Tag:     $Tag  moves  $(Short $OldTagCommit)  ->  $CommitInfo" -ForegroundColor Yellow }
+    else { Write-Host " Tag:     $Tag  stays on  $CommitInfo" }
+    $oldSize = if ($oldAsset) { '{0:N0} bytes' -f $oldAsset.size } else { 'none' }
+    Write-Host (" File:    MOPR.dll  {0}  ->  {1:N0} bytes" -f $oldSize, $Size)
+    Write-Host " Text:    $(if ($keep) { 'current description kept' } elseif ($Notes -eq $Old.body) { 'unchanged' } else { 'new description' })"
+}
+else {
+    Write-Host " Title:   $Title"
+    Write-Host " Tag:     $Tag  on  $CommitInfo"
+    Write-Host (" File:    MOPR.dll  ({0:N0} bytes)" -f $Size)
+    Write-Host " Type:    $(if ($Prerelease) { 'pre-release' } else { 'release (shown as Latest)' })$(if ($Draft) { ', kept as draft' })"
+}
 Write-Host '------------------------------------------------------------------' -ForegroundColor DarkGray
 Write-Host $Notes
 Write-Host '==================================================================' -ForegroundColor DarkGray
 foreach ($w in $warnings) { Write-Host " ! $w" -ForegroundColor Yellow }
 
-if ($DryRun) { Step 'Dry run: nothing uploaded.' 'Green'; exit 0 }
-$what = if ($Draft) { "Upload $Tag as a draft" } else { "Publish $Tag (public: watchers get notified)" }
-if (-not (Ask "$what?")) { Step 'Cancelled, nothing uploaded.' 'Yellow'; exit 0 }
+if ($DryRun) { Remove-Item -Recurse -Force $OutDir -ErrorAction SilentlyContinue; Step 'Dry run: nothing uploaded.' 'Green'; exit 0 }
+$what = if ($Update) { "Update $Tag on GitHub (file, text$(if ($moveTag) { ', tag' }); nobody gets notified)" }
+        elseif ($Draft) { "Upload $Tag as a draft" } else { "Publish $Tag (public: watchers get notified)" }
+if (-not (Ask "$what?")) { Remove-Item -Recurse -Force $OutDir -ErrorAction SilentlyContinue; Step 'Cancelled, nothing uploaded.' 'Yellow'; exit 0 }
 
 # ===== 5. Upload =====================================================================================
 
-$release = $null
-try {
-    Step 'Creating the draft...'
-    $release = Api POST "repos/$Repo/releases" ([ordered]@{
-        tag_name         = $Tag
-        target_commitish = $Commit
-        name             = $Title
-        body             = $Notes
-        draft            = $true
-        prerelease       = [bool]$Prerelease
-    })
-
-    Step 'Uploading MOPR.dll...'
-    $uploadUri = "https://uploads.github.com/repos/$Repo/releases/$($release.id)/assets?name=MOPR.dll"
-    try { $asset = Invoke-RestMethod -Method Post -Uri $uploadUri -Headers $Headers -ContentType 'application/octet-stream' -InFile $Dll -ErrorAction Stop }
+function Upload-Dll([long]$ReleaseId, [string]$Name) {
+    $uri = "https://uploads.github.com/repos/$Repo/releases/$ReleaseId/assets?name=$Name"
+    try { $a = Invoke-RestMethod -Method Post -Uri $uri -Headers $Headers -ContentType 'application/octet-stream' -InFile $Dll -ErrorAction Stop }
     catch { throw "Upload failed: $(if ($_.ErrorDetails) { $_.ErrorDetails.Message } else { $_.Exception.Message })" }
-    if ($asset.size -ne $Size -or $asset.state -ne 'uploaded') { throw "Upload incomplete: $($asset.size) of $Size bytes, state $($asset.state)." }
-
-    if ($Draft) {
-        Step "Draft ready: $($release.html_url)" 'Green'
-        Step 'Publish it on GitHub (Edit -> Publish release) or delete it there.' 'Green'
-        exit 0
-    }
-
-    Step 'Publishing...'
-    $release = Api PATCH "repos/$Repo/releases/$($release.id)" ([ordered]@{
-        draft       = $false
-        make_latest = $(if ($Prerelease) { 'false' } else { 'true' })
-    })
+    if ($a.size -ne $Size -or $a.state -ne 'uploaded') { throw "Upload incomplete: $($a.size) of $Size bytes, state $($a.state)." }
+    return $a
 }
-catch {
-    Write-Host "[release] $($_.Exception.Message)" -ForegroundColor Red
-    if ($release -and $release.draft) {
-        try { Api DELETE "repos/$Repo/releases/$($release.id)" | Out-Null; Step 'The draft was deleted, nothing is published.' 'Yellow' }
-        catch { Write-Host "[release] Could not delete the draft, delete it on GitHub: $($release.html_url)" -ForegroundColor Red }
+
+$release = $null
+$public = $null
+if ($Update) {
+    $TempName = 'MOPR.dll.new'
+    $temp = $null
+    $textChanged = $false
+    $tagMoved = $false
+    $oldDeleted = $false
+    try {
+        # A file left by an earlier failed run.
+        foreach ($a in @($Old.assets | Where-Object { $_.name -eq $TempName })) { Api DELETE "repos/$Repo/releases/assets/$($a.id)" | Out-Null }
+
+        Step 'Uploading the new MOPR.dll next to the old one...'
+        $temp = Upload-Dll $Old.id $TempName
+
+        if ($Title -ne $Old.name -or $Notes -ne $Old.body) {
+            Step 'Updating the title and the description...'
+            Api PATCH "repos/$Repo/releases/$($Old.id)" ([ordered]@{ name = $Title; body = $Notes }) | Out-Null
+            $textChanged = $true
+        }
+
+        if ($moveTag) {
+            Step "Moving the tag $Tag to $(Short $Commit)..."
+            Api PATCH "repos/$Repo/git/refs/tags/$Tag" ([ordered]@{ sha = $Commit; force = $true }) | Out-Null
+            $tagMoved = $true
+        }
+        elseif ($Old.draft -and $Old.target_commitish -ne $Commit) {
+            # A draft has no tag yet: it is created on this commit when the draft is published.
+            Api PATCH "repos/$Repo/releases/$($Old.id)" ([ordered]@{ target_commitish = $Commit }) | Out-Null
+        }
+
+        if ($oldAsset) {
+            Step 'Replacing the old file...'
+            Api DELETE "repos/$Repo/releases/assets/$($oldAsset.id)" | Out-Null
+            $oldDeleted = $true
+        }
     }
-    exit 1
+    catch {
+        Write-Host "[release] $($_.Exception.Message)" -ForegroundColor Red
+        # Nothing of the old release is lost yet: put everything back.
+        try {
+            if ($tagMoved) { Api PATCH "repos/$Repo/git/refs/tags/$Tag" ([ordered]@{ sha = $OldTagCommit; force = $true }) | Out-Null }
+            if ($textChanged) { Api PATCH "repos/$Repo/releases/$($Old.id)" ([ordered]@{ name = $Old.name; body = $Old.body }) | Out-Null }
+            if ($temp) { Api DELETE "repos/$Repo/releases/assets/$($temp.id)" | Out-Null }
+            Step 'Put back: the release is as it was.' 'Yellow'
+        }
+        catch { Write-Host "[release] Could not put everything back ($($_.Exception.Message)). Check the release: $($Old.html_url)" -ForegroundColor Red }
+        exit 1
+    }
+
+    try { $temp = Api PATCH "repos/$Repo/releases/assets/$($temp.id)" ([ordered]@{ name = 'MOPR.dll' }) }
+    catch {
+        Write-Host "[release] The new file is uploaded as $TempName but could not be renamed: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "[release] Rename it to MOPR.dll on GitHub (Edit release): $($Old.html_url)" -ForegroundColor Red
+        exit 1
+    }
+    $release = Api GET "repos/$Repo/releases/$($Old.id)"
+    $public = $temp.browser_download_url
+}
+else {
+    try {
+        Step 'Creating the draft...'
+        $release = Api POST "repos/$Repo/releases" ([ordered]@{
+            tag_name         = $Tag
+            target_commitish = $Commit
+            name             = $Title
+            body             = $Notes
+            draft            = $true
+            prerelease       = [bool]$Prerelease
+        })
+
+        Step 'Uploading MOPR.dll...'
+        $asset = Upload-Dll $release.id 'MOPR.dll'
+
+        if ($Draft) {
+            Step "Draft ready: $($release.html_url)" 'Green'
+            Step 'Publish it on GitHub (Edit -> Publish release) or delete it there.' 'Green'
+            exit 0
+        }
+
+        Step 'Publishing...'
+        $release = Api PATCH "repos/$Repo/releases/$($release.id)" ([ordered]@{
+            draft       = $false
+            make_latest = $(if ($Prerelease) { 'false' } else { 'true' })
+        })
+    }
+    catch {
+        Write-Host "[release] $($_.Exception.Message)" -ForegroundColor Red
+        if ($release -and $release.draft) {
+            try { Api DELETE "repos/$Repo/releases/$($release.id)" | Out-Null; Step 'The draft was deleted, nothing is published.' 'Yellow' }
+            catch { Write-Host "[release] Could not delete the draft, delete it on GitHub: $($release.html_url)" -ForegroundColor Red }
+        }
+        exit 1
+    }
+    $public = ($release.assets | Where-Object { $_.name -eq 'MOPR.dll' } | Select-Object -First 1).browser_download_url
 }
 
 # --- Check what the players download ----------------------------------------------------------------
-$public = ($release.assets | Where-Object { $_.name -eq 'MOPR.dll' } | Select-Object -First 1).browser_download_url
 $check = Join-Path $OutDir 'downloaded.dll'
 $ok = $false
 for ($i = 0; $i -lt 5 -and -not $ok; $i++) {
@@ -360,7 +493,8 @@ if ($ok) { Step 'Checked: the public MOPR.dll is byte-identical to the build.' '
 else { Write-Host "[release] WARNING: could not verify the public file ($public). Check the release page." -ForegroundColor Yellow }
 
 try { Copy-Item $Dll (Join-Path $Root 'dist\MOPR.dll') -Force } catch { }
-Git fetch origin --tags --quiet | Out-Null
+# --force: the local tag follows a tag that -Update moved.
+try { Git fetch origin --tags --force --quiet | Out-Null } catch { Write-Host "[release] git fetch --tags failed: $($_.Exception.Message)" -ForegroundColor Yellow }
 Remove-Item -Recurse -Force $OutDir -ErrorAction SilentlyContinue
 
-Step "Released $Tag`: $($release.html_url)" 'Green'
+Step "$(if ($Update) { 'Updated' } else { 'Released' }) $Tag`: $($release.html_url)" 'Green'

@@ -23,6 +23,7 @@ namespace MOP.Localization
             { "con.render.line", "Отрисовка: {0} {1}" },
             { "con.name.scripts", "Оптимизация скриптов" },
             { "con.name.rays", "Оптимизация лучей" },
+            { "con.name.mod_scripts", "Скрипты других модов" },
             { "con.name.engine_bay", "Оптимизация двигателя" },
             { "con.name.mirrors", "Оптимизация зеркал" },
             { "con.name.render", "Оптимизация отрисовки" },
@@ -97,17 +98,17 @@ namespace MOP.Localization
             { "con.rules.manage_missing", "Правила: не найден {0} (manage {1})" },
             { "con.rules.issue", "Правила: {0}" },
             { "con.rules.more_issues", "Правила: <color=#9AA6B2>…и ещё {0} (mopr rules)</color>" },
-            // Итоговая строка: «Правила: 25, файлов: 3 (встроенных: 3), прочитаны за 12 мс».
+            // Итоговая строка: «Правила: загружено для 2 модов.» ({1} — число в цвете).
             { "con.rules.prefix", "Правила: " },
             { "con.rules.none_needed", "для установленных модов не нужны" },
             { "con.rules.off", "выключены" },
-            { "con.rules.summary", "{0}, файлов: {1} ({2})" },
-            { "con.rules.n_builtin", "встроенных: {0}" },
-            { "con.rules.n_yours", "ваших: {0}" },
-            { "con.rules.n_legacy", "старого формата: {0}" },
+            { "con.rules.loaded_for_one", "загружено для {1} мода" },
+            { "con.rules.loaded_for_few", "загружено для {1} модов" },
+            { "con.rules.loaded_for_many", "загружено для {1} модов" },
+            { "con.rules.plus_yours", " + ваших файлов: {0}" },
+            { "con.rules.only_yours", "ваших файлов: {0}" },
             { "con.rules.all_files", " (все файлы, даже для неустановленных модов)" },
             { "con.rules.next_load", " - применятся при следующей загрузке игры" },
-            { "con.rules.read_in", ", прочитаны за {0} мс" },
             // «mopr rules».
             { "con.rules.src_builtin", "встроенный" },
             { "con.rules.src_yours", "ваш" },
@@ -149,6 +150,11 @@ namespace MOP.Localization
             { "con.cmd.not_found", "Команда {0} не найдена." },
             { "con.cmd.usage", "Использование: {0}" },
             { "con.cmd.version", "MOP - REVIVAL {0} для {1}" },
+            { "con.update.available", "Вышла новая версия: {0} (у вас {1}). Скачать: {2}" },
+            { "con.update.latest", "У вас последняя версия ({0})." },
+            { "con.update.ahead", "Ваша версия {0} новее последнего релиза {1}." },
+            { "con.update.failed", "Не удалось проверить обновления: {0}" },
+            { "con.update.running", "Проверка обновлений уже идёт." },
             { "con.cmd.only_in_game", "Работает только в игре." },
             { "con.cmd.render_only_in_game", "Оптимизатор отрисовки работает только в игре." },
             { "con.cmd.render_restored", "Оптимизатор отрисовки приостановлен, все значения возвращены. Измените любую настройку отрисовки, чтобы применить её снова." },
@@ -207,6 +213,7 @@ namespace MOP.Localization
             { "con.help.audit", "Ищет в управляемых объектах FSM PlayMaker, которые могут сброситься при включении" },
             { "con.help.guard", "Записывает список FSM под защитой от сброса" },
             { "con.help.engine", "Оптимизации движка игры: сменить режим или показать статистику" },
+            { "con.help.update", "Проверяет на GitHub, есть ли новая версия MOPR" },
         };
     }
 }

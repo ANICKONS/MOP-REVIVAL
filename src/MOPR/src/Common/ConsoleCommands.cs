@@ -73,6 +73,7 @@ namespace MOP.Common
             { "audit", "con.help.audit" },
             { "guard", "con.help.guard" },
             { "engine [on|off|shadow|reset|detail]", "con.help.engine" },
+            { "update", "con.help.update" },
         };
 
         /// <summary>Prints without storing: answers to a command the player typed are not part of the mod log.</summary>
@@ -138,6 +139,11 @@ namespace MOP.Common
                     break;
                 case "ENGINE":
                     Next.Engine.EngineLab.Command(args);
+                    break;
+                case "UPDATE":
+                    // "mopr update preview" (not in the help): also shows the message for the latest release, to
+                    // see how it looks.
+                    UpdateChecker.CheckNow(MenuHelper.Instance, args.Length > 1 && args[1].ToUpperInvariant() == "PREVIEW");
                     break;
                 case "GUARD":
                     ModConsole.Info("con.cmd.guard", Loc.OnOff(Next.RestartGuard.Enabled), Next.RestartGuard.GuardedCount,

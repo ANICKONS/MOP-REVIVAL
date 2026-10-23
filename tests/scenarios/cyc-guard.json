@@ -1,0 +1,27 @@
+{
+  "Name": "cyc-guard",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "MenuSteps": [
+    { "Op": "log", "Text": "What the original MOP's car move protected: rules off, so MOPR switches TRAFFIC off at home. The player gets into Pena's car on the dirt road (held still the way Call Your Cousin holds it), the car is moved into the yard: TRAFFIC must stay on while the player is in it, and go off after the player got out." },
+    { "Op": "console", "Text": "mopr load-rules false" }
+  ],
+  "Steps": [
+    { "Op": "teleport", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN", "Pos": [0.0, 3.0, 15.0] },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "cyc", "Text": "hold", "Seconds": 45 },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "cyc", "Text": "state" },
+    { "Op": "teleport", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN/PlayerTrigger/DriveTrigger", "Pos": [0.0, 0.0, 0.0] },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "fsmevent", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN/PlayerTrigger/DriveTrigger", "Fsm": "PlayerTrigger", "Event": "Key DOWN" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "watch", "Label": "seated", "Seconds": 0, "Probes": [ "traffic=TRAFFIC|@self", "dirt=TRAFFIC/VehiclesDirtRoad|@self", "vehicle=global|PlayerCurrentVehicle", "carParent=TRAFFIC/VehiclesDirtRoad/Rally/FITTAN|@parent", "car=TRAFFIC/VehiclesDirtRoad/Rally/FITTAN|@pos" ] },
+    { "Op": "place", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN", "Target": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [-5.1, 0.6, 17.5] },
+    { "Op": "watch", "Label": "athome", "Seconds": 12, "Interval": 1, "Probes": [ "traffic=TRAFFIC|@self", "dirt=TRAFFIC/VehiclesDirtRoad|@self", "carActive=TRAFFIC/VehiclesDirtRoad/Rally/FITTAN|@active", "vehicle=global|PlayerCurrentVehicle", "carParent=TRAFFIC/VehiclesDirtRoad/Rally/FITTAN|@parent", "car=TRAFFIC/VehiclesDirtRoad/Rally/FITTAN|@pos" ] },
+    { "Op": "fsmevent", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN/PlayerTrigger/DriveTrigger", "Fsm": "PlayerTrigger", "Event": "Key DOWN" },
+    { "Op": "watch", "Label": "out", "Seconds": 8, "Interval": 1, "Probes": [ "traffic=TRAFFIC|@self", "dirt=TRAFFIC/VehiclesDirtRoad|@self", "vehicle=global|PlayerCurrentVehicle", "player=PLAYER|@pos", "playerParent=PLAYER|@parent" ] },
+    { "Op": "console", "Text": "mopr load-rules true" },
+    { "Op": "quit" }
+  ]
+}

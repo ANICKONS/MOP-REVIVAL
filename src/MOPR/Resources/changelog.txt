@@ -1,8 +1,12 @@
 ### 5.1.1
+-NEW: Speed up other mods' scripts (game engine). Better MSC: the lamp bulbs of the house no longer look for a missing component every frame (+19% FPS in the house)
+-NEW: Update check: when a newer MOPR is out, a message in the main menu leads to the Nexus Mods page (can be switched off in Other)
 -Fixed items taken out of an inventory mod (YAIM) vanishing: a bucket, fish trap or fuel tank flew back to the inventory's storage spot in the sky. Items stored by inventory mods are no longer touched
 -Fixed items moved by another mod while MOPR had their physics frozen jumping back to their old spot
 -Fixed the TRAFFIC_VEHICLES_ERROR with Traffic Car Expansion: MOPR now leaves the mod's highway objects to it
 -Fixed an error with the floor jack when a mod had changed it (Better MSC)
+-Fixed Pena's car not moving after the player got in (Call Your Cousin; the original MOP moved the car out of the traffic when the player got in)
+-Fixed an error every frame when a rule excludes the traffic (Call Your Cousin): it filled the game log and cost FPS
 
 ### 5.1.0 "Engine"
 -NEW: PlayMaker engine optimizations - idle state machines, property actions and per-frame settings writes are skipped only when MOPR can prove nothing would change (+10% FPS, -60% garbage in tests)

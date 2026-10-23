@@ -39,6 +39,13 @@ namespace MOP.WorldObjects
 
             if (this.gameObject != null && this.gameObject.activeSelf != enabled)
             {
+                // MOP - REVIVAL 5.1.1: never switch off an object the player is in (a passenger in Pena's car under
+                // TRAFFIC, in the drunk driver's car under NPC_CARS, in a vehicle of a mod): the player would vanish
+                // with it. It is switched off on a later tick, once the player is out. Replaces the original MOP's
+                // moving of those two cars out of their parents (see GameFixes).
+                if (!enabled && IsPlayerInside()) return;
+
+
                 // MOP - REVIVAL 5.1 (fix): world objects were switched without the restart guard, so FSMs in them that
                 // read the save when they start (FSM audit: the cottage sauna stove, the Dingonbiisi clock, the
                 // candles at the crash site) went back to the saved state each time MOP switched them on again.
@@ -46,6 +53,12 @@ namespace MOP.WorldObjects
                 this.gameObject.SetActive(enabled);
                 if (enabled) Next.RestartGuard.AfterEnable(this.gameObject);
             }
+        }
+
+        bool IsPlayerInside()
+        {
+            Transform player = Hypervisor.Instance != null ? Hypervisor.Instance.GetPlayer() : null;
+            return player != null && player.IsChildOf(this.gameObject.transform);
         }
     }
 }

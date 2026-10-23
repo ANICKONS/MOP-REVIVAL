@@ -321,17 +321,24 @@ namespace MOP.Rules
 
         static void LogSummary(RuleBook book, bool applied, double ms)
         {
-            int bundled = 0, user = 0, legacy = 0;
+            int bundled = 0, user = 0, legacy = 0, withoutMod = 0;
+            List<string> mods = new List<string>();
             foreach (RuleSet s in book.Active)
             {
                 if (s.Source == RuleSource.Bundled) bundled++;
                 else if (s.Source == RuleSource.User) user++;
                 else legacy++;
+                if (string.IsNullOrEmpty(s.Mod)) withoutMod++;
+                else if (!mods.Contains(s.Mod)) mods.Add(s.Mod);
             }
 
-            // One line in the console language, and the same line in English for the reports.
-            ModConsole.InfoText(SummaryLine(book, applied, ms, bundled, user, legacy, Loc.Current),
-                                SummaryLine(book, applied, ms, bundled, user, legacy, Language.English));
+            // MOP - REVIVAL 5.1.1: the console only says for how many mods rules are loaded; the details (rules,
+            // files, time) go to the mod log for bug reports. One line in the console language, the same in English
+            // for the reports.
+            ModConsole.InfoText(SummaryLine(book, applied, mods.Count, withoutMod, Loc.Current),
+                                SummaryLine(book, applied, mods.Count, withoutMod, Language.English));
+            ModConsole.Debug($"Rules: {book.RuleCount} rules, {book.Active.Count} files (built-in {bundled}, yours {user}, " +
+                             $"old format {legacy}), mods: {(mods.Count > 0 ? string.Join(", ", mods.ToArray()) : "none")}, read in {ms:0} ms");
 
             List<RuleIssue> issues = AllIssues(book);
             StringBuilder digest = new StringBuilder();
@@ -352,22 +359,19 @@ namespace MOP.Rules
                 ModConsole.Info("con.rules.more_issues", issues.Count - shown);
         }
 
-        static string SummaryLine(RuleBook book, bool applied, double ms, int bundled, int user, int legacy, Language lang)
+        /// <summary>"Rules: loaded for 2 mods." (files without a mod ID: "+ your files: 1").</summary>
+        static string SummaryLine(RuleBook book, bool applied, int mods, int withoutMod, Language lang)
         {
             StringBuilder line = new StringBuilder(Loc.TIn(lang, "con.rules.prefix"));
             if (book.Active.Count == 0) line.Append(MoprColors.Muted(Loc.TIn(lang, LoadRules ? "con.rules.none_needed" : "con.rules.off")));
             else
             {
-                List<string> parts = new List<string>();
-                if (bundled > 0) parts.Add(Loc.FIn(lang, "con.rules.n_builtin", bundled));
-                if (user > 0) parts.Add(Loc.FIn(lang, "con.rules.n_yours", user));
-                if (legacy > 0) parts.Add(Loc.FIn(lang, "con.rules.n_legacy", legacy));
-                line.Append(Loc.FIn(lang, "con.rules.summary", MoprColors.Success(book.RuleCount.ToString()), book.Active.Count,
-                                    string.Join(", ", parts.ToArray())));
+                if (mods > 0) line.Append(Loc.PluralIn(lang, "con.rules.loaded_for", mods, MoprColors.Success(mods.ToString())));
+                if (withoutMod > 0) line.Append(Loc.FIn(lang, mods > 0 ? "con.rules.plus_yours" : "con.rules.only_yours", MoprColors.Success(withoutMod.ToString())));
             }
             if (ActivateAll) line.Append(MoprColors.Warning(Loc.TIn(lang, "con.rules.all_files")));
             if (!applied) line.Append(MoprColors.Warning(Loc.TIn(lang, "con.rules.next_load")));
-            line.Append(MoprColors.Muted(Loc.FIn(lang, "con.rules.read_in", ms.ToString("0"))));
+            line.Append('.');
             return line.ToString();
         }
 

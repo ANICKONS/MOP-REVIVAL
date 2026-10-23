@@ -1,0 +1,33 @@
+{
+  "Name": "bmsc-attrib2",
+  "SettleSeconds": 20,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Better MSC FPS, part 2 (Better MSC installed): GPU or CPU bound (resolution), the bulb script, the image effects it adds to the hand camera, its carving NavMesh obstacles, interleaved A/B in the living room and on the road." },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "measure", "Label": "living", "Seconds": 6 },
+    { "Op": "resolution", "Pos": [640, 360] },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "measure", "Label": "living-360p", "Seconds": 6 },
+    { "Op": "resolution", "Pos": [1280, 720] },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "census", "Path": "PLAYER/Pivot/AnimPivot/Camera/FPSCamera/FPSCamera" },
+    { "Op": "abtoggle", "Label": "living-bulbs", "Var": "skipmethod", "Path": "BetterMSC.BulbScript:Update", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "living-hand-vignette", "Var": "behaviours", "Path": "PLAYER/Pivot/AnimPivot/Camera/FPSCamera/FPSCamera/HandCamera", "Text": "VignetteAndChromaticAberration", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "living-hand-overlay", "Var": "behaviours", "Path": "PLAYER/Pivot/AnimPivot/Camera/FPSCamera/FPSCamera/HandCamera", "Text": "ScreenOverlay", "Seconds": 12, "Block": 1 },
+    { "Op": "abtoggle", "Label": "living-obstacles", "Var": "behaviours", "Path": "*", "Text": "NavMeshObstacle", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "living-playerscript", "Var": "skipmethod", "Path": "BetterMSC.PlayerScript:Update", "Seconds": 12, "Block": 1 },
+    { "Op": "teleport", "Path": "Waypoint Manager/TeimoBicycleIn/Waypoint 6", "Pos": [0.0, 1.5, 0.0], "Target": "Waypoint Manager/TeimoBicycleIn/Waypoint 9" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "measure", "Label": "road", "Seconds": 6 },
+    { "Op": "resolution", "Pos": [640, 360] },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "measure", "Label": "road-360p", "Seconds": 6 },
+    { "Op": "resolution", "Pos": [1280, 720] },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "abtoggle", "Label": "road-hand-vignette", "Var": "behaviours", "Path": "PLAYER/Pivot/AnimPivot/Camera/FPSCamera/FPSCamera/HandCamera", "Text": "VignetteAndChromaticAberration", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "road-obstacles", "Var": "behaviours", "Path": "*", "Text": "NavMeshObstacle", "Seconds": 16, "Block": 1 },
+    { "Op": "quit" }
+  ]
+}

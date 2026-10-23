@@ -53,6 +53,7 @@ namespace MOP
         // Engine Lab (new in 5.1)
         static internal SettingsCheckBox EngineFastPath, EngineVerify;
         static internal SettingsCheckBox EngineSharedMouseRay;  // 5.1: was experimental ("experimentalMouseRay", default off)
+        static internal SettingsCheckBox EngineModScripts;      // 5.1.1: other mods' scripts (Better MSC)
 
         // Experimental (5.1, off by default)
         static internal SettingsCheckBox ExperimentalEngineBay, ExperimentalMirrorRate;
@@ -64,6 +65,7 @@ namespace MOP
 
         // Other
         static internal SettingsCheckBox DestroyEmptyBottles, DisableEmptyItems, AlwaysDisableSkidmarks;
+        static internal SettingsCheckBox CheckUpdates;   // 5.1.1
 
         // Language (new in 5.1)
         static internal SettingsDropDownList LanguageSelect;
@@ -157,6 +159,8 @@ namespace MOP
             // New ID on purpose: the experimental "experimentalMouseRay" was saved as off for everyone.
             EngineSharedMouseRay = CheckBox("engineSharedMouseRay", "menu.engine_mouse_ray", true, Next.Engine.EngineLab.ApplySettings);
             Hint("menu.engine_mouse_ray_hint");
+            EngineModScripts = CheckBox("engineModScripts", "menu.engine_mod_scripts", true, Next.Engine.EngineLab.ApplySettings);
+            Hint("menu.engine_mod_scripts_hint");
             Spacer();
             Subheader("menu.sub.diagnostics", MoprColors.SubheaderOther);
             EngineVerify = CheckBox("enginePlayMakerVerify", "menu.engine_verify", false, Next.Engine.EngineLab.ApplySettings);
@@ -197,6 +201,8 @@ namespace MOP
             Hint("menu.disable_empty_hint");
             AlwaysDisableSkidmarks = CheckBox("alwaysDisableSkidmarks", "menu.skidmarks", false);
             Hint("menu.skidmarks_hint");
+            CheckUpdates = CheckBox("checkUpdates", "menu.check_updates", true);
+            Hint("menu.check_updates_hint");
 
             // Mod compatibility (rules): what is active, then the actions.
             Header("menu.header.rules");

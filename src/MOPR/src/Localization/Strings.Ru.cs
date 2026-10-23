@@ -84,6 +84,9 @@ namespace MOP.Localization
             { "menu.engine_mouse_ray", "Меньше лучей мыши" },
             { "menu.engine_mouse_ray_hint", "Детали машины и другие предметы каждый кадр спрашивают, наведена ли на них мышь. MOPR пускает " +
                                             "один луч за кадр на всех и отдаёт каждому тот же ответ, что дала бы игра. Около +5% FPS у дома." },
+            { "menu.engine_mod_scripts", "Ускорить скрипты других модов" },
+            { "menu.engine_mod_scripts_hint", "Better MSC: каждая лампочка в доме каждый кадр ищет компонент, которого не существует. " +
+                                              "MOPR сразу отвечает «не найден», как ответил бы Unity. Около +19% FPS в доме." },
             { "menu.sub.diagnostics", "Для поиска багов" },
             { "menu.engine_verify", "Режим проверки" },
             { "menu.engine_verify_hint", "Ускорение не применяется: MOPR только сверяет результат с игрой и записывает расхождения " +
@@ -120,6 +123,8 @@ namespace MOP.Localization
             { "menu.disable_empty_hint", "Опустевшие упаковки и банки скрываются, пока вы не держите их в руках." },
             { "menu.skidmarks", "Без следов шин" },
             { "menu.skidmarks_hint", "Следы шин не рисуются. На долгих поездках они понемногу съедают память." },
+            { "menu.check_updates", "Проверять обновления" },
+            { "menu.check_updates_hint", "При запуске игры MOPR узнаёт на GitHub свою последнюю версию и сообщает, если вышла новая." },
 
             // === Настройки: совместимость с модами (правила) ===
             { "menu.header.rules", "Совместимость с модами" },
@@ -189,6 +194,11 @@ namespace MOP.Localization
             { "msg.no_logs", "Логов нет." },
             { "msg.delete_logs_one", "Удалить логи (<color=yellow>{0}</color>)?" },
             { "msg.delete_logs_many", "Удалить логи (<color=yellow>{0}</color>)?" },
+            { "msg.title.update", "MOP - REVIVAL - Обновление" },
+            { "msg.update_available", "Вышла новая версия MOP - REVIVAL: <color=yellow>{0}</color>\nУ вас {1}.\n\n" +
+                                      "Скачать её можно на Nexus Mods." },
+            { "msg.btn.open_nexus", "ОТКРЫТЬ NEXUS MODS" },
+            { "msg.btn.later", "ПОЗЖЕ" },
 
             // === Проверка целостности сохранения ===
             { "save.title", "MOP - REVIVAL - Проверка целостности сохранения" },

@@ -85,6 +85,9 @@ namespace MOP.Localization
             { "menu.engine_mouse_ray_hint", "Części samochodu i inne obiekty w każdej klatce sprawdzają, czy wskazuje je mysz. MOPR rzuca " +
                                             "jeden promień na klatkę dla wszystkich i daje każdemu tę samą odpowiedź, jaką dałaby gra. " +
                                             "Około +5% FPS w domu." },
+            { "menu.engine_mod_scripts", "Przyspiesz skrypty innych modów" },
+            { "menu.engine_mod_scripts_hint", "Better MSC: każda żarówka w domu w każdej klatce szuka komponentu, który nie istnieje. " +
+                                              "MOPR od razu odpowiada „nie znaleziono”, tak jak Unity. Około +19% FPS w domu." },
             { "menu.sub.diagnostics", "Do szukania błędów" },
             { "menu.engine_verify", "Tryb sprawdzania" },
             { "menu.engine_verify_hint", "Bez przyspieszenia: MOPR tylko porównuje swój wynik z grą i zapisuje różnice " +
@@ -121,6 +124,8 @@ namespace MOP.Localization
             { "menu.disable_empty_hint", "Opróżnione opakowania i puszki są ukryte, dopóki ich nie trzymasz." },
             { "menu.skidmarks", "Bez śladów opon" },
             { "menu.skidmarks_hint", "Ślady opon nie są rysowane. Na długich trasach powoli zjadają pamięć." },
+            { "menu.check_updates", "Sprawdzaj aktualizacje" },
+            { "menu.check_updates_hint", "Przy starcie gry MOPR sprawdza na GitHubie swoją najnowszą wersję i informuje, gdy wyjdzie nowa." },
 
             // === Ustawienia: zgodność z modami (reguły) ===
             { "menu.header.rules", "Zgodność z modami" },
@@ -190,6 +195,11 @@ namespace MOP.Localization
             { "msg.no_logs", "Brak logów." },
             { "msg.delete_logs_one", "Usunąć logi (<color=yellow>{0}</color>)?" },
             { "msg.delete_logs_many", "Usunąć logi (<color=yellow>{0}</color>)?" },
+            { "msg.title.update", "MOP - REVIVAL - Aktualizacja" },
+            { "msg.update_available", "Wyszła nowa wersja MOP - REVIVAL: <color=yellow>{0}</color>\nMasz {1}.\n\n" +
+                                      "Pobierz ją z Nexus Mods." },
+            { "msg.btn.open_nexus", "OTWÓRZ NEXUS MODS" },
+            { "msg.btn.later", "PÓŹNIEJ" },
 
             // === Weryfikacja integralności zapisu ===
             { "save.title", "MOP - REVIVAL - Weryfikacja integralności zapisu" },

@@ -2,6 +2,28 @@
 
 ## 5.1.1 (23.10.2026)
 
+### Added
+- Game engine: "Speed up other mods' scripts" (on by default, under the engine's main switch, with its verify
+  mode). Better MSC: every lamp bulb of the house called `GetComponent("ChangeMeshBulb")` every frame. No loaded
+  assembly defines that type, so the call always returns null, but Unity looked the name up each time: 84 us per
+  bulb per frame, 0.84 ms for the 10 bulbs. MOPR replaces only that call (a Harmony transpiler in
+  `BulbScript.Update`) with an answer of null while no assembly has such a type; if one appears, Unity is asked as
+  before. The rest of the method runs unchanged; a Better MSC version without the call is left alone. TestBot
+  `bmsc-bulbs`, living room: 0.8 us per bulb, median frame 6.05 -> 4.99 ms (160 -> 190 FPS, +19%, interleaved A/B);
+  skipping the whole method on top of that changes nothing (-0.02 ms). Verify mode: 11 300 lookups, 0 different.
+  Switching the setting off restores the original method (84 us per bulb again).
+- Update check (Other: "Check for updates", on by default). Once per game start MOPR asks GitHub for its latest
+  release (`releases/latest`: no drafts, no pre-releases) and, when it is newer than the installed version, shows a
+  message in the main menu whose only button with a link opens the Nexus Mods page. A failed check (offline,
+  timeout) is only written to the mod log. Console: `mopr update`. The game can't do today's HTTPS by itself:
+  Unity 5.0's `WWW` got "tlsv1 alert protocol version" from GitHub, and WinINet failed with error 127 because the
+  game folder has MSCLoader's `winhttp.dll` (Doorstop). The request goes through WinHTTP on a background thread,
+  with only functions that loader forwards to Windows. Only the version number is compared.
+
+### Changed
+- Console: the rules line at start only says for how many mods rules are loaded ("Rules: loaded for 2 mods.");
+  the number of rules and files and the time are written to the mod log for bug reports.
+
 ### Fixed
 - Items taken out of an inventory mod could vanish. Yet Another Inventory Mod (YAIM) keeps stored items at
   (0, 1000, 0); MOPR froze them there as far away, and when YAIM dropped a physics-only item (bucket, fish trap,
@@ -23,6 +45,22 @@
   too, whenever the game switches the highway off.
 - The floor jack and the car jack threw a `NullReferenceException` on every switch when a mod had changed their
   trigger (seen with Better MSC); they were never switched either way. Same behaviour, no exception.
+- Call Your Cousin: Pena's car did not move when the player got in at the house (a known issue since the original
+  MOP). MOP 3.10 moved Pena's car (and the drunk driver's car) to the scene root when the player got in as a
+  passenger, so switching `TRAFFIC` / `NPC_CARS` off at home would not take the player with it. Call Your Cousin
+  recognises the player in the car by "the player is under `TRAFFIC`", never saw it, and kept stopping Pena every
+  physics frame while the player was within 10 m. Now nothing is moved: MOPR never switches off a world object the
+  player is in. TestBot `cyc-ride` (call from home, get in at the house): before 0 km/h for 30 s, after the car drives
+  off (60 km/h after 24 s), like without MOPR. `cyc-guard` (rules off, the car with the player moved into the yard):
+  `TRAFFIC` stays on while the player sits in it and goes off within a second after the player got out. The built-in
+  Call Your Cousin rule stays as it is.
+- A `NullReferenceException` in `MOP.Hypervisor.Update` every frame (Balanced and Quality mode) when a rule excludes
+  the traffic, as the Call Your Cousin rule does (`TRAFFIC`, `VehiclesDirtRoad`); also in the original MOP. MOPR
+  checks whether the traffic is on before it looks for traffic near the cars, and looked only among the objects it
+  manages. It now reads the traffic objects themselves when it doesn't manage them. Every exception went to
+  `output_log.txt` with its stack trace: 150-250 per second, a 3.8-7.5 MB log after a 4-minute test, 107 KB after
+  the fix. With Better MSC and Call Your Cousin (TestBot `bmsc-tour`, one run each) the median frame time in the same
+  four spots dropped by 0.9-2.3 ms (yard 9.06 -> 7.51 ms, living room 7.97 -> 5.72 ms).
 
 ## 5.1.0 "Engine" (2026-10-20)
 
