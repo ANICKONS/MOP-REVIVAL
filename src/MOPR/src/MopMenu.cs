@@ -57,6 +57,7 @@ namespace MOP
 
         // Experimental (5.1, off by default)
         static internal SettingsCheckBox ExperimentalEngineBay, ExperimentalMirrorRate;
+        static internal SettingsCheckBox ExperimentalBoltSleep;  // 5.1.1: sleeping bolts while driving
 
         // Graphics
         static internal SettingsSliderInt FramerateLimiter, ShadowDistance;
@@ -173,6 +174,8 @@ namespace MOP
             Hint("menu.exp_engine_bay_hint");
             ExperimentalMirrorRate = CheckBox("experimentalMirrorRate", "menu.exp_mirrors", false, Next.Engine.EngineLab.ApplySettings);
             Hint("menu.exp_mirrors_hint");
+            ExperimentalBoltSleep = CheckBox("experimentalBoltSleep", "menu.exp_bolt_sleep", false, Next.Engine.EngineLab.ApplySettings);
+            Hint("menu.exp_bolt_sleep_hint");
 
             // Graphics.
             Header("menu.header.graphics");
@@ -181,6 +184,18 @@ namespace MOP
             BeginDependents(framerateDependents);
             FramerateLimiter = Slider("framerateLimiterUpdated", "menu.fps_limit", 20, 200, 60, MopSettings.UpdateFramerateLimiter);
             EndDependents();
+            Spacer();
+            // Frame generation (5.1.1): the NVIDIA driver profile is the setting, so buttons and a status, no checkbox.
+            Subheader("menu.sub.framegen");
+            frameGenStatusText = Text(Next.FrameGeneration.StatusText);
+            ButtonRow(Button("menu.btn.fg_on", () => SetFrameGeneration(true)),
+                      Button("menu.btn.fg_off", () => SetFrameGeneration(false)));
+            Hint("menu.fg_hint");
+            Text(() =>
+            {
+                int half = Next.FrameGeneration.HalfRefresh(out int refresh);
+                return MoprColors.Colorize(MoprColors.Hint, Loc.F("menu.fg_tip", refresh, half));
+            });
             Spacer();
             Subheader("menu.sub.shadows");
             ShadowDistance = Slider("shadowDistance", "menu.shadow_distance", 0, 2000, 200, MopSettings.UpdateShadows);
@@ -501,6 +516,20 @@ namespace MOP
         }
 
         static SettingsText rulesStatusText;
+        static SettingsText frameGenStatusText;
+
+        static void SetFrameGeneration(bool on)
+        {
+            string err = Next.FrameGeneration.SetEnabled(on);
+            if (err != null) ModConsole.Warn("con.fg.failed", err);
+            RefreshFrameGeneration();
+        }
+
+        /// <summary>Frame generation was switched (settings page or console): show the new state.</summary>
+        internal static void RefreshFrameGeneration()
+        {
+            if (frameGenStatusText != null) frameGenStatusText.SetValue(Next.FrameGeneration.StatusText());
+        }
 
         /// <summary>Rules were read again: show what is active now.</summary>
         internal static void RefreshRulesStatus()

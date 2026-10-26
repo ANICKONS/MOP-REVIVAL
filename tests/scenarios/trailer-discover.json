@@ -1,0 +1,15 @@
+{
+  "Name": "trailer-discover",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "How the game hitches the flatbed to the tractor (which joint): MOPR 5.1.1 counts a SpringJoint between two vehicles' hook bodies as a tow rope, so the hitch must not be one." },
+    { "Op": "teleport", "Path": "KEKMET(350-400psi)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "KEKMET(350-400psi)" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "dumpfsm", "Label": "hitch", "Path": "KEKMET(350-400psi)/Trailer", "Recursive": true },
+    { "Op": "dumpfsm", "Label": "flatbed", "Path": "FLATBED", "Recursive": false },
+    { "Op": "watch", "Label": "joints", "Seconds": 0, "Probes": [ "kekSpring=KEKMET(350-400psi)|#SpringJoint.connectedBody", "kekHinge=KEKMET(350-400psi)|#HingeJoint.connectedBody", "kekCJ=KEKMET(350-400psi)|#ConfigurableJoint.connectedBody", "kekFixed=KEKMET(350-400psi)|#FixedJoint.connectedBody", "fbSpring=FLATBED|#SpringJoint.connectedBody", "fbHinge=FLATBED|#HingeJoint.connectedBody", "fbCJ=FLATBED|#ConfigurableJoint.connectedBody", "fbFixed=FLATBED|#FixedJoint.connectedBody", "fbChar=FLATBED|#CharacterJoint.connectedBody", "remove=KEKMET(350-400psi)/Trailer/Remove|@self" ] },
+    { "Op": "tree", "Path": "FLATBED", "Max": 1, "Label": "flatbed" },
+    { "Op": "quit" }
+  ]
+}

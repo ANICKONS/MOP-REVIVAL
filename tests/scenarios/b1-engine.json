@@ -1,0 +1,52 @@
+{
+  "Name": "b1-engine",
+  "SettleSeconds": 15,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "B1 with the engine out of the car (as when it is built on the floor, a stand or the hoist): the block's BoltCheck goes to its own 'Remove engine' state (the block comes off the car with every part bolted to it). Then 2 km away and back three times, a real save and load, and 2 km again. Every part must stay on the block with its bolt stages. Run with -Variant vanilla as well." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "partsnap", "Label": "base", "Text": "reset" },
+    { "Op": "fsmset", "Path": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)", "Fsm": "BoltCheck", "Var": "Tightness", "Value": "0" },
+    { "Op": "fsmstate", "Path": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)", "Fsm": "BoltCheck", "Text": "Remove engine" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "place", "Path": "name:block(Clone)", "Target": "SATSUMA(557kg, 248)", "Pos": [3.5, 0.6, 0.0], "Local": true },
+    { "Op": "wait", "Seconds": 20 },
+    { "Op": "watch", "Label": "block", "Seconds": 0, "Probes": [ "pos=name:block(Clone)|@pos", "parent=name:block(Clone)|@parent", "state=name:block(Clone)|BoltCheck|@state" ] },
+    { "Op": "partsnap", "Label": "removed" },
+    { "Op": "partcompare", "A": "base", "B": "removed" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "partsnap", "Label": "removed2" },
+    { "Op": "partcompare", "A": "removed", "B": "removed2" },
+
+    { "Op": "repeat", "Label": "far", "Max": 3, "Steps": [
+      { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [6.0, 1.0, 0.0] },
+      { "Op": "wait", "Seconds": 10 },
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+      { "Op": "wait", "Seconds": 10 },
+      { "Op": "partsnap", "Label": "far{i}" },
+      { "Op": "partcompare", "A": "removed2", "B": "far{i}" }
+    ] },
+    { "Op": "watch", "Label": "block_far", "Seconds": 0, "Probes": [ "pos=name:block(Clone)|@pos", "parent=name:block(Clone)|@parent" ] },
+
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.3, 0.0] },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "savegame" },
+
+    { "Op": "log", "Text": "loaded again after the save" },
+    { "Op": "wait", "Seconds": 15 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "watch", "Label": "block_loaded", "Seconds": 0, "Probes": [ "pos=name:block(Clone)|@pos", "parent=name:block(Clone)|@parent" ] },
+    { "Op": "partsnap", "Label": "loaded" },
+    { "Op": "partcompare", "A": "removed2", "B": "loaded" },
+
+    { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [6.0, 1.0, 0.0] },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "partsnap", "Label": "loadedfar" },
+    { "Op": "partcompare", "A": "loaded", "B": "loadedfar" },
+    { "Op": "quit" }
+  ]
+}

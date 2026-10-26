@@ -1,0 +1,66 @@
+{
+  "Name": "b1-work",
+  "SettleSeconds": 15,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "B1 with work done after the load: one bolt of eight Satsuma parts (body, chassis, engine) is loosened by two turns through the game's own bolt event (UNTIGHTEN on its Screw FSM, as the ratchet sends it), so stage, bolt position and part tightness differ from the save. Then 40 m and 2 km away and back, a real save and load, and 2 km again. Every bolt must keep the stage the work left. Run with -Variant vanilla as well." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "partsnap", "Label": "base", "Text": "reset" },
+
+    { "Op": "repeat", "Label": "loosen", "Max": 2, "Steps": [
+      { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Body/pivot_hood/hood(Clone)/Bolts/BoltPM", "Fsm": "Screw", "Event": "UNTIGHTEN" },
+      { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Body/pivot_bootlid/bootlid(Clone)/hooks/BoltPM", "Fsm": "Screw", "Event": "UNTIGHTEN" },
+      { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Body/pivot_door_left/door left(Clone)/Bolts/BoltPM", "Fsm": "Screw", "Event": "UNTIGHTEN" },
+      { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Body/pivot_fender_left/fender left(Clone)/Bolts/BoltPM", "Fsm": "Screw", "Event": "UNTIGHTEN" },
+      { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/_Motor/BoltPM", "Fsm": "Screw", "Event": "UNTIGHTEN" },
+      { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/Bolts/BoltPM", "Fsm": "Screw", "Event": "UNTIGHTEN" },
+      { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_alternator/alternator(Clone)/Bolts/BoltPM", "Fsm": "Screw", "Event": "UNTIGHTEN" },
+      { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Chassis/FL/strut fl(xxxxx)/BoltPM", "Fsm": "Screw", "Event": "UNTIGHTEN" },
+      { "Op": "wait", "Seconds": 1 }
+    ] },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "partsnap", "Label": "worked" },
+    { "Op": "partcompare", "A": "base", "B": "worked" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "partsnap", "Label": "worked2" },
+    { "Op": "partcompare", "A": "worked", "B": "worked2" },
+
+    { "Op": "repeat", "Label": "mid", "Max": 3, "Steps": [
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [40.0, 4.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+      { "Op": "wait", "Seconds": 8 },
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+      { "Op": "wait", "Seconds": 8 },
+      { "Op": "partsnap", "Label": "mid{i}" },
+      { "Op": "partcompare", "A": "worked2", "B": "mid{i}" }
+    ] },
+
+    { "Op": "repeat", "Label": "far", "Max": 3, "Steps": [
+      { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [6.0, 1.0, 0.0] },
+      { "Op": "wait", "Seconds": 10 },
+      { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+      { "Op": "wait", "Seconds": 10 },
+      { "Op": "partsnap", "Label": "far{i}" },
+      { "Op": "partcompare", "A": "worked2", "B": "far{i}" }
+    ] },
+
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.3, 0.0] },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "savegame" },
+
+    { "Op": "log", "Text": "loaded again after the save" },
+    { "Op": "wait", "Seconds": 15 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "partsnap", "Label": "loaded" },
+    { "Op": "partcompare", "A": "worked2", "B": "loaded" },
+
+    { "Op": "teleport", "Path": "GIFU(750/450psi)", "Local": true, "Pos": [6.0, 1.0, 0.0] },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "partsnap", "Label": "loadedfar" },
+    { "Op": "partcompare", "A": "loaded", "B": "loadedfar" },
+    { "Op": "quit" }
+  ]
+}

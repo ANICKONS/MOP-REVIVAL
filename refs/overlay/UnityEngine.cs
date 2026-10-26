@@ -44,7 +44,10 @@ namespace UnityEngine
     public partial class MeshRenderer : Renderer { }
     public partial class SkinnedMeshRenderer : Renderer { }
     public partial class MeshFilter : Component { }
-    public partial class Joint : Component { }
+    public partial class Joint : Component
+    {
+        public Rigidbody connectedBody { get { throw null; } set { } }   // 5.1.1 tow ropes (VehicleManager)
+    }
     public partial class HingeJoint : Joint { }
     public partial class FixedJoint : Joint { }
     public partial class ConfigurableJoint : Joint { }
@@ -427,6 +430,7 @@ namespace UnityEngine
     public partial class Component
     {
         public Component GetComponent(string type) { throw null; }  // 5.1.1 Engine Lab, other mods' scripts
+        public void GetComponents<T>(System.Collections.Generic.List<T> results) { throw null; }  // 5.1.1 tow ropes
     }
 
     // ----- Item toggle errors (5.1, Items/ItemBehaviour.cs): written to output_log.txt only. -----

@@ -1,0 +1,14 @@
+{
+  "Name": "bolts-grep",
+  "SettleSeconds": 15,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Bolts: which game FSMs loosen Satsuma bolts by themselves (who sends LOOSENBOLT / REVENGE to RandomBolt, who writes a BoltCheck Tightness)." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "fsmgrep", "Label": "loosen", "Text": "LOOSENBOLT,REVENGE,RandomBolt", "Max": 500 },
+    { "Op": "fsmgrep", "Label": "tightness", "Text": "\"Tightness\"", "Max": 3000 },
+    { "Op": "fsmgrep", "Label": "reset", "Text": "ArrayListResetValues", "Max": 3000 },
+    { "Op": "quit" }
+  ]
+}

@@ -181,5 +181,59 @@ namespace MOP.Managers
         {
             return vehicleArrayMSC.Contains(veh.gameObject.name);
         }
+
+        // ===== Tow ropes (MOP - REVIVAL 5.1.1) ==============================================================
+        // A tow rope is a SpringJoint on the body of one hook (the car, or the tractor's RopePoint) to the other
+        // car's body: the game's rope does it (TestBot tow-vanilla: SpringJoint on the van, to the Satsuma) and
+        // so does Better MSC's own rope, which leaves the hooks' "Attached" false. Both ends of such a joint count
+        // as towed. Only SpringJoints, on the bodies of the vehicles' hooks: nothing else of the cars is one.
+
+        readonly HashSet<Rigidbody> towLinked = new HashSet<Rigidbody>();
+        readonly List<SpringJoint> jointBuffer = new List<SpringJoint>();
+        int lastTowLinkCount = -1;
+
+        /// <summary>Finds the tow rope joints on the vehicles' hook bodies. Once per MOP tick, before the vehicles.</summary>
+        public void UpdateTowLinks()
+        {
+            towLinked.Clear();
+            for (int i = 0; i < vehicles.Count; i++)
+            {
+                Vehicle v = vehicles[i];
+                if (v == null || v.gameObject == null) continue;
+                Rigidbody[] bodies = v.TowBodies;
+                for (int b = 0; b < bodies.Length; b++)
+                {
+                    Rigidbody body = bodies[b];
+                    if (body == null) continue;
+                    body.GetComponents(jointBuffer);
+                    for (int j = 0; j < jointBuffer.Count; j++)
+                    {
+                        SpringJoint joint = jointBuffer[j];
+                        if (joint == null || joint.connectedBody == null || joint.connectedBody == body) continue;
+                        // A rope joins two vehicles; a joint between two parts of one vehicle is not a rope.
+                        if (joint.connectedBody.transform.root == body.transform.root) continue;
+                        towLinked.Add(body);
+                        towLinked.Add(joint.connectedBody);
+                    }
+                }
+            }
+            jointBuffer.Clear();
+
+            if (towLinked.Count != lastTowLinkCount)
+            {
+                lastTowLinkCount = towLinked.Count;
+                ModConsole.Debug(towLinked.Count == 0 ? "Tow rope: none."
+                    : "Tow rope: " + string.Join(", ", towLinked.Where(r => r != null).Select(r => r.name).ToArray()));
+            }
+        }
+
+        /// <summary>True when one of the bodies is an end of a tow rope (as of the last UpdateTowLinks).</summary>
+        public bool IsTowLinked(Rigidbody[] bodies)
+        {
+            if (bodies == null || towLinked.Count == 0) return false;
+            for (int i = 0; i < bodies.Length; i++)
+                if (bodies[i] != null && towLinked.Contains(bodies[i])) return true;
+            return false;
+        }
     }
 }

@@ -236,6 +236,18 @@ namespace MOPR.TestBot
                             Log($"find {step.Label}: {found.Count} objects for '{step.Text}'");
                         }
                         break;
+                    case "picked":
+                        // Path = root, Text = pick spec (GameOps.Pick): what those objects contain.
+                        Log($"picked {step.Label}: " + GameOps.DescribePicked(step.Path, step.Text));
+                        break;
+                    case "fsmgrep":
+                        {
+                            // Text: comma separated terms; every FSM action / transition of the scene that mentions one.
+                            string grep = FsmDumper.Grep(step.Text, step.Max, out int matches);
+                            WriteArtifact("fsmgrep_" + step.Label + ".txt", grep);
+                            Log($"fsmgrep {step.Label}: {matches} matches for '{step.Text}'");
+                        }
+                        break;
                     case "dumpfsm":
                         {
                             // Path: one object by hierarchy path (GameObject.Find, or a search when inactive); Text: name terms.
@@ -262,6 +274,66 @@ namespace MOPR.TestBot
                         {
                             string err = GameOps.SendEvent(step.Path, step.Fsm, step.Event);
                             Log($"fsmevent {step.Path}|{step.Fsm} <- {step.Event}" + (err != null ? "  ERROR: " + err : ""));
+                        }
+                        break;
+                    case "broadcast":
+                        {
+                            // Event = event to every FSM: PlayMakerFSM.BroadcastEvent (static); with Path + Fsm through
+                            // that FSM's Fsm.BroadcastEvent (what a "SendEvent to all" action does).
+                            FsmEvent e = FsmEvent.GetFsmEvent(step.Event);
+                            string err = null;
+                            if (string.IsNullOrEmpty(step.Path)) PlayMakerFSM.BroadcastEvent(e);
+                            else
+                            {
+                                PlayMakerFSM sender = GameOps.Fsm(GameOps.Resolve(step.Path), step.Fsm);
+                                if (sender == null) err = "sender FSM not found";
+                                else sender.Fsm.BroadcastEvent(e, false);
+                            }
+                            Log($"broadcast {step.Event}" + (string.IsNullOrEmpty(step.Path) ? " (static)" : " from " + step.Path + "|" + step.Fsm) + (err != null ? "  ERROR: " + err : ""));
+                        }
+                        break;
+                    case "sendtogo":
+                        {
+                            // Event to the FSMs on Target (Active = and its children), sent by Path|Fsm through
+                            // Fsm.BroadcastEventToGameObject (a "SendEvent to a GameObject" action, e.g. a tool on a bolt).
+                            PlayMakerFSM sender = GameOps.Fsm(GameOps.Resolve(step.Path), step.Fsm);
+                            GameObject target = GameOps.Resolve(step.Target);
+                            string err = sender == null ? "sender FSM not found" : target == null ? "target not found" : null;
+                            if (err == null)
+                            {
+                                System.Reflection.MethodInfo m = typeof(Fsm).GetMethod("BroadcastEventToGameObject",
+                                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic, null,
+                                    new[] { typeof(GameObject), typeof(FsmEvent), typeof(FsmEventData), typeof(bool), typeof(bool) }, null);
+                                if (m == null) err = "Fsm.BroadcastEventToGameObject not found";
+                                else m.Invoke(sender.Fsm, new object[] { target, FsmEvent.GetFsmEvent(step.Event), new FsmEventData { SentByFsm = sender.Fsm }, step.Active, false });
+                            }
+                            Log($"sendtogo {step.Event} -> {step.Target}" + (err != null ? "  ERROR: " + err : ""));
+                        }
+                        break;
+                    case "boltsnap":
+                        // Path = root (empty = every bolt of the scene). BoltProbe.cs.
+                        Log($"boltsnap {step.Label}: " + BoltProbe.Take(step.Label ?? "x", step.Path));
+                        break;
+                    case "boltcompare":
+                        Log($"boltcompare {step.A} -> {step.B}: " + BoltProbe.Compare(step.A, step.B));
+                        break;
+                    case "fsmstate":
+                        {
+                            // Path = object, Fsm = FSM, Text = state: the FSM goes there now (like a click on a hook).
+                            string err = GameOps.GotoState(step.Path, step.Fsm, step.Text);
+                            Log($"fsmstate {step.Path}|{step.Fsm} -> {step.Text}" + (err != null ? "  ERROR: " + err : ""));
+                            yield return null;
+                        }
+                        break;
+                    case "towjoint":
+                        {
+                            // Path = car that gets the joint, Text = its hook; Target = other car, Value = its hook.
+                            // Active false: removes the joints added here. Emulates Better MSC's tow rope.
+                            string info;
+                            string err = step.Active ? GameOps.AddTowJoint(step.Path, step.Text, step.Target, step.Value, out info)
+                                                     : GameOps.RemoveTowJoints(out info);
+                            Log("towjoint: " + (err != null ? "ERROR: " + err : info));
+                            yield return new WaitForFixedUpdate();
                         }
                         break;
                     case "activate":
@@ -1423,6 +1495,13 @@ namespace MOPR.TestBot
                 case "dummies": apply = b => GameOps.SetDummies(b ? step.Max : 0); break;
                 case "cameras": apply = b => GameOps.SetCameras(step.Path, !b, out int _); break;
                 case "probes": apply = b => GameOps.SetProbes(step.Path, !b, out int _); break;
+                // Path = root, Text = ';'-separated child paths or "prefix*" (see GameOps.Pick).
+                case "deactivate": apply = b => GameOps.SetPickedActive(step.Path, step.Text, !b, out int _); break;
+                case "triggers": apply = b => GameOps.SetPickedTriggers(step.Path, step.Text, !b, out int _); break;
+                case "fsms": apply = b => GameOps.SetPickedFsms(step.Path, step.Text, !b, out int _); break;
+                case "kinematic": apply = b => GameOps.SetPickedKinematic(step.Path, step.Text, b, out int _); break;
+                case "partcolliders": apply = b => GameOps.SetPickedSolidColliders(step.Path, step.Text, !b, out int _); break;
+                case "partrenderers": apply = b => GameOps.SetPickedRenderers(step.Path, step.Text, !b, out int _); break;
                 case "tiny":
                     {
                         // B = the enabled renderers under Path (comma-separated roots) that are smaller than Value

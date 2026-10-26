@@ -74,6 +74,7 @@ namespace MOP.Common
             { "guard", "con.help.guard" },
             { "engine [on|off|shadow|reset|detail]", "con.help.engine" },
             { "update", "con.help.update" },
+            { "fg [on|off]", "con.help.fg" },
         };
 
         /// <summary>Prints without storing: answers to a command the player typed are not part of the mod log.</summary>
@@ -139,6 +140,9 @@ namespace MOP.Common
                     break;
                 case "ENGINE":
                     Next.Engine.EngineLab.Command(args);
+                    break;
+                case "FG":
+                    Next.FrameGeneration.Command(args);
                     break;
                 case "UPDATE":
                     // "mopr update preview" (not in the help): also shows the message for the latest release, to

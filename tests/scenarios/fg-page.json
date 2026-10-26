@@ -1,0 +1,22 @@
+{
+  "Name": "fg-page",
+  "StayInMenu": true,
+  "SettleSeconds": 5,
+  "LoadTimeoutSeconds": 300,
+  "Steps": [
+    { "Op": "log", "Text": "Settings page, Graphics - Frame generation in English and Russian: status, buttons, explanation and the FPS limit tip (half the monitor's refresh rate)." },
+    { "Op": "console", "Text": "mopr fg" },
+    { "Op": "opensettings", "Text": "MOPR" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "1" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "scrollsettings", "Value": "0.36" },
+    { "Op": "screenshot", "Label": "ru_64" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "0" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "scrollsettings", "Value": "0.36" },
+    { "Op": "screenshot", "Label": "en_64" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "1" },
+    { "Op": "closesettings" },
+    { "Op": "quit" }
+  ]
+}

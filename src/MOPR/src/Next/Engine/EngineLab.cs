@@ -13,7 +13,7 @@
 //     (no heuristics, no "close enough"); otherwise the original game code runs unchanged;
 //   * every optimization has a SHADOW mode that runs the original code anyway and verifies the claim;
 //   * everything can be switched off at runtime and is removed completely (Harmony unpatch).
-// The experimental tier (SharedMouseRay, MirrorRate; 5.1) is the exception to the first rule: measured, verified
+// The experimental tier (EngineBayCulling, MirrorRate; 5.1; BoltSleep, 5.1.1) is the exception to the first rule: measured, verified
 // where possible, but not provably exact - so it is off by default and has its own switches.
 //
 // Public static API (also used by the TestBot through reflection): SetMode, GetMode, ResetStats, Report.
@@ -186,6 +186,20 @@ namespace MOP.Next.Engine
                     MirrorRate.ResetStats();
                     ModConsole.Info("con.render.line", Loc.Word("con.name.mirrors"), ModeWord(mirrors ? ModeOn : ModeOff));
                 }
+
+                // 5.1.1: sleeping bolts while driving (the safe part of the 4.x driving mode).
+                bool bolts = MopMenu.ExperimentalBoltSleep != null && MopMenu.ExperimentalBoltSleep.GetValue();
+                if (bolts != BoltSleep.Installed)
+                {
+                    if (bolts)
+                    {
+                        string err = BoltSleep.Install();
+                        if (err != null) ModConsole.Warn("con.engine.part_unavailable", "sleeping bolts", err);
+                    }
+                    else BoltSleep.Remove();
+                    BoltSleep.ResetStats();
+                    ModConsole.Info("con.engine.line", Loc.Word("con.name.bolt_sleep"), ModeWord(BoltSleep.Installed ? ModeOn : ModeOff));
+                }
             }
             catch (Exception ex)
             {
@@ -229,6 +243,7 @@ namespace MOP.Next.Engine
             SharedMouseRay.ResetStats();
             IkFastPath.ResetStats();
             ModScripts.ResetStats();
+            BoltSleep.ResetStats();
         }
 
         /// <summary>Called when a scene was loaded: the caches must not keep objects of the previous scene alive.</summary>
@@ -240,6 +255,7 @@ namespace MOP.Next.Engine
             IkFastPath.ClearCaches();
             MirrorRate.ClearCaches();
             EngineBayCulling.ClearCaches();
+            BoltSleep.ClearCaches();
         }
 
         public static void SetDetailedStats(bool on)
@@ -294,6 +310,7 @@ namespace MOP.Next.Engine
             ModScripts.AppendReport(sb);
             sb.AppendLine(MirrorRate.Report());
             sb.AppendLine(EngineBayCulling.Report());
+            sb.AppendLine(BoltSleep.Report());
             return sb.ToString().TrimEnd();
         }
 

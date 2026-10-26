@@ -1,0 +1,43 @@
+{
+  "Name": "drive-modes",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "What the MOPR 4.x 'Satsuma driving mode' saved, and where it comes from. Seated in the Satsuma in Peraejaervi (parked, then driving 45 km/h on Teimo's route), the experimental options off. A/B (1 s blocks): the 4.x list switched off with SetActive (triggers, part pivots with the parts on them, part meshes); only the install triggers switched off; only their trigger colliders off; only their FSMs paused; the MiscParts renderers off (what not drawing them gives)." },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "experimentalEngineBay", "Value": "false" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "experimentalMirrorRate", "Value": "false" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "placecar", "Target": "SATSUMA(557kg, 248)", "Path": "Waypoint Manager/TeimoBicycleIn", "Max": 5 },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Pos": [0.0, 0.0, 0.0] },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Fsm": "PlayerTrigger", "Event": "Key DOWN" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "watch", "Label": "seated", "Seconds": 0, "Probes": [ "vehicle=global|PlayerCurrentVehicle", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic" ] },
+    { "Op": "fsmhist", "Label": "seated", "Path": "SATSUMA(557kg, 248)", "Max": 60 },
+
+    { "Op": "log", "Text": "--- seated, parked ---" },
+    { "Op": "abtoggle", "Label": "seated-4x-list", "Var": "deactivate", "Path": "SATSUMA(557kg, 248)", "Seconds": 16, "Block": 1,
+      "Text": "MiscParts/trigger_brake_lining;MiscParts/trigger_brake_master;MiscParts/trigger_clutch_master;MiscParts/trigger_clutch_lining;MiscParts/trigger_gear_linkage;MiscParts/trigger_fuel_strainer;MiscParts/trigger_fuel_tank;MiscParts/trigger_headlight_left;MiscParts/trigger_headlight_right;MiscParts/trigger_rearlight_left;MiscParts/trigger_rearlight_right;MiscParts/trigger_radiator;MiscParts/trigger_radiator_hose1;MiscParts/trigger_radiator_hose3;MiscParts/trigger_fuel_tank_pipe;MiscParts/trigger_battery;MiscParts/trigger_electrics;MiscParts/trigger_mudflap_rl;MiscParts/trigger_mudflap_rr;MiscParts/trigger_marker_left;MiscParts/trigger_marker_right;MiscParts/trigger_antenna_left;MiscParts/trigger_antenna_right;MiscParts/trigger_exhaust_dual_tip;MiscParts/Triggers Exhaust Pipes;MiscParts/Triggers Mufflers;MiscParts/pivot_headlight_left;MiscParts/pivot_headlight_right;MiscParts/pivot_electrics;MiscParts/pivot_exhaust pipe;MiscParts/pivot_exhaust_dual_tip;MiscParts/pivot_exhaust_muffler;MiscParts/fuel line(xxxxx);MiscParts/rearlight(leftx);MiscParts/rearlight(right);MiscParts/brake lining(xxxxx);MiscParts/brake master cylinder(xxxxx);MiscParts/clutch master cylinder(xxxxx);MiscParts/clutch lining(xxxxx);MiscParts/fuel tank pipe(xxxxx);MiscParts/fuel strainer(xxxxx);MiscParts/gear linkage(xxxxx);MiscParts/radiator hose1(xxxxx);MiscParts/radiator hose3(xxxxx);MiscParts/mudflap rl(xxxxx);MiscParts/mudflap rr(xxxxx);MiscParts/marker light left(xxxxx);MiscParts/marker light right(xxxxx);MiscParts/antenna(leftx);MiscParts/antenna(right);Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_alternator;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_radiator hose2;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_camshaft;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_crankshaft;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_cylinder head;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_distributor;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_engine plate;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_alternator belt;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_fuel pump;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_gearbox;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_head gasket;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_main bearing1;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_main bearing2;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_main bearing3;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_oil filter;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_oilpan;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_piston1;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_piston2;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_piston3;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_piston4;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_timing cover;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/_Triggers;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_radiator hose2;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_timing cover;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_piston1;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_piston2;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_piston3;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_piston4;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_oilpan;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_oil filter;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_main bearing1;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_main bearing2;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_main bearing3;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_head gasket;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_gearbox;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_fuel pump;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_alternator belt;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_engine plate;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_distributor;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_cylinder head;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_racing head;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_crankshaft;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_alternator;Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/trigger_camshaft" },
+    { "Op": "abtoggle", "Label": "seated-all-triggers", "Var": "deactivate", "Path": "SATSUMA(557kg, 248)", "Text": "trigger_*;Triggers*;_Triggers*", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "seated-trigger-colliders", "Var": "triggers", "Path": "SATSUMA(557kg, 248)", "Text": "trigger_*;Triggers*;_Triggers*", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "seated-trigger-fsms", "Var": "fsms", "Path": "SATSUMA(557kg, 248)", "Text": "trigger_*;Triggers*;_Triggers*", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "seated-miscparts-renderers", "Var": "renderers", "Path": "SATSUMA(557kg, 248)/MiscParts", "Seconds": 16, "Block": 1 },
+
+    { "Op": "log", "Text": "--- driving ---" },
+    { "Op": "drive", "Target": "SATSUMA(557kg, 248)", "Path": "Waypoint Manager/TeimoBicycleIn", "Max": 5, "Last": 17, "Speed": 45 },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "watch", "Label": "driving", "Seconds": 0, "Probes": [ "driver=static|MOPR.TestBot.Driver.Status", "vehicle=global|PlayerCurrentVehicle" ] },
+    { "Op": "fsmhist", "Label": "driving", "Path": "SATSUMA(557kg, 248)", "Max": 60 },
+    { "Op": "abtoggle", "Label": "driving-all-triggers", "Var": "deactivate", "Path": "SATSUMA(557kg, 248)", "Text": "trigger_*;Triggers*;_Triggers*", "Seconds": 20, "Block": 1 },
+    { "Op": "abtoggle", "Label": "driving-trigger-colliders", "Var": "triggers", "Path": "SATSUMA(557kg, 248)", "Text": "trigger_*;Triggers*;_Triggers*", "Seconds": 20, "Block": 1 },
+    { "Op": "abtoggle", "Label": "driving-trigger-fsms", "Var": "fsms", "Path": "SATSUMA(557kg, 248)", "Text": "trigger_*;Triggers*;_Triggers*", "Seconds": 20, "Block": 1 },
+    { "Op": "abtoggle", "Label": "driving-miscparts-renderers", "Var": "renderers", "Path": "SATSUMA(557kg, 248)/MiscParts", "Seconds": 20, "Block": 1 },
+    { "Op": "watch", "Label": "driving_end", "Seconds": 0, "Probes": [ "driver=static|MOPR.TestBot.Driver.Status", "vehicle=global|PlayerCurrentVehicle" ] },
+    { "Op": "drivestop" },
+    { "Op": "quit" }
+  ]
+}

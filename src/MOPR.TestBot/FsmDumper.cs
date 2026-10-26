@@ -190,5 +190,63 @@ namespace MOPR.TestBot
         {
             try { return p.GetValue(o, null); } catch { return null; }
         }
+
+        /// <summary>
+        /// Every FSM of the scene (inactive ones too) whose actions, transitions or global transitions mention one of
+        /// the comma separated terms (case-insensitive): one line per match, "path | FSM | state | what".
+        /// </summary>
+        public static string Grep(string terms, int max, out int matches)
+        {
+            matches = 0;
+            string[] parts = (terms ?? "").Split(',').Select(s => s.Trim().ToLowerInvariant()).Where(s => s.Length > 0).ToArray();
+            StringBuilder sb = new StringBuilder();
+            if (parts.Length == 0) return sb.ToString();
+            if (max <= 0) max = 2000;
+
+            foreach (PlayMakerFSM pm in Resources.FindObjectsOfTypeAll<PlayMakerFSM>())
+            {
+                if (pm == null || pm.gameObject.hideFlags != HideFlags.None) continue;
+                Fsm fsm = pm.Fsm;
+                if (fsm == null) continue;
+                string head = BotRunner.PathOf(pm.transform) + " | " + pm.FsmName + " | ";
+
+                if (fsm.GlobalTransitions != null)
+                    foreach (FsmTransition t in fsm.GlobalTransitions)
+                        if (Hit(t.EventName, parts) && Add(sb, head + "(global) | " + t.EventName + " => " + t.ToState, ref matches, max)) return sb.ToString();
+
+                foreach (FsmState state in pm.FsmStates)
+                {
+                    foreach (FsmTransition t in state.Transitions)
+                        if (Hit(t.EventName, parts) && Add(sb, head + state.Name + " | -> " + t.EventName + " => " + t.ToState, ref matches, max)) return sb.ToString();
+                    if (!state.IsInitialized || !state.ActionsLoaded) continue;
+                    foreach (FsmStateAction a in state.Actions)
+                    {
+                        if (a == null) continue;
+                        string text = a.GetType().Name + " " + DescribeFields(a);
+                        if (Hit(text, parts) && Add(sb, head + state.Name + " | " + text, ref matches, max)) return sb.ToString();
+                    }
+                }
+            }
+            return sb.ToString();
+        }
+
+        static bool Hit(string text, string[] terms)
+        {
+            if (string.IsNullOrEmpty(text)) return false;
+            string t = text.ToLowerInvariant();
+            for (int i = 0; i < terms.Length; i++)
+                if (t.Contains(terms[i])) return true;
+            return false;
+        }
+
+        /// <summary>Appends a line; true when the limit is reached.</summary>
+        static bool Add(StringBuilder sb, string line, ref int matches, int max)
+        {
+            sb.AppendLine(line);
+            matches++;
+            if (matches < max) return false;
+            sb.AppendLine("... (limit " + max + ")");
+            return true;
+        }
     }
 }

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    FrameCounter: counts the images the monitor actually gets (DXGI desktop duplication, no administrator rights
+    needed, unlike PresentMon/ETW), per second, on the output that shows the game window. Frames a driver inserts
+    (NVIDIA Smooth Motion, AMD AFMF) are counted, the game's own frame counter does not see them. Also reports
+    whether the game process has NVIDIA's Smooth Motion module (NvPresent64.dll) loaded.
+      FrameCounter (csv file) [process name, default mysummercar] [max seconds]
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>12</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+</Project>

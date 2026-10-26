@@ -1,0 +1,30 @@
+{
+  "Name": "tow-vanilla",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "User report: the Satsuma can't be towed, it acts frozen until the player comes close. The game's own tow rope (no Better MSC: run with -DisableMods BetterMSC): Hayosiko 7 m in front of the Satsuma on the Peraejaervi road, the hooks clicked (HookRear of the van, then HookFront of the Satsuma, FSM state 'State 3' = the click), the player gets in the van, the van drives off at 10 km/h. Run -Variant mopr and vanilla." },
+    { "Op": "teleport", "Path": "Waypoint Manager/TeimoBicycleIn/Waypoint 6", "Pos": [0.0, 1.5, 8.0], "Target": "Waypoint Manager/TeimoBicycleIn/Waypoint 7" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "placecar", "Target": "HAYOSIKO(1500kg, 250)", "Path": "Waypoint Manager/TeimoBicycleIn", "Max": 6 },
+    { "Op": "movecar", "Target": "HAYOSIKO(1500kg, 250)", "Pos": [0.0, 0.0, 7.0] },
+    { "Op": "placecar", "Target": "SATSUMA(557kg, 248)", "Path": "Waypoint Manager/TeimoBicycleIn", "Max": 6 },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "watch", "Label": "placed", "Seconds": 0, "Probes": [ "sat=SATSUMA(557kg, 248)|@pos", "van=HAYOSIKO(1500kg, 250)|@pos", "satHook=SATSUMA(557kg, 248)/HookFront|@pos", "vanHook=HAYOSIKO(1500kg, 250)/HookRear|@pos", "vanHookState=HAYOSIKO(1500kg, 250)/HookRear|Logic|@state", "satHookState=SATSUMA(557kg, 248)/HookFront|Logic|@state" ] },
+    { "Op": "fsmstate", "Path": "HAYOSIKO(1500kg, 250)/HookRear", "Fsm": "Logic", "Text": "State 3" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "fsmstate", "Path": "SATSUMA(557kg, 248)/HookFront", "Fsm": "Logic", "Text": "State 3" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "watch", "Label": "hooked", "Seconds": 0, "Probes": [ "rope=PLAYER/Pivot/AnimPivot/Camera/FPSCamera/TowingRope/Rope|Status|@state", "ropeAttached=PLAYER/Pivot/AnimPivot/Camera/FPSCamera/TowingRope/Rope|Status|Attached", "car1=PLAYER/Pivot/AnimPivot/Camera/FPSCamera/TowingRope/Rope|Status|Car1", "car2=PLAYER/Pivot/AnimPivot/Camera/FPSCamera/TowingRope/Rope|Status|Car2", "spring=PLAYER/Pivot/AnimPivot/Camera/FPSCamera/TowingRope/Rope|Status|Spring", "vanHookAtt=HAYOSIKO(1500kg, 250)/HookRear|Logic|Attached", "satHookAtt=SATSUMA(557kg, 248)/HookFront|Logic|Attached", "satHookState=SATSUMA(557kg, 248)/HookFront|Logic|@state", "vanSpring=HAYOSIKO(1500kg, 250)|#SpringJoint.connectedBody", "satSpring=SATSUMA(557kg, 248)|#SpringJoint.connectedBody", "vanCJ=HAYOSIKO(1500kg, 250)|#ConfigurableJoint.connectedBody", "satCJ=SATSUMA(557kg, 248)|#ConfigurableJoint.connectedBody" ] },
+    { "Op": "teleport", "Path": "HAYOSIKO(1500kg, 250)/LOD/PlayerTrigger/DriveTrigger", "Pos": [0.0, 0.0, 0.0] },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "fsmevent", "Path": "HAYOSIKO(1500kg, 250)/LOD/PlayerTrigger/DriveTrigger", "Fsm": "PlayerTrigger", "Event": "Key DOWN" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "watch", "Label": "seated", "Seconds": 6, "Interval": 1, "Probes": [ "vehicle=global|PlayerCurrentVehicle", "dist=SATSUMA(557kg, 248)|@player", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic", "cons=SATSUMA(557kg, 248)|#Rigidbody.constraints", "cd=SATSUMA(557kg, 248)|#CarDynamics.enabled", "satHookAtt=SATSUMA(557kg, 248)/HookFront|Logic|Attached", "ropeAttached=PLAYER/Pivot/AnimPivot/Camera/FPSCamera/TowingRope/Rope|Status|Attached" ] },
+    { "Op": "drive", "Target": "HAYOSIKO(1500kg, 250)", "Path": "Waypoint Manager/TeimoBicycleIn", "Max": 5, "Last": 17, "Speed": 10 },
+    { "Op": "watch", "Label": "tow", "Seconds": 20, "Interval": 1, "Probes": [ "drive=static|MOPR.TestBot.Driver.Status", "dist=SATSUMA(557kg, 248)|@player", "satPos=SATSUMA(557kg, 248)|@pos", "satVel=SATSUMA(557kg, 248)|#Rigidbody.velocity", "kin=SATSUMA(557kg, 248)|#Rigidbody.isKinematic", "cons=SATSUMA(557kg, 248)|#Rigidbody.constraints", "ropeAttached=PLAYER/Pivot/AnimPivot/Camera/FPSCamera/TowingRope/Rope|Status|Attached", "rope=PLAYER/Pivot/AnimPivot/Camera/FPSCamera/TowingRope/Rope|Status|@state" ] },
+    { "Op": "drivestop" },
+    { "Op": "console", "Text": "mopr log 40" },
+    { "Op": "quit" }
+  ]
+}

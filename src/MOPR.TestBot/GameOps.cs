@@ -131,6 +131,67 @@ namespace MOPR.TestBot
             return null;
         }
 
+        /// <summary>
+        /// The FSM goes to <paramref name="state"/> now, as after a transition (its actions run). Used to press the
+        /// game's buttons that wait for the mouse (e.g. the towing hooks: "State 3" = the player clicked the hook).
+        /// </summary>
+        public static string GotoState(string path, string fsmName, string state)
+        {
+            GameObject go = Resolve(path);
+            if (go == null) return "object not found: " + path;
+            PlayMakerFSM fsm = Fsm(go, fsmName);
+            if (fsm == null) return "FSM not found: " + fsmName;
+            FsmState s = fsm.Fsm.GetState(state);
+            if (s == null) return "state not found: " + state;
+            FieldInfo f = typeof(HutongGames.PlayMaker.Fsm).GetField("switchToState", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (f == null) return "Fsm.switchToState not found";
+            f.SetValue(fsm.Fsm, s);
+            fsm.Fsm.UpdateStateChanges();
+            return null;
+        }
+
+        static readonly List<SpringJoint> towJoints = new List<SpringJoint>();
+
+        /// <summary>
+        /// A tow rope as Better MSC makes it (BetterMSC.Mod_Update, towing hooks): a SpringJoint on the car whose hook
+        /// was clicked first, to the other car's rigidbody, anchors at the two hooks, spring 52000, the rope's break
+        /// force 55000, rest length = the hook distance.
+        /// </summary>
+        public static string AddTowJoint(string carPath, string hookName, string otherPath, string otherHookName, out string info)
+        {
+            info = null;
+            GameObject a = Resolve(carPath), b = Resolve(otherPath);
+            if (a == null || b == null) return "car not found: " + (a == null ? carPath : otherPath);
+            Transform ha = a.transform.Find(hookName), hb = b.transform.Find(otherHookName);
+            if (ha == null || hb == null) return "hook not found: " + (ha == null ? hookName : otherHookName);
+            Rigidbody other = b.GetComponent<Rigidbody>();
+            if (other == null || a.GetComponent<Rigidbody>() == null) return "no rigidbody on the cars";
+            SpringJoint j = a.AddComponent<SpringJoint>();
+            j.connectedBody = other;
+            j.breakForce = 55000f;
+            j.breakTorque = 55000f;
+            j.autoConfigureConnectedAnchor = false;
+            j.anchor = ha.localPosition;
+            j.connectedAnchor = hb.localPosition;
+            j.spring = 52000f;
+            j.maxDistance = Vector3.Distance(ha.position, hb.position);
+            j.enableCollision = true;
+            towJoints.Add(j);
+            info = string.Format(CultureInfo.InvariantCulture, "SpringJoint on {0} ({1}) to {2} ({3}), {4:0.00} m",
+                                 a.name, hookName, b.name, otherHookName, j.maxDistance);
+            return null;
+        }
+
+        public static string RemoveTowJoints(out string info)
+        {
+            int n = 0;
+            foreach (SpringJoint j in towJoints)
+                if (j != null) { UnityEngine.Object.Destroy(j); n++; }
+            towJoints.Clear();
+            info = n + " tow joint(s) removed";
+            return null;
+        }
+
         public static string SetActive(string path, bool active)
         {
             GameObject go = Resolve(path);
@@ -359,6 +420,224 @@ namespace MOPR.TestBot
                 count++;
             }
             return null;
+        }
+
+        // ----- Driving mode attribution: objects, trigger colliders and FSMs picked by name ------------------
+
+        /// <summary>
+        /// Objects under root picked by spec (';'-separated): "a/b/c" = that child path (Transform.Find), "prefix*" = every
+        /// descendant whose name starts with prefix. Inactive ones are included; callers skip what they need to.
+        /// </summary>
+        public static List<GameObject> Pick(string rootPath, string spec, out string error)
+        {
+            error = null;
+            List<GameObject> list = new List<GameObject>();
+            GameObject root = Resolve(rootPath);
+            if (root == null) { error = "object not found: " + rootPath; return list; }
+            Transform[] all = null;
+            foreach (string raw in (spec ?? "").Split(';'))
+            {
+                string item = raw.Trim();
+                if (item.Length == 0) continue;
+                if (item.EndsWith("*"))
+                {
+                    string prefix = item.Substring(0, item.Length - 1);
+                    if (all == null) all = root.GetComponentsInChildren<Transform>(true);
+                    foreach (Transform t in all)
+                        if (t != root.transform && t.name.StartsWith(prefix, StringComparison.Ordinal) && !list.Contains(t.gameObject))
+                            list.Add(t.gameObject);
+                }
+                else
+                {
+                    Transform t = root.transform.Find(item);
+                    if (t != null && !list.Contains(t.gameObject)) list.Add(t.gameObject);
+                }
+            }
+            return list;
+        }
+
+        static readonly List<GameObject> deactivated = new List<GameObject>();
+
+        /// <summary>B: every active picked object SetActive(false); A: those back on.</summary>
+        public static string SetPickedActive(string rootPath, string spec, bool active, out int count)
+        {
+            count = 0;
+            if (active)
+            {
+                foreach (GameObject go in deactivated) if (go != null) { go.SetActive(true); count++; }
+                deactivated.Clear();
+                return null;
+            }
+            List<GameObject> list = Pick(rootPath, spec, out string error);
+            if (error != null) return error;
+            foreach (GameObject go in list)
+            {
+                if (go == null || !go.activeSelf) continue;
+                go.SetActive(false);
+                deactivated.Add(go);
+                count++;
+            }
+            return null;
+        }
+
+        static readonly List<Collider> triggersOff = new List<Collider>();
+
+        /// <summary>B: the enabled trigger colliders of the picked objects (and their children) off; A: back on.</summary>
+        public static string SetPickedTriggers(string rootPath, string spec, bool enabled, out int count)
+        {
+            count = 0;
+            if (enabled)
+            {
+                foreach (Collider c in triggersOff) if (c != null) { c.enabled = true; count++; }
+                triggersOff.Clear();
+                return null;
+            }
+            List<GameObject> list = Pick(rootPath, spec, out string error);
+            if (error != null) return error;
+            foreach (GameObject go in list)
+            {
+                if (go == null || !go.activeInHierarchy) continue;
+                foreach (Collider c in go.GetComponentsInChildren<Collider>(false))
+                {
+                    if (c == null || !c.enabled || !c.isTrigger || triggersOff.Contains(c)) continue;
+                    c.enabled = false;
+                    triggersOff.Add(c);
+                    count++;
+                }
+            }
+            return null;
+        }
+
+        static readonly List<PlayMakerFSM> fsmsOff = new List<PlayMakerFSM>();
+
+        /// <summary>B: the enabled FSMs on the picked objects themselves off; A: back on.</summary>
+        public static string SetPickedFsms(string rootPath, string spec, bool enabled, out int count)
+        {
+            count = 0;
+            if (enabled)
+            {
+                foreach (PlayMakerFSM f in fsmsOff) if (f != null) { f.enabled = true; count++; }
+                fsmsOff.Clear();
+                return null;
+            }
+            List<GameObject> list = Pick(rootPath, spec, out string error);
+            if (error != null) return error;
+            foreach (GameObject go in list)
+            {
+                if (go == null || !go.activeInHierarchy) continue;
+                foreach (PlayMakerFSM f in go.GetComponents<PlayMakerFSM>())
+                {
+                    if (f == null || !f.enabled) continue;
+                    f.enabled = false;
+                    fsmsOff.Add(f);
+                    count++;
+                }
+            }
+            return null;
+        }
+
+        static readonly List<Rigidbody> madeKinematic = new List<Rigidbody>();
+
+        /// <summary>B: every non-kinematic rigidbody in the picked subtrees kinematic; A: back to dynamic.</summary>
+        public static string SetPickedKinematic(string rootPath, string spec, bool kinematic, out int count)
+        {
+            count = 0;
+            if (!kinematic)
+            {
+                foreach (Rigidbody rb in madeKinematic) if (rb != null) { rb.isKinematic = false; count++; }
+                madeKinematic.Clear();
+                return null;
+            }
+            List<GameObject> list = Pick(rootPath, spec, out string error);
+            if (error != null) return error;
+            foreach (GameObject go in list)
+            {
+                if (go == null || !go.activeInHierarchy) continue;
+                foreach (Rigidbody rb in go.GetComponentsInChildren<Rigidbody>(false))
+                {
+                    if (rb == null || rb.isKinematic || madeKinematic.Contains(rb)) continue;
+                    rb.isKinematic = true;
+                    madeKinematic.Add(rb);
+                    count++;
+                }
+            }
+            return null;
+        }
+
+        static readonly List<Collider> solidOff = new List<Collider>();
+
+        /// <summary>B: the enabled non-trigger colliders in the picked subtrees off; A: back on.</summary>
+        public static string SetPickedSolidColliders(string rootPath, string spec, bool enabled, out int count)
+        {
+            count = 0;
+            if (enabled)
+            {
+                foreach (Collider c in solidOff) if (c != null) { c.enabled = true; count++; }
+                solidOff.Clear();
+                return null;
+            }
+            List<GameObject> list = Pick(rootPath, spec, out string error);
+            if (error != null) return error;
+            foreach (GameObject go in list)
+            {
+                if (go == null || !go.activeInHierarchy) continue;
+                foreach (Collider c in go.GetComponentsInChildren<Collider>(false))
+                {
+                    if (c == null || !c.enabled || c.isTrigger || solidOff.Contains(c)) continue;
+                    c.enabled = false;
+                    solidOff.Add(c);
+                    count++;
+                }
+            }
+            return null;
+        }
+
+        static readonly List<Renderer> pickedRenderersOff = new List<Renderer>();
+
+        /// <summary>B: the enabled renderers in the picked subtrees off; A: back on.</summary>
+        public static string SetPickedRenderers(string rootPath, string spec, bool enabled, out int count)
+        {
+            count = 0;
+            if (enabled)
+            {
+                foreach (Renderer r in pickedRenderersOff) if (r != null) { r.enabled = true; count++; }
+                pickedRenderersOff.Clear();
+                return null;
+            }
+            List<GameObject> list = Pick(rootPath, spec, out string error);
+            if (error != null) return error;
+            foreach (GameObject go in list)
+            {
+                if (go == null || !go.activeInHierarchy) continue;
+                foreach (Renderer r in go.GetComponentsInChildren<Renderer>(false))
+                {
+                    if (r == null || !r.enabled || pickedRenderersOff.Contains(r)) continue;
+                    r.enabled = false;
+                    pickedRenderersOff.Add(r);
+                    count++;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>Counts of what the picked subtrees contain (active objects only): for the log.</summary>
+        public static string DescribePicked(string rootPath, string spec)
+        {
+            List<GameObject> list = Pick(rootPath, spec, out string error);
+            if (error != null) return error;
+            int objects = 0, rbs = 0, dyn = 0, joints = 0, colliders = 0, triggers = 0, renderers = 0, fsms = 0, enabledFsms = 0;
+            foreach (GameObject go in list)
+            {
+                if (go == null || !go.activeInHierarchy) continue;
+                objects++;
+                foreach (Rigidbody rb in go.GetComponentsInChildren<Rigidbody>(false)) { rbs++; if (!rb.isKinematic) dyn++; }
+                joints += go.GetComponentsInChildren<Joint>(false).Length;
+                foreach (Collider c in go.GetComponentsInChildren<Collider>(false)) { if (!c.enabled) continue; if (c.isTrigger) triggers++; else colliders++; }
+                foreach (Renderer r in go.GetComponentsInChildren<Renderer>(false)) if (r.enabled) renderers++;
+                foreach (PlayMakerFSM f in go.GetComponentsInChildren<PlayMakerFSM>(false)) { fsms++; if (f.enabled) enabledFsms++; }
+            }
+            return $"{objects} active objects: {rbs} rigidbodies ({dyn} dynamic), {joints} joints, {colliders} colliders, " +
+                   $"{triggers} triggers, {renderers} renderers, {enabledFsms}/{fsms} FSMs enabled";
         }
 
         /// <summary>Turns shadow casting off for every renderer under path (remembering it) or restores it.</summary>

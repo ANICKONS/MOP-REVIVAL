@@ -58,6 +58,11 @@ namespace MOP.Vehicles
         // Prevents MOP from disabling car's physics when the car has rope hooked
         protected PlayMakerFSM fsmHookFront, fsmHookRear;
 
+        // MOP - REVIVAL 5.1.1: the bodies a tow rope's joint can be on or point to: the car itself and the parents of
+        // its hooks (the tractor's front loader hook is on its own rigidbody, RopePoint).
+        Rigidbody[] towBodies = new Rigidbody[0];
+        internal Rigidbody[] TowBodies => towBodies;
+
         // Currently used only by Shitsuma.
         private EventSounds eventSounds;
 
@@ -140,7 +145,10 @@ namespace MOP.Vehicles
             // Hook HookFront and HookRear
             // Get hooks first
             if (!IsPassive)
+            {
                 DisableHooksResetting();
+                towBodies = FindTowBodies();
+            }
 
             // Set default toggling method - that is entire vehicle
             Toggle = ToggleActive;
@@ -324,14 +332,32 @@ namespace MOP.Vehicles
         }
 
         /// <summary>
-        /// Checks PlayMaker of front and rear hooks and returns "true", if in any of the hooks value "Attached" is true.
+        /// True when a tow rope is on the car: the "Attached" value of the game's front or rear hook, or (5.1.1) a
+        /// tow rope joint between this car and another body (see VehicleManager.UpdateTowLinks).
         /// </summary>
         /// <returns></returns>
         protected bool IsRopeHooked()
         {
             bool isFrontHookAttached = fsmHookFront ? fsmHookFront.FsmVariables.GetFsmBool("Attached").Value : false;
             bool isRearHookAttached = fsmHookRear ? fsmHookRear.FsmVariables.GetFsmBool("Attached").Value : false;
-            return (isFrontHookAttached || isRearHookAttached);
+            // MOP - REVIVAL 5.1.1 (fix): Better MSC switches the hooks' FSMs off and joins the cars with its own
+            // SpringJoint, so "Attached" stayed false: a towed car more than 5 m from the player got its physics
+            // frozen, and the rope snapped (TestBot tow-bmsc).
+            return isFrontHookAttached || isRearHookAttached || VehicleManager.Instance.IsTowLinked(towBodies);
+        }
+
+        /// <summary>The car's rigidbody and the rigidbodies the hooks of the car are on, each once.</summary>
+        Rigidbody[] FindTowBodies()
+        {
+            List<Rigidbody> bodies = new List<Rigidbody>();
+            if (rb != null) bodies.Add(rb);
+            foreach (Transform t in gameObject.GetComponentsInChildren<Transform>(true))
+            {
+                if (t.name != "HookFront" && t.name != "HookRear") continue;
+                Rigidbody body = t.parent != null ? t.parent.GetComponent<Rigidbody>() : null;
+                if (body != null && !bodies.Contains(body)) bodies.Add(body);
+            }
+            return bodies.ToArray();
         }
 
         /// <summary>

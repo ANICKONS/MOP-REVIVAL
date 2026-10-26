@@ -19,6 +19,35 @@
   Unity 5.0's `WWW` got "tlsv1 alert protocol version" from GitHub, and WinINet failed with error 127 because the
   game folder has MSCLoader's `winhttp.dll` (Doorstop). The request goes through WinHTTP on a background thread,
   with only functions that loader forwards to Windows. Only the version number is compared.
+- Experimental: "Sleeping bolts while driving" (off by default) - the safe part of the MOPR 4.x Satsuma driving
+  mode. 4.x switched about 100 objects of the car off with `SetActive` while the player drove (+1.0 ms seated in
+  TestBot `drive-modes`), but a switched-off part stops its game logic and misses every event: a loose engine part
+  could no longer break off, tool mode and the save event went past it, the headlight pivots took the lights with
+  them, and every FSM restarted when its object came back. Where that time went (`drive-modes`, `drive-modes2`,
+  `drive-modes3`): half of it the engine parts' renderers and FSMs; the largest group that does nothing are the
+  per-bolt `Screw` FSMs (248 on the test car), which sit in a finished state but still cost Unity two calls per
+  frame each (0.43 ms with MOPR's fast path). While the player sits in a vehicle, MOPR now pauses those FSMs, only
+  while provably idle, and wakes one before anything reaches it: an event it has a transition for (sent to it, to
+  its object or broadcast), a lookup, the game's `EnableFSM`, its object being switched on again (then it restarts as
+  in the game); everything wakes before a save, when the player gets out or the setting goes off. TestBot `bolt-sleep`
+  against the vanilla game: loosening and tightening bolts while they sleep, tool mode on and off, a bolt's object off
+  and on, getting out, save and load - the same stages, states, colliders and bolt positions as without MOPR.
+  Measured (1 s A/B blocks against the same build with the bolts awake): seated -0.40 to -0.64 ms (+5-9% FPS, 4 runs),
+  driving at 45 km/h -0.32 to -0.41 ms (+4-6%, 4 runs; one more run -0.07). The hooks cost 0.002 ms per frame.
+
+- Frame generation (Graphics -> Frame generation, console `mopr fg [on|off]`): NVIDIA Smooth Motion for My Summer
+  Car with two buttons, and a status that says whether it really works. The game is limited by the processor, not
+  the graphics card (TestBot `bmsc-attrib2`: 720p -> 360p changes nothing, 149 -> 144 FPS in the living room), so
+  upscaling like DLSS gives no frames, and DLSS frame generation needs DX12/Vulkan and motion vectors that Unity 5.0
+  does not have. Smooth Motion is frame generation inside the NVIDIA driver (GeForce RTX 40/50, DX11 too): it
+  presents an extra frame between every two frames of the game. MOPR switches the setting in the driver's own
+  "My Summer Car" profile through NVAPI (`Common/NvidiaProfile.cs`, the database the NVIDIA app and Profile
+  Inspector edit; no administrator rights needed for this setting); it applies when the game starts again. Working =
+  the driver's `NvPresent64.dll` is in the game process. "Turn off" removes MOPR's value, the profile is as the
+  driver shipped it. Measured (`fg-measure`, RTX 5070 Ti, driver 617.14, images that reached the screen counted with
+  the new `tools/FrameCounter`): living room capped at 60 FPS 60 -> 120 images/s, uncapped 157 -> 274 (the game
+  itself 157 -> 138 FPS); driving capped at 60 doubles as well. The page suggests an FPS limit of half the monitor's
+  refresh rate (144 Hz -> 72). Not measured: input latency (by design about one game frame more), artefacts.
 
 ### Changed
 - Console: the rules line at start only says for how many mods rules are loaded ("Rules: loaded for 2 mods.");
@@ -61,6 +90,15 @@
   `output_log.txt` with its stack trace: 150-250 per second, a 3.8-7.5 MB log after a 4-minute test, 107 KB after
   the fix. With Better MSC and Call Your Cousin (TestBot `bmsc-tour`, one run each) the median frame time in the same
   four spots dropped by 0.9-2.3 ms (yard 9.06 -> 7.51 ms, living room 7.97 -> 5.72 ms).
+- A towed car stood frozen with Better MSC: the rope snapped, and the car moved only while the player was within
+  5 m of it. MOPR switches a car's physics off beyond 5 m and keeps it on while a tow rope is on the car; it knew a
+  rope only by the "Attached" value of the game's towing hooks. Better MSC switches those hooks off and joins the
+  cars with its own SpringJoint, so the value stayed false. MOPR now also counts a SpringJoint between the hook
+  bodies of two vehicles (the car, the tractor's front loader) as a tow rope: the game's own rope is one too. Not a
+  rope: the flatbed hitch (a CharacterJoint) and the joints inside a car. TestBot `tow-bmsc` (Better MSC's rope,
+  Hayosiko pulls the Satsuma at 10 km/h, player in the van 8 m from it): before the Satsuma stayed kinematic, the
+  rope broke after 2 s and the car moved 0 m while the van drove 53 m; after it followed for 52 m. `tow-vanilla`
+  (the game's rope) was towed before and after (52 m).
 
 ## 5.1.0 "Engine" (2026-10-20)
 

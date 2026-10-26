@@ -4,7 +4,8 @@
 //     all float/int/bool/string variables (bolt tightness, Installed, Bolted, Damaged...);
 //   - every PlayMakerArrayListProxy there (the per-bolt stages that BoltCheck saves with ArrayListEasySave);
 //   - every part (an object with a "BoltCheck" or "Removal" FSM): its parent ("where" - attached or fallen off),
-//     its position in the car's frame while attached, and its joint.
+//     its position in the car's frame while attached (in the frame of the loose part it is bolted to, e.g. an
+//     engine built outside the car), and its joint.
 // Keys use the object's hierarchy path when it was first seen, so a part that falls off keeps its key (its
 // "where" value changes) and two runs of the same save (vanilla / MOPR) produce comparable keys.
 
@@ -73,7 +74,20 @@ namespace MOPR.TestBot
             Transform root = t.root;
             if (car != null && root == car) return true;
             if (root.name == "Database") return true;
-            return root.gameObject.tag == "PART";
+            return LoosePart(t) != null;
+        }
+
+        /// <summary>
+        /// The top-most loose part (tag PART) this object belongs to, the object itself included: a loose part, or
+        /// the part a loose assembly is bolted to (an engine built outside the car; after a load the game keeps
+        /// it under CARPARTS/PartsMotor). Null when there is none.
+        /// </summary>
+        static Transform LoosePart(Transform t)
+        {
+            Transform found = null;
+            for (Transform x = t; x != null; x = x.parent)
+                if (x.gameObject.tag == "PART") found = x;
+            return found;
         }
 
         static bool IsPart(GameObject go)
@@ -139,14 +153,17 @@ namespace MOPR.TestBot
                 if (go == null || go.hideFlags != HideFlags.None || !IsPart(go)) continue;
                 Transform t = go.transform;
                 bool inCar = car != null && t.root == car;
-                if (!inCar && go.tag != "PART" && t.root.name != "Database") continue;
+                // A part bolted to a loose part (e.g. the engine built outside the car): measured in that part's frame.
+                Transform loosePart = inCar ? null : LoosePart(t);
+                bool onLoose = loosePart != null && loosePart != t;
+                if (!inCar && loosePart == null && t.root.name != "Database") continue;
                 parts++;
                 string n = Name(t);
                 d["where|" + n] = (t.parent != null ? BotRunner.PathOf(t.parent) : "(root)") + (go.activeSelf ? "" : " [off]");
-                if (inCar)
+                if (inCar || onLoose)
                 {
-                    attached++;
-                    Vector3 p = car.InverseTransformPoint(t.position);
+                    if (inCar) attached++; else loose++;
+                    Vector3 p = (inCar ? car : loosePart).InverseTransformPoint(t.position);
                     d["pos|" + n] = p.x.ToString("0.00", Inv) + "," + p.y.ToString("0.00", Inv) + "," + p.z.ToString("0.00", Inv);
                 }
                 else loose++;

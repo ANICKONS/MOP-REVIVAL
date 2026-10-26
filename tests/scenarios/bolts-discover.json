@@ -1,0 +1,17 @@
+{
+  "Name": "bolts-discover",
+  "SettleSeconds": 15,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Bolts: how a Satsuma bolt, its part's BoltCheck and the game's RandomBolt work (dumps only)." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 8 },
+    { "Op": "dumpfsm", "Label": "randombolt", "Path": "SATSUMA(557kg, 248)/CarSimulation/RandomBolt", "Recursive": true },
+    { "Op": "dumpfsm", "Label": "fixes", "Path": "SATSUMA(557kg, 248)/CarSimulation/Fixes", "Recursive": true },
+    { "Op": "dumpfsm", "Label": "block", "Path": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)", "Recursive": false },
+    { "Op": "dumpfsm", "Label": "bootlid", "Path": "SATSUMA(557kg, 248)/Body/pivot_bootlid/bootlid(Clone)", "Recursive": true },
+    { "Op": "find", "Label": "boltpm", "Text": "BoltPM", "Max": 4000 },
+    { "Op": "console", "Text": "mopr engine" },
+    { "Op": "quit" }
+  ]
+}

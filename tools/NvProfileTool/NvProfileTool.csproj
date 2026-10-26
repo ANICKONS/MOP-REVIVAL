@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    NvProfileTool: reads and changes the NVIDIA driver profile of one executable (default mysummercar.exe) with the
+    same code MOPR uses in the game (src/MOPR/src/Common/NvidiaProfile.cs). For tests and for checking what the
+    in-game setting did. Windows x64, NVIDIA driver required.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>12</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\MOPR\src\Common\NvidiaProfile.cs" Link="NvidiaProfile.cs" />
+  </ItemGroup>
+
+</Project>

@@ -26,6 +26,7 @@ namespace MOP.Localization
             { "con.name.mod_scripts", "Скрипты других модов" },
             { "con.name.engine_bay", "Оптимизация двигателя" },
             { "con.name.mirrors", "Оптимизация зеркал" },
+            { "con.name.bolt_sleep", "Спящие болты" },
             { "con.name.render", "Оптимизация отрисовки" },
             { "con.name.merge", "Склейка стоящей Satsuma" },
             { "con.engine.failed", "Движок: оптимизация скриптов выключена: {0}" },
@@ -214,6 +215,8 @@ namespace MOP.Localization
             { "con.help.guard", "Записывает список FSM под защитой от сброса" },
             { "con.help.engine", "Оптимизации движка игры: сменить режим или показать статистику" },
             { "con.help.update", "Проверяет на GitHub, есть ли новая версия MOPR" },
+            { "con.help.fg", "Генерация кадров NVIDIA Smooth Motion: включить, выключить или показать состояние" },
+            { "con.fg.failed", "Не удалось изменить профиль драйвера NVIDIA: {0}" },
         };
     }
 }

@@ -27,6 +27,7 @@ namespace MOP.Localization
             { "con.name.mod_scripts", "Other mods' scripts" },
             { "con.name.engine_bay", "Engine bay optimization" },
             { "con.name.mirrors", "Mirror optimization" },
+            { "con.name.bolt_sleep", "Sleeping bolts" },
             { "con.name.render", "Render optimization" },
             { "con.name.merge", "Parked Satsuma merging" },
             { "con.engine.failed", "Engine: script optimization switched off: {0}" },
@@ -214,6 +215,8 @@ namespace MOP.Localization
             { "con.help.guard", "Writes the list of FSMs protected by the restart guard" },
             { "con.help.engine", "Game engine optimizations: switch the mode or show the statistics" },
             { "con.help.update", "Checks GitHub for a newer version of MOPR" },
+            { "con.help.fg", "NVIDIA Smooth Motion frame generation: turn on, turn off or show the state" },
+            { "con.fg.failed", "Could not change the NVIDIA driver profile: {0}" },
         };
     }
 }

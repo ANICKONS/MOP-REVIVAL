@@ -800,6 +800,7 @@ namespace MOP
                 new ModConsole.Block("con.sum.experimental")
                     .Line("con.sum.flag", Loc.Word("con.name.engine_bay"), Loc.OnOff(MopMenu.ExperimentalEngineBay != null && MopMenu.ExperimentalEngineBay.GetValue()))
                     .Line("con.sum.flag", Loc.Word("con.name.mirrors"), Loc.OnOff(MopMenu.ExperimentalMirrorRate != null && MopMenu.ExperimentalMirrorRate.GetValue()))
+                    .Line("con.sum.flag", Loc.Word("con.name.bolt_sleep"), Loc.OnOff(MopMenu.ExperimentalBoltSleep != null && MopMenu.ExperimentalBoltSleep.GetValue()))
                     .Print();
             }
             catch (Exception ex)
@@ -941,6 +942,9 @@ namespace MOP
         public void PreSaveGame()
         {
             ModConsole.Debug("Initializing Pre-Save Actions...");
+            // MOP - REVIVAL 5.1.1: every sleeping bolt FSM awake (in the list, enabled) before anything is saved.
+            try { Next.Engine.BoltSleep.WakeAll("save"); }
+            catch (Exception ex) { ExceptionManager.New(ex, false, "PRESAVE_BOLT_SLEEP"); }
             SaveManager.ReleaseSave();
             MopSettings.IsModActive = false;
             StopCoroutine(currentLoop);
@@ -1175,6 +1179,16 @@ namespace MOP
                 }
 
                 // Vehicles
+                // MOP - REVIVAL 5.1.1: which cars are on a tow rope (also a rope of another mod).
+                try
+                {
+                    VehicleManager.Instance.UpdateTowLinks();
+                }
+                catch (Exception ex)
+                {
+                    ExceptionManager.New(ex, false, "TOW_LINKS_ERROR");
+                }
+
                 half = VehicleManager.Instance.Count >> 1;
                 for (i = 0; i < VehicleManager.Instance.Count; ++i)
                 {
@@ -1315,6 +1329,10 @@ namespace MOP
             }
 
 #endif
+            // MOP - REVIVAL 5.1.1: sleeping bolts (experimental); wakes everything itself when MOPR is not active.
+            try { Next.Engine.BoltSleep.Tick(); }
+            catch (Exception ex) { ExceptionManager.New(ex, false, "BOLT_SLEEP_TICK"); }
+
             if (!MopSettings.IsModActive) return;
 
             Satsuma.Instance?.ForceRotation();
