@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="src/MOPR/Resources/banner_github.png" alt="MOP - REVIVAL" width="100%" />
+  <img src="MOPR5/mod/Resources/banner_github.png" alt="MOP - REVIVAL" width="100%" />
 </p>
 
 <p align="center">
@@ -91,6 +91,20 @@ an [issue](https://github.com/ANICKONS/MOP-REVIVAL/issues). Type `mopr help` in 
   RedJohn260 and EPS
 - Est_Nbmstr for the name of the original MOP, FESilencer for help with PlayMaker
 - Testers of the original MOP: DoritoMan, CatAtTheDesert, Slavic_Dude001, DJ Ötzi
+
+## In this repository
+
+| Folder | What's inside |
+|---|---|
+| [`MOPR5`](MOPR5) | MOP - REVIVAL 5 (this mod): the code (`mod`), tests, tools, build and release scripts |
+| [`MOPR6`](MOPR6) | MOP - REVIVAL 6, a rewrite in development |
+| [`site`](site) | the [compatibility site](https://anickons.github.io/MOP-REVIVAL/) and its mod list |
+| [`TestBot`](TestBot) | the in-game test bot (development only) |
+| [`scripts`](scripts) | the test runner (`test-run.ps1`) and its helpers |
+| [`tools`](tools) | FrameCounter, RefStubGen |
+| [`refs`](refs) | reference stubs for building without the game |
+
+Build MOP - REVIVAL with `.\MOPR5\scripts\build.ps1`. My Summer Frames (DLSS, FSR, Frame Generation & Reflex) has its own repository: [ANICKONS/My-Summer-Frames](https://github.com/ANICKONS/My-Summer-Frames).
 
 ## License
 

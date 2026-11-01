@@ -1,0 +1,28 @@
+{
+  "Name": "diag-proptrace",
+  "Deterministic": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Task 24: which FSM / property throws TargetException in FsmProperty (GetProperty / SetProperty) - the eq-perajarvi-trip route with the trace on. Run with vanilla and with 5.1.1 and compare proptrace_trip.txt." },
+    { "Op": "proptrace", "Text": "on" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 180 },
+    { "Op": "placecar", "Target": "SATSUMA(557kg, 248)", "Path": "Waypoint Manager/TeimoBicycleIn", "Max": 5 },
+    { "Op": "waitframes", "Frames": 60 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 360 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Pos": [0.0, 0.0, 0.0] },
+    { "Op": "waitframes", "Frames": 120 },
+    { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Fsm": "PlayerTrigger", "Event": "Key DOWN" },
+    { "Op": "waitframes", "Frames": 240 },
+    { "Op": "proptrace", "Text": "dump", "Label": "seated" },
+    { "Op": "drive", "Target": "SATSUMA(557kg, 248)", "Path": "Waypoint Manager/TeimoBicycleIn", "Max": 5, "Speed": 60 },
+    { "Op": "waitframes", "Frames": 12000 },
+    { "Op": "drivestop" },
+    { "Op": "waitframes", "Frames": 300 },
+    { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Fsm": "PlayerTrigger", "Event": "Key DOWN" },
+    { "Op": "waitframes", "Frames": 240 },
+    { "Op": "proptrace", "Text": "dump", "Label": "trip" },
+    { "Op": "quit" }
+  ]
+}

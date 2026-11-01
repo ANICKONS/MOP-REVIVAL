@@ -1,0 +1,22 @@
+{
+  "Name": "fsm-dormancy",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Measurement only: what pausing every provably idle FSM (BoltSleep with WideScope, objects with one FSM) gives at home, against the same FSMs awake (Bypass), 1 s A/B blocks. Living room and yard. Not a correctness test." },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "experimentalBoltSleep", "Value": "true" },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "watch", "Label": "narrow", "Seconds": 0, "Probes": [ "sleep=static|MOP.Next.Engine.BoltSleep.Report" ] },
+    { "Op": "staticbool", "Path": "MOP.Next.Engine.BoltSleep.WideScope", "Value": "true" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "watch", "Label": "wide-living", "Seconds": 0, "Probes": [ "sleep=static|MOP.Next.Engine.BoltSleep.Report" ] },
+    { "Op": "abtoggle", "Label": "living-idle-fsms-awake", "Var": "staticbool", "Path": "MOP.Next.Engine.BoltSleep.Bypass", "Seconds": 24, "Block": 1 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-12.0, 2.0, 6.0], "Target": "YARD/Building" },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "watch", "Label": "wide-yard", "Seconds": 0, "Probes": [ "sleep=static|MOP.Next.Engine.BoltSleep.Report" ] },
+    { "Op": "abtoggle", "Label": "yard-idle-fsms-awake", "Var": "staticbool", "Path": "MOP.Next.Engine.BoltSleep.Bypass", "Seconds": 24, "Block": 1 },
+    { "Op": "watch", "Label": "end", "Seconds": 0, "Probes": [ "sleep=static|MOP.Next.Engine.BoltSleep.Report" ] },
+    { "Op": "quit" }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "Name": "bench",
+  "SettleSeconds": 20,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "MOPR6 benchmark set (requirement 4, design §11): five fixed points plus driving, 10 s settle + 20 s measurement each, the same save, the same order (so the same time of day). Not deterministic: real frame times. The cousin's Fittan is switched off in every variant (it pushes the parked car; the drive uses the dirt road lane and AutoDriver)." },
+    { "Op": "activate", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN", "Active": false },
+
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "watch", "Label": "home", "Seconds": 0, "Probes": [ "hour=global|TimeRotationHour" ] },
+    { "Op": "measure", "Label": "home", "Seconds": 20 },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "watch", "Label": "yard", "Seconds": 0, "Probes": [ "hour=global|TimeRotationHour" ] },
+    { "Op": "measure", "Label": "yard", "Seconds": 20 },
+
+    { "Op": "teleport", "Path": "Waypoint Manager/TeimoBicycleIn/Waypoint 6", "Pos": [0.0, 1.5, 0.0], "Target": "Waypoint Manager/TeimoBicycleIn/Waypoint 9" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "watch", "Label": "road", "Seconds": 0, "Probes": [ "hour=global|TimeRotationHour" ] },
+    { "Op": "measure", "Label": "road", "Seconds": 20 },
+
+    { "Op": "teleport", "Path": "Waypoint Manager/TeimoBicycleIn/Waypoint 31", "Pos": [0.0, 1.5, 0.0], "Target": "Waypoint Manager/TeimoBicycleIn/Waypoint 36" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "watch", "Label": "perajarvi", "Seconds": 0, "Probes": [ "hour=global|TimeRotationHour" ] },
+    { "Op": "measure", "Label": "perajarvi", "Seconds": 20 },
+
+    { "Op": "teleport", "Path": "STORE/Inventory", "Pos": [0.0, 1.0, 0.0], "Target": "STORE/TeimoInShop" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "watch", "Label": "store", "Seconds": 0, "Probes": [ "hour=global|TimeRotationHour", "pos=PLAYER|@pos" ] },
+    { "Op": "measure", "Label": "store", "Seconds": 20 },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "placecar", "Target": "SATSUMA(557kg, 248)", "Path": "TRAFFIC/Routes/DirtRoad", "Max": 2233 },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Pos": [0.0, 0.0, 0.0] },
+    { "Op": "look", "Target": "SATSUMA(557kg, 248)", "Pitch": -3 },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Fsm": "PlayerTrigger", "Event": "Key DOWN" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "look", "Pitch": -3 },
+    { "Op": "fsmstate", "Path": "SATSUMA(557kg, 248)/Dashboard/Steering/steering_column2/IgnitionSatsuma", "Fsm": "UseNew", "Text": "Check key" },
+    { "Op": "fsmset", "Path": "SATSUMA(557kg, 248)/MiscParts/HandBrake/handbrake(xxxxx)/handbrake lever", "Fsm": "Use", "Var": "KnobPos", "Value": "0" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Dashboard/Steering/steering_column2/IgnitionSatsuma", "Fsm": "UseNew", "Event": "FINISHED" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "autodrive", "Target": "SATSUMA(557kg, 248)", "Path": "TRAFFIC/Routes/DirtRoad", "Max": 2233, "Last": 2483, "Speed": 45 },
+    { "Op": "wait", "Seconds": 12 },
+    { "Op": "watch", "Label": "drive", "Seconds": 0, "Probes": [ "hour=global|TimeRotationHour", "vehicle=global|PlayerCurrentVehicle", "driver=static|MOPR.TestBot.AutoDriver.Status" ] },
+    { "Op": "measure", "Label": "drive", "Seconds": 20 },
+    { "Op": "autodrivestop", "Text": "now" },
+    { "Op": "quit" }
+  ]
+}

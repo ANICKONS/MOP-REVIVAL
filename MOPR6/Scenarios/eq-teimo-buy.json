@@ -1,0 +1,23 @@
+{
+  "Name": "eq-teimo-buy",
+  "Deterministic": true,
+  "VirtualRealtime": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Equivalence: shopping at Teimo's (requirement 3.5). A sausage pack and a milk in the cart for 12 mk (the register's QSausages / QMilk / Total, what clicking the products does), then the register FSM goes to 'Check money' = the click on the register. The bag appears at the counter." },
+    { "Op": "teleport", "Path": "STORE/Inventory", "Pos": [0.0, 1.0, 0.0], "Target": "STORE/TeimoInShop" },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "fullsnap", "Label": "store" },
+    { "Op": "fsmset", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Var": "QSausages", "Value": "1" },
+    { "Op": "fsmset", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Var": "QMilk", "Value": "1" },
+    { "Op": "fsmset", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Var": "Total", "Value": "12" },
+    { "Op": "fsmstate", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Text": "Check money" },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "watch", "Label": "paid", "Seconds": 0, "Probes": [ "money=global|PlayerMoney", "reg=STORE/StoreCashRegister/Register|Data|@state" ] },
+    { "Op": "fullsnap", "Label": "bought" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 900 },
+    { "Op": "fullsnap", "Label": "home" },
+    { "Op": "quit" }
+  ]
+}

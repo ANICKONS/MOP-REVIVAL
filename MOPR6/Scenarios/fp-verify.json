@@ -1,0 +1,29 @@
+{
+  "Name": "fp-verify",
+  "Deterministic": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "FSM fast path in Verify mode (requirement 7.2, task 25): the original always runs and every claimed no-op is checked. Home, living room, yard, a drive to Peraejaervi and back; the report lists calls, skips and mismatches (must be 0)." },
+    { "Op": "mopr", "Text": "sys engine.fsm verify" },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "moprapi", "Text": "Report", "Label": "living" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "placecar", "Target": "SATSUMA(557kg, 248)", "Path": "Waypoint Manager/TeimoBicycleIn", "Max": 5 },
+    { "Op": "waitframes", "Frames": 60 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 360 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Pos": [0.0, 0.0, 0.0] },
+    { "Op": "waitframes", "Frames": 120 },
+    { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Fsm": "PlayerTrigger", "Event": "Key DOWN" },
+    { "Op": "waitframes", "Frames": 240 },
+    { "Op": "drive", "Target": "SATSUMA(557kg, 248)", "Path": "Waypoint Manager/TeimoBicycleIn", "Max": 5, "Speed": 60 },
+    { "Op": "waitframes", "Frames": 6000 },
+    { "Op": "drivestop" },
+    { "Op": "waitframes", "Frames": 300 },
+    { "Op": "moprapi", "Text": "Report", "Label": "drive" },
+    { "Op": "mopr", "Text": "errors" },
+    { "Op": "quit" }
+  ]
+}

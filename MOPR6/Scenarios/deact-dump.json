@@ -1,0 +1,12 @@
+{
+  "Name": "deact-dump",
+  "SettleSeconds": 5,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "What the Gifu's air brake and the Kekmet's brake lever read (world.deactivate equivalence differences)." },
+    { "Op": "dumpfsm", "Label": "gifu-airbrakes", "Path": "GIFU(750/450psi)/Simulation/Airbrakes" },
+    { "Op": "dumpfsm", "Label": "kekmet-brake", "Path": "KEKMET(350-400psi)/LOD/Dashboard/Brake/Pivot" },
+    { "Op": "dumpfsm", "Label": "kekmet-steering", "Path": "KEKMET(350-400psi)/Colliders" },
+    { "Op": "quit" }
+  ]
+}

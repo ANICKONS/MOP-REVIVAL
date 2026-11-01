@@ -1,0 +1,6 @@
+{
+  "Name": "MOPR 5.1.1",
+  "Path": "_reference/baseline/MOPR-5.1.1.dll",
+  "Md5": "9331301C255B7F9CB75A8D1C3EC43AE0",
+  "Note": "The deployed 5.1.1 build (MOPR5/dist/MOPR.dll of 17.10.2026, BoltSleep + frame generation). _reference is not in git: copy the DLL there from the GitHub release v5.1.1 if it is missing."
+}

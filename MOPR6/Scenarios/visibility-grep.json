@@ -1,0 +1,11 @@
+{
+  "Name": "visibility-grep",
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Which game logic reads whether a renderer is visible (render stage, requirement 9.1): PlayMaker actions GameObjectIsVisible / FindClosest(mustBeVisible) with their targets, every FSM of the scene, unloaded states included. The FSMs are dumped with their variables." },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "fsmgrep", "Text": "GameObjectIsVisible,FindClosest,mustBeVisible", "Detail": true, "Max": 2000, "Label": "visible" },
+    { "Op": "dumpfsm", "Text": "WoodTrigger", "Max": 4, "Detail": true, "Label": "woodtrigger" },
+    { "Op": "quit" }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "Name": "eq-walkaway",
+  "Deterministic": true,
+  "VirtualRealtime": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Equivalence: walking away from the car 40 m and 2 km and coming back (requirement 3.5). MOP-style optimizers switch the car and its parts at these distances." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 300 },
+    { "Op": "fullsnap", "Label": "near" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [40.0, 4.0, 0.0], "Target": "SATSUMA(557kg, 248)", "Yaw": 180 },
+    { "Op": "waitframes", "Frames": 900 },
+    { "Op": "fullsnap", "Label": "m40" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 300 },
+    { "Op": "fullsnap", "Label": "back40" },
+    { "Op": "teleport", "Path": "Waypoint Manager/TeimoBicycleIn/Waypoint 31", "Pos": [0.0, 1.5, 0.0], "Target": "Waypoint Manager/TeimoBicycleIn/Waypoint 36" },
+    { "Op": "waitframes", "Frames": 1800 },
+    { "Op": "fullsnap", "Label": "km2" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "fullsnap", "Label": "back2km" },
+    { "Op": "quit" }
+  ]
+}

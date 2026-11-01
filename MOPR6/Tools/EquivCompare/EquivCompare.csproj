@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    EquivCompare: host side of the MOPR6 equivalence harness (MOPR6\Scripts\equiv.ps1). Reads what the TestBot
+    runs collected (scene snapshots, copies of the save folder, reports) and compares vanilla against vanilla and
+    vanilla against the mod; also summarises benchmarks and builds the catalogue inventory.
+      EquivCompare es2dump (save file or folder) [output folder]
+      EquivCompare equiv (see Equiv.cs for the options)
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\MOPR6.Core.csproj" />
+  </ItemGroup>
+</Project>

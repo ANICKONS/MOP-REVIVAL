@@ -11,17 +11,22 @@
     6. ALWAYS restores the save folder, the PlayerPrefs and the Mods folder, even on failure.
 
 .EXAMPLE
-    .\scripts\test-run.ps1 -Scenario tests\scenarios\smoke.json -Variant mopr
-    .\scripts\test-run.ps1 -Scenario tests\scenarios\smoke.json -Variant vanilla
+    .\scripts\test-run.ps1 -Scenario MOPR5\tests\scenarios\smoke.json -Variant mopr
+    .\scripts\test-run.ps1 -Scenario MOPR5\tests\scenarios\smoke.json -Variant vanilla
 #>
 [CmdletBinding()]
 param(
-    [string]$Scenario = 'tests\scenarios\smoke.json',
-    [ValidateSet('mopr', 'vanilla')]
+    [string]$Scenario = 'MOPR5\tests\scenarios\smoke.json',
+    # mopr = MOPR 5.x (-MoprDll), mopr6 = the MOPR6 rewrite (-Mopr6Dll); both are installed as Mods\MOPR.dll.
+    # vanilla = neither of them.
+    [ValidateSet('mopr', 'mopr6', 'vanilla')]
     [string]$Variant = 'mopr',
     [string]$Label = '',
     [int]$Width = 1280,
     [int]$Height = 720,
+    # Extra Unity command line arguments for the game (e.g. "-popupwindow": a borderless window, for runs at the
+    # monitor's own resolution).
+    [string]$ExtraArgs = '',
     [int]$TimeoutMinutes = 25,
     [string]$GameDir = 'D:\SteamLibrary\steamapps\common\My Summer Car',
     [switch]$NoBuild,
@@ -30,8 +35,16 @@ param(
     [switch]$NoSplashClick,
     [int]$SplashClickIntervalSeconds = 2,
     [int]$SplashTimeoutSeconds = 120,
-    # Test another MOPR build (e.g. a saved older DLL for an A/B against it) instead of src\MOPR\bin\Release.
+    # Test another MOPR build (e.g. a saved older DLL for an A/B against it) instead of MOPR5\mod\bin\Release.
     [string]$MoprDll = '',
+    # MOPR6 build under test (default MOPR6\bin\Release\MOPR.dll), used by -Variant mopr6. Installed as Mods\MOPR.dll,
+    # like 5.x (the user's Mods\MOPR.dll is stashed and put back after the run).
+    [string]$Mopr6Dll = '',
+    # -Variant mopr6 only: also install MOPR 5.x (-MoprDll) as Mods\MOPR_5x.dll, to test that MOPR6 then refuses to run.
+    [switch]$WithMopr5,
+    # -Variant mopr6 only: MOPR6 console commands run before the scenario's steps, separated by ';'
+    # (e.g. "sys engine.fsm on;status").
+    [string]$Mopr6Steps = '',
     # Files copied into Mods\Config\Mod Settings\MOPR for this run only (rule files, MopData.json...).
     # That folder is ALWAYS backed up before the run and restored after it, with or without this parameter.
     [string]$ModConfig = '',
@@ -41,7 +54,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$RepoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$RepoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)   # scripts -> the repository
 function Step([string]$m, [string]$c = 'Cyan') { Write-Host "[test] $m" -ForegroundColor $c }
 . (Join-Path $RepoRoot 'scripts\GameWindows.ps1')
 
@@ -68,25 +81,35 @@ if (-not $SteamExe) { $SteamExe = "${env:ProgramFiles(x86)}\Steam\steam.exe" }
 $Dotnet = Join-Path $env:USERPROFILE '.dotnet\dotnet.exe'
 if (-not (Test-Path $Dotnet)) { $Dotnet = 'dotnet' }
 if (-not $NoBuild) {
-    Step 'Building MOPR...'
-    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $RepoRoot 'scripts\build.ps1') -GameDir $GameDir | Out-Null
-    if ($LASTEXITCODE -ne 0) { Step 'MOPR build failed.' 'Red'; exit 1 }
+    if ($Variant -eq 'mopr6') {
+        Step 'Building MOPR6...'
+        & $Dotnet build (Join-Path $RepoRoot 'MOPR6\MOPR6.csproj') -c Release -nologo -v q "-p:ManagedDir=$ManagedDir" | Out-Null
+        if ($LASTEXITCODE -ne 0) { Step 'MOPR6 build failed.' 'Red'; exit 1 }
+    } else {
+        Step 'Building MOPR...'
+        & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $RepoRoot 'MOPR5\scripts\build.ps1') -GameDir $GameDir | Out-Null
+        if ($LASTEXITCODE -ne 0) { Step 'MOPR build failed.' 'Red'; exit 1 }
+    }
     Step 'Building TestBot...'
-    & $Dotnet build (Join-Path $RepoRoot 'src\MOPR.TestBot\MOPR.TestBot.csproj') -c Release -nologo -v q "-p:ManagedDir=$ManagedDir" | Out-Null
+    & $Dotnet build (Join-Path $RepoRoot 'TestBot\MOPR.TestBot.csproj') -c Release -nologo -v q "-p:ManagedDir=$ManagedDir" | Out-Null
     if ($LASTEXITCODE -ne 0) { Step 'TestBot build failed.' 'Red'; exit 1 }
 }
-if (-not $MoprDll) { $MoprDll = Join-Path $RepoRoot 'src\MOPR\bin\Release\MOPR.dll' }
+if (-not $MoprDll) { $MoprDll = Join-Path $RepoRoot 'MOPR5\mod\bin\Release\MOPR.dll' }
 elseif (-not [IO.Path]::IsPathRooted($MoprDll)) { $MoprDll = Join-Path $RepoRoot $MoprDll }
-if ($Variant -eq 'mopr' -and -not (Test-Path $MoprDll)) { Step "MOPR DLL not found: $MoprDll" 'Red'; exit 1 }
+if ($WithMopr5 -and $Variant -ne 'mopr6') { Step '-WithMopr5 is only for -Variant mopr6.' 'Red'; exit 1 }
+if (($Variant -eq 'mopr' -or $WithMopr5) -and -not (Test-Path $MoprDll)) { Step "MOPR DLL not found: $MoprDll" 'Red'; exit 1 }
+if (-not $Mopr6Dll) { $Mopr6Dll = Join-Path $RepoRoot 'MOPR6\bin\Release\MOPR.dll' }
+elseif (-not [IO.Path]::IsPathRooted($Mopr6Dll)) { $Mopr6Dll = Join-Path $RepoRoot $Mopr6Dll }
+if ($Variant -eq 'mopr6' -and -not (Test-Path $Mopr6Dll)) { Step "MOPR6 DLL not found: $Mopr6Dll" 'Red'; exit 1 }
 $MoprCfgDir = Join-Path $ModsDir 'Config\Mod Settings\MOPR'
 if ($ModConfig -and -not [IO.Path]::IsPathRooted($ModConfig)) { $ModConfig = Join-Path $RepoRoot $ModConfig }
 if ($ModConfig -and -not (Test-Path $ModConfig)) { Step "ModConfig folder not found: $ModConfig" 'Red'; exit 1 }
 $Disabled = @($DisableMods -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 foreach ($d in $Disabled) {
-    if ($d -match '[\\/:*?"<>|]' -or $d -ieq 'MOPR' -or $d -ieq 'MOPR.TestBot') { Step "DisableMods: invalid mod name '$d'" 'Red'; exit 1 }
+    if ($d -match '[\\/:*?"<>|]' -or $d -ieq 'MOPR' -or $d -ieq 'MOPR6' -or $d -ieq 'MOPR.TestBot') { Step "DisableMods: invalid mod name '$d'" 'Red'; exit 1 }
     if (-not (Test-Path (Join-Path $ModsDir "$d.dll"))) { Step "DisableMods: $d.dll is not in $ModsDir" 'Red'; exit 1 }
 }
-$BotDll  = Join-Path $RepoRoot 'src\MOPR.TestBot\bin\Release\MOPR.TestBot.dll'
+$BotDll  = Join-Path $RepoRoot 'TestBot\bin\Release\MOPR.TestBot.dll'
 if (-not (Test-Path $BotDll)) { Step "TestBot not built: $BotDll" 'Red'; exit 1 }
 
 # --- Run folder + backups -------------------------------------------------------------------------
@@ -107,6 +130,11 @@ if ($LASTEXITCODE -ne 0) { Step 'Could not back up the game PlayerPrefs. Abortin
 $userMopr = Join-Path $ModsDir 'MOPR.dll'
 $hadUserMopr = Test-Path $userMopr
 if ($hadUserMopr) { Copy-Item $userMopr (Join-Path $Stash 'MOPR.dll') -Force }
+if ($WithMopr5 -and (Test-Path (Join-Path $ModsDir 'MOPR_5x.dll'))) { Step 'Mods\MOPR_5x.dll exists already; remove it first.' 'Red'; exit 1 }
+$userMopr5x = Join-Path $ModsDir 'MOPR_5x.dll'
+# MOPR6 settings are backed up with the other mods' settings below; a folder the run creates is removed after it.
+$Mopr6CfgDir = Join-Path $ModsDir 'Config\Mod Settings\MOPR6'
+$hadMopr6Cfg = Test-Path $Mopr6CfgDir
 
 # The MOPR settings folder (settings.json, MopData.json, rule files): the run may change or overlay it.
 $CfgBackup = Join-Path $RunDir 'mopr-config-backup'
@@ -133,7 +161,9 @@ $exitCode = 0
 try {
     # --- Install the variant under test ---------------------------------------------------------
     if ($Variant -eq 'mopr') { Copy-Item $MoprDll $userMopr -Force }
+    elseif ($Variant -eq 'mopr6') { Copy-Item $Mopr6Dll $userMopr -Force }
     elseif ($hadUserMopr) { Remove-Item $userMopr -Force }
+    if ($WithMopr5) { Copy-Item $MoprDll $userMopr5x -Force }
     Copy-Item $BotDll (Join-Path $ModsDir 'MOPR.TestBot.dll') -Force
     if ($Disabled.Count -gt 0) {
         New-Item -ItemType Directory -Force -Path $DisabledStash | Out-Null
@@ -163,13 +193,21 @@ try {
         $scenarioJson.Name = (($ScenarioPaths | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension($_) }) -join '+')
         Step "One session for $($ScenarioPaths.Count) scenarios: $($scenarioJson.Name)"
     }
+    if ($Mopr6Steps -and $Variant -eq 'mopr6') {
+        # MOPR6 console commands before the scenario's own steps (e.g. "sys engine.fsm on"): the mod run of a harness
+        # comparison with a system switched on; vanilla runs of the same scenario do not get them.
+        $pre = @($Mopr6Steps -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ } |
+                 ForEach-Object { [pscustomobject]@{ Op = 'mopr'; Text = $_ } })
+        $scenarioJson.Steps = @($pre) + @($scenarioJson.Steps)
+        Step "MOPR6 steps first: $($Mopr6Steps)"
+    }
     $scenarioJson | Add-Member -NotePropertyName Variant -NotePropertyValue $name -Force
     $scenarioJson | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 (Join-Path $BotCfgDir 'run.json')
 
     # --- Launch -----------------------------------------------------------------------------------
     Step "Launching the game ($Width x $Height, windowed) - please don't touch mouse/keyboard in the game window."
     $launchTime = Get-Date
-    Start-Process $SteamExe -ArgumentList "-applaunch 516750 -screen-width $Width -screen-height $Height -screen-fullscreen 0"
+    Start-Process $SteamExe -ArgumentList ("-applaunch 516750 -screen-width $Width -screen-height $Height -screen-fullscreen 0 " + $ExtraArgs).TrimEnd()
 
     $deadline = (Get-Date).AddMinutes($TimeoutMinutes)
     $startDeadline = (Get-Date).AddMinutes(2)
@@ -273,13 +311,21 @@ finally {
     foreach ($pattern in 'dumpui_*.txt', 'find_*.txt', 'dumpfsm_*.txt', 'probe_*.txt', 'settings_*.txt', 'fsmhist_*.txt', 'tree_*.txt', 'mopstate_*.txt', 'fsmcache_*.txt', 'partdiff_*.txt', 'fsmmark_*.txt', 'guardmark_*.txt', 'guardcheck_*.txt', 'lightinfo_*.txt', 'visible_*.txt', 'fsmgrep_*.txt') {
         Get-ChildItem $BotCfgDir -Filter $pattern -ErrorAction SilentlyContinue | Copy-Item -Destination $RunDir -Force
     }
-    foreach ($pattern in 'snapshot_*.tsv', 'watch_*.tsv', 'shot_*.png', 'partsnap_*.tsv', 'boltsnap_*.tsv', 'boltdiff_*.txt') {
+    foreach ($pattern in 'snapshot_*.tsv', 'watch_*.tsv', 'shot_*.png', 'partsnap_*.tsv', 'boltsnap_*.tsv', 'boltdiff_*.txt', 'fullsnap_*.tsv') {
+        Get-ChildItem $BotCfgDir -Filter $pattern -ErrorAction SilentlyContinue | Copy-Item -Destination $RunDir -Force
+    }
+    # Copies of the save folder taken by the bot ("savecopy", MOPR6 harness).
+    Get-ChildItem $BotCfgDir -Directory -Filter 'savecopy_*' -ErrorAction SilentlyContinue | Copy-Item -Destination $RunDir -Recurse -Force
+    foreach ($pattern in 'moprapi_*.txt', 'proptrace_*.txt', 'writers_*.txt', 'inventory_*.jsonl', 'autodrive_*.tsv', 'ledger_*.txt') {
         Get-ChildItem $BotCfgDir -Filter $pattern -ErrorAction SilentlyContinue | Copy-Item -Destination $RunDir -Force
     }
     foreach ($log in 'output_log.txt') {
         $p = Join-Path $GameDir $log
         if (Test-Path $p) { Copy-Item $p $RunDir -Force }
     }
+    # MOPR6's own log (errors with stacks): the settings restore below would put the user's old one back.
+    $m6log = Join-Path $Mopr6CfgDir 'mopr.log'
+    if (Test-Path $m6log) { Copy-Item $m6log (Join-Path $RunDir 'mopr6.log') -Force }
     $mopLogs = Join-Path $GameDir 'MOP_Logs'
     if (Test-Path $mopLogs) {
         Get-ChildItem $mopLogs -File | Where-Object { $_.LastWriteTime -gt (Get-Item $RunDir).CreationTime } | Copy-Item -Destination $RunDir -Force
@@ -302,6 +348,12 @@ finally {
         @{ Name = 'mopr';  Do = {
             if ($hadUserMopr) { Copy-Item (Join-Path $Stash 'MOPR.dll') $userMopr -Force }
             elseif (Test-Path $userMopr) { Remove-Item $userMopr -Force } } },
+        @{ Name = 'mopr6'; Do = {
+            if ($WithMopr5 -and (Test-Path $userMopr5x)) { Remove-Item $userMopr5x -Force }
+            if (-not $hadMopr6Cfg -and (Test-Path $Mopr6CfgDir)) {
+                Copy-Item -Recurse -Force $Mopr6CfgDir (Join-Path $RunDir 'mopr6-config-after')
+                Remove-Item -Recurse -Force $Mopr6CfgDir
+            } } },
         @{ Name = 'disabled-mods'; Do = {
             foreach ($d in $Disabled) {
                 $s = Join-Path $DisabledStash "$d.dll"
@@ -353,7 +405,9 @@ finally {
 $reportPath = Join-Path $RunDir 'report.json'
 if (Test-Path $reportPath) {
     $r = Get-Content $reportPath -Raw | ConvertFrom-Json
-    Step "Report: variant=$($r.Variant) MOPR=$($r.MoprPresent) load=$([math]::Round($r.LoadSeconds,1))s error=$($r.Error)"
+    Step "Report: variant=$($r.Variant) MOPR=$($r.MoprPresent) MOPR6=$($r.Mopr6Present) load=$([math]::Round($r.LoadSeconds,1))s error=$($r.Error)"
+    if ($r.InputFrames -gt 0 -and $r.InputLocked) { Step "  real input in $($r.InputFrames) frame(s) ($($r.InputFirst)), kept from the game by the input lock" }
+    elseif ($r.InputFrames -gt 0) { Step "  USER INPUT reached the game in $($r.InputFrames) frame(s), first: $($r.InputFirst) - not valid for a comparison" 'Yellow' }
     foreach ($m in $r.Measures) { Step ("  measure {0,-14} [{6,-6}] {1,6:0.0} fps  1%low {2,6:0.0}  p99 {3,6:0.0} ms  GC {4}  FSMs {5}" -f $m.Label, $m.AvgFps, $m.Low1PercentFps, $m.FrameMsP99, $m.GcCollections, $m.ActiveFsms, $m.EngineMode) }
     foreach ($p in $r.Profiles) { Step ("  profile {0,-14} [{6,-6}] frame {1:0.00} ms  scripts {2:0.00} ms (corr. {4:0.00})  PlayMaker {3:0.00} ms (corr. {5:0.00})" -f $p.Label, $p.FrameMsAvg, $p.ScriptMsPerFrame, $p.PlayMakerMsPerFrame, $p.ScriptMsPerFrameCorrected, $p.PlayMakerMsPerFrameCorrected, $p.EngineMode) }
     foreach ($c in $r.Compares) { Step ("  compare {0} -> {1}: {2} changed / {3}" -f $c.A, $c.B, $c.Changed, $c.Common) }
@@ -361,4 +415,6 @@ if (Test-Path $reportPath) {
     foreach ($a in $r.AbTests) { Step ("  ab      {0,-14} {1} {2:0.0} fps / {3:0.00} ms / {9:0.00} MB/s  vs  {4} {5:0.0} fps / {6:0.00} ms / {10:0.00} MB/s  -> {7:+0.0;-0.0}% avg, {8:+0.0;-0.0}% median" -f $a.Label, $a.A, $a.AvgFpsA, $a.MedianMsA, $a.B, $a.AvgFpsB, $a.MedianMsB, $a.FpsGainPercent, $a.MedianGainPercent, $a.AllocMBPerSecA, $a.AllocMBPerSecB) }
     if ($r.GcPauseMs) { Step ("  gc pause (full collection): {0} ms" -f (($r.GcPauseMs | ForEach-Object { '{0:0.0}' -f $_ }) -join ', ')) }
 }
+# Written last: the run folder is complete (collected and restored) - for scripts that wait for a run.
+Set-Content -Path (Join-Path $RunDir 'run.done') -Value $exitCode
 exit $exitCode

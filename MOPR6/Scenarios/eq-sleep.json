@@ -1,0 +1,20 @@
+{
+  "Name": "eq-sleep",
+  "Deterministic": true,
+  "VirtualRealtime": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Equivalence: sleeping in the bed at home (requirement 3.5). Fatigue is set to 70 so the game lets the player sleep (6 hours), then the bed FSM goes to 'Get positions' = the click on the bed." },
+    { "Op": "teleport", "Path": "YARD/Building/BEDROOM1/LOD_bedroom1/Sleep/SleepTrigger", "Pos": [0.0, 0.5, -0.8] },
+    { "Op": "waitframes", "Frames": 300 },
+    { "Op": "fullsnap", "Label": "awake" },
+    { "Op": "fsmset", "Path": "global", "Var": "PlayerFatigue", "Value": "70" },
+    { "Op": "fsmstate", "Path": "YARD/Building/BEDROOM1/LOD_bedroom1/Sleep/SleepTrigger", "Fsm": "Activate", "Text": "Get positions" },
+    { "Op": "watch", "Label": "sleeping", "Seconds": 50, "Interval": 5, "Probes": [ "bed=YARD/Building/BEDROOM1/LOD_bedroom1/Sleep/SleepTrigger|Activate|@state", "sleeps=global|PlayerSleeps", "hour=global|TimeRotationHour", "fatigue=global|PlayerFatigue" ] },
+    { "Op": "fullsnap", "Label": "woke" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "fullsnap", "Label": "yard" },
+    { "Op": "quit" }
+  ]
+}

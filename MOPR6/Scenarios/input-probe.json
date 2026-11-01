@@ -1,0 +1,10 @@
+{
+  "Name": "input-probe",
+  "Deterministic": true,
+  "SettleSeconds": 2,
+  "Steps": [
+    { "Op": "log", "Text": "Which real input reaches the game during a deterministic run (report.json InputFrames / InputKeys)." },
+    { "Op": "waitframes", "Frames": 2400 },
+    { "Op": "quit" }
+  ]
+}

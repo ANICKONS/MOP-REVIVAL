@@ -1,0 +1,15 @@
+{
+  "Name": "harness-smoke",
+  "Deterministic": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "fullsnap", "Label": "start" },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "fullsnap", "Label": "f600" },
+    { "Op": "savegame" },
+    { "Op": "savecopy", "Label": "saved" },
+    { "Op": "waitframes", "Frames": 60 },
+    { "Op": "fullsnap", "Label": "reloaded" },
+    { "Op": "quit" }
+  ]
+}

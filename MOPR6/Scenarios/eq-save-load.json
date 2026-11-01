@@ -1,0 +1,27 @@
+{
+  "Name": "eq-save-load",
+  "Deterministic": true,
+  "VirtualRealtime": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Equivalence: save, quit to the menu, load (requirements 3.2, 3.5, 6.3). First a cancelled save (6.4): the save point's 'Wait for click' (looking at it) and back to 'Wait' (looking away). Then the real save; the save is compared value by value, the scene after the load too." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "fullsnap", "Label": "before" },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.3, 0.0] },
+    { "Op": "waitframes", "Frames": 240 },
+    { "Op": "fsmstate", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Fsm": "Button", "Text": "Wait for click" },
+    { "Op": "waitframes", "Frames": 30 },
+    { "Op": "fsmevent", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Fsm": "Button", "Event": "FINISHED" },
+    { "Op": "waitframes", "Frames": 180 },
+    { "Op": "fullsnap", "Label": "cancelled" },
+    { "Op": "savegame" },
+    { "Op": "savecopy", "Label": "saved" },
+    { "Op": "waitframes", "Frames": 300 },
+    { "Op": "fullsnap", "Label": "loaded" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "fullsnap", "Label": "after" },
+    { "Op": "quit" }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "Name": "merge-quick",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "MOPR6 Satsuma merge (render.merge) in one session: next to the parked car (6.5 m and 12 m) - what is merged, the picture with the game paused (originals / merged: shot_*_a/_b.png), A/B merged vs originals in 1 s blocks (the merge stays built), then a restore and the merge again." },
+    { "Op": "activate", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN", "Active": false },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-6.5, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 12 },
+    { "Op": "moprapi", "Text": "Report", "Label": "near" },
+    { "Op": "abshot", "Label": "merge-near", "Path": "render.merge", "Var": "ab", "Seconds": 1 },
+    { "Op": "abtoggle", "Label": "near-merge", "Var": "mopr6ab", "Path": "render.merge", "Seconds": 30, "Block": 1 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-12.0, 1.5, 3.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 12 },
+    { "Op": "moprapi", "Text": "Report", "Label": "far" },
+    { "Op": "abshot", "Label": "merge-far", "Path": "render.merge", "Var": "ab", "Seconds": 1 },
+    { "Op": "abtoggle", "Label": "far-merge", "Var": "mopr6ab", "Path": "render.merge", "Seconds": 30, "Block": 1 },
+    { "Op": "abtoggle", "Label": "far-all", "Var": "mopr6", "Path": "all", "Seconds": 16, "Block": 1 },
+    { "Op": "mopr", "Text": "on all" },
+    { "Op": "moprapi", "Text": "LedgerCount" },
+    { "Op": "mopr", "Text": "restore" },
+    { "Op": "mopr", "Text": "ledger" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "moprapi", "Text": "Report", "Label": "again" },
+    { "Op": "mopr", "Text": "errors" },
+    { "Op": "quit" }
+  ]
+}

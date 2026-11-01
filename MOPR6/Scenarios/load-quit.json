@@ -1,0 +1,8 @@
+{
+  "Name": "load-quit",
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "quit" }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "Name": "probe-throw",
+  "Deterministic": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Failure isolation (requirement 12.2, task 18): the test probe throws from every tick; after the 4th failure within 60 s the host trips it and the rest keeps running. The probe first hides the living room, so tripping must also give its changes back." },
+    { "Op": "mopr", "Text": "probe hide YARD/Building/LIVINGROOM" },
+    { "Op": "waitframes", "Frames": 120 },
+    { "Op": "mopr", "Text": "status" },
+    { "Op": "mopr", "Text": "probe throw" },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "mopr", "Text": "status" },
+    { "Op": "mopr", "Text": "probe" },
+    { "Op": "moprapi", "Text": "Errors", "Label": "errors" },
+    { "Op": "moprapi", "Text": "LedgerDump", "Label": "after-trip" },
+    { "Op": "quit" }
+  ]
+}

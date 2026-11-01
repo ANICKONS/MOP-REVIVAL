@@ -1,0 +1,22 @@
+{
+  "Name": "teimo-diag",
+  "Deterministic": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Diagnosis: with sleep.idle on, eq-teimo-buy's 'home' checkpoint misses one step of the player's stats (hunger, thirst, stress... +1.2..1.8 in vanilla between 'bought' and 'home'). The same steps with sleep.idle in verify mode (virtual sleep: a missed state change or event is logged with its FSM), the stats every 100 frames, and which FSMs write the stats." },
+    { "Op": "mopr", "Text": "verify sleep.idle" },
+    { "Op": "teleport", "Path": "STORE/Inventory", "Pos": [0.0, 1.0, 0.0], "Target": "STORE/TeimoInShop" },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "fsmset", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Var": "QSausages", "Value": "1" },
+    { "Op": "fsmset", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Var": "QMilk", "Value": "1" },
+    { "Op": "fsmset", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Var": "Total", "Value": "12" },
+    { "Op": "fsmstate", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Text": "Check money" },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "moprapi", "Text": "Report", "Label": "bought" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "watch", "Label": "stats", "Seconds": 15, "Interval": 1, "Probes": [ "stress=global|PlayerStress", "hunger=global|PlayerHunger", "fatigue=global|PlayerFatigue" ] },
+    { "Op": "moprapi", "Text": "Report", "Label": "home" },
+    { "Op": "fsmgrep", "Text": "PlayerStress,PlayerHunger", "Detail": true, "Max": 400, "Label": "stats" },
+    { "Op": "quit" }
+  ]
+}

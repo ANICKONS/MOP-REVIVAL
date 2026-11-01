@@ -1,0 +1,13 @@
+{
+  "Name": "inventory-dump",
+  "Deterministic": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "MOPR6 catalogue base (task 23) and writer list (task 20), vanilla only: the structure of every object and FSM right after the load, then the PlayMaker actions that write ledger properties. The writer scan loads actions of unloaded FSMs into a copy - a dump-only run, nothing is compared." },
+    { "Op": "inventory", "Label": "load" },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "inventory", "Label": "later" },
+    { "Op": "writers", "Label": "load" },
+    { "Op": "quit" }
+  ]
+}

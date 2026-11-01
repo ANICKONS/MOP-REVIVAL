@@ -1,0 +1,27 @@
+{
+  "Name": "stage4-home",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "MOPR6 one short session with the defaults (exact systems, script sleep with several FSMs per object, world.vehicles with the boat): living room A/B of the sleep and of the vehicles by their own switches; then the Satsuma merge with the parked Satsuma frozen, from the yard 25 m away: check cost, A/B, picture." },
+    { "Op": "activate", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN", "Active": false },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "wait", "Seconds": 15 },
+    { "Op": "abtoggle", "Label": "home-sleep", "Var": "mopr6ab", "Path": "sleep.idle", "Seconds": 20, "Block": 1 },
+    { "Op": "abtoggle", "Label": "home-vehicles", "Var": "mopr6ab", "Path": "world.vehicles", "Seconds": 16, "Block": 1 },
+    { "Op": "moprapi", "Text": "Report", "Label": "home" },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.5, -25.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 6 },
+    { "Op": "abtoggle", "Label": "yard-vehicles", "Var": "mopr6ab", "Path": "world.vehicles", "Seconds": 16, "Block": 1 },
+    { "Op": "mopr", "Text": "on render.merge" },
+    { "Op": "wait", "Seconds": 12 },
+    { "Op": "moprapi", "Text": "Report", "Label": "merge" },
+    { "Op": "abtoggle", "Label": "yard-merge", "Var": "mopr6ab", "Path": "render.merge", "Seconds": 20, "Block": 1 },
+    { "Op": "abshot", "Label": "yard-merge", "Path": "render.merge", "Var": "ab", "Seconds": 1 },
+    { "Op": "moprapi", "Text": "Report", "Label": "merge2" },
+    { "Op": "mopr", "Text": "off render.merge" },
+    { "Op": "mopr", "Text": "errors" },
+    { "Op": "quit" }
+  ]
+}

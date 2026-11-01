@@ -1,0 +1,10 @@
+{
+  "Name": "realtime-grep",
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Which FSM actions of the game run on real time (wall clock) instead of game time: their state at a given frame depends on how fast the computer is, also in the harness's deterministic mode (captureFramerate fixes game time only). Every action whose fields say realTime=True, in every FSM of the scene, unloaded states included." },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "fsmgrep", "Text": "realtime=true", "Detail": true, "Max": 20000, "Label": "realtime" },
+    { "Op": "quit" }
+  ]
+}

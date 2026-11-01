@@ -1,0 +1,33 @@
+{
+  "Name": "deact-quick",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "MOPR6 world.deactivate, one short session (task 50): the defaults plus the careful switching off of distant parts. Living room, the road far from everything, the store; at each point the report (covers, keepers, wakes) and the system's own A/B. Then back home (the parts come on), a ledger restore, errors." },
+    { "Op": "activate", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN", "Active": false },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "mopr", "Text": "on world.deactivate" },
+    { "Op": "wait", "Seconds": 25 },
+    { "Op": "moprapi", "Text": "Report", "Label": "home" },
+    { "Op": "abtoggle", "Label": "home-deact", "Var": "mopr6ab", "Path": "world.deactivate", "Seconds": 16, "Block": 1 },
+
+    { "Op": "teleport", "Path": "Waypoint Manager/TeimoBicycleIn/Waypoint 6", "Pos": [0.0, 1.5, 0.0], "Target": "Waypoint Manager/TeimoBicycleIn/Waypoint 9" },
+    { "Op": "wait", "Seconds": 25 },
+    { "Op": "moprapi", "Text": "Report", "Label": "road" },
+    { "Op": "abtoggle", "Label": "road-deact", "Var": "mopr6ab", "Path": "world.deactivate", "Seconds": 16, "Block": 1 },
+
+    { "Op": "teleport", "Path": "STORE/Inventory", "Pos": [0.0, 1.0, 0.0], "Target": "STORE/TeimoInShop" },
+    { "Op": "wait", "Seconds": 20 },
+    { "Op": "moprapi", "Text": "Report", "Label": "store" },
+    { "Op": "abtoggle", "Label": "store-deact", "Var": "mopr6ab", "Path": "world.deactivate", "Seconds": 16, "Block": 1 },
+
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "moprapi", "Text": "Report", "Label": "back" },
+    { "Op": "moprapi", "Text": "RestoreAll", "Label": "restore" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "moprapi", "Text": "Report", "Label": "after-restore" },
+    { "Op": "mopr", "Text": "errors" },
+    { "Op": "quit" }
+  ]
+}

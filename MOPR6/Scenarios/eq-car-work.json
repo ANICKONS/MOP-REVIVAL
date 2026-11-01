@@ -1,0 +1,44 @@
+{
+  "Name": "eq-car-work",
+  "Deterministic": true,
+  "VirtualRealtime": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Equivalence: work on the car (requirement 3.5): hood and alternator bolts loosened and tightened again, the carburettor taken off and put back (dropped into its assembly trigger, then the trigger's ASSEMBLE event = the click), its bolts tightened." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 300 },
+    { "Op": "fullsnap", "Label": "before" },
+    { "Op": "repeat", "Label": "loosen", "Max": 8, "Steps": [
+      { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Body/pivot_hood/hood(Clone)/Bolts/BoltPM", "Fsm": "Screw", "Event": "UNTIGHTEN" },
+      { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_alternator/alternator(Clone)/Bolts/BoltPM", "Fsm": "Screw", "Event": "UNTIGHTEN" },
+      { "Op": "waitframes", "Frames": 30 }
+    ] },
+    { "Op": "waitframes", "Frames": 120 },
+    { "Op": "fullsnap", "Label": "loose" },
+    { "Op": "repeat", "Label": "tighten", "Max": 8, "Steps": [
+      { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Body/pivot_hood/hood(Clone)/Bolts/BoltPM", "Fsm": "Screw", "Event": "TIGHTEN" },
+      { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_alternator/alternator(Clone)/Bolts/BoltPM", "Fsm": "Screw", "Event": "TIGHTEN" },
+      { "Op": "waitframes", "Frames": 30 }
+    ] },
+    { "Op": "waitframes", "Frames": 120 },
+    { "Op": "fullsnap", "Label": "tight" },
+    { "Op": "fsmstate", "Path": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_cylinder head/cylinder head(Clone)/pivot_carburator/carburator(Clone)", "Fsm": "Removal", "Text": "Mouse off" },
+    { "Op": "waitframes", "Frames": 120 },
+    { "Op": "fsmstate", "Path": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_cylinder head/cylinder head(Clone)/pivot_carburator/carburator(Clone)", "Fsm": "Removal", "Text": "Remove part" },
+    { "Op": "waitframes", "Frames": 300 },
+    { "Op": "fullsnap", "Label": "removed" },
+    { "Op": "place", "Path": "name:carburator(Clone)", "Target": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_cylinder head/cylinder head(Clone)/Triggers Carbs/trigger_carburator", "Pos": [0.0, 0.0, 0.0] },
+    { "Op": "waitframes", "Frames": 30 },
+    { "Op": "watch", "Label": "carb_in_trigger", "Seconds": 0, "Probes": [ "trigger=SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_cylinder head/cylinder head(Clone)/Triggers Carbs/trigger_carburator|Assembly|@state" ] },
+    { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_cylinder head/cylinder head(Clone)/Triggers Carbs/trigger_carburator", "Fsm": "Assembly", "Event": "ASSEMBLE" },
+    { "Op": "waitframes", "Frames": 300 },
+    { "Op": "watch", "Label": "carb_assembled", "Seconds": 0, "Probes": [ "parent=name:carburator(Clone)|@parent", "removal=name:carburator(Clone)|Removal|@state" ] },
+    { "Op": "repeat", "Label": "carb_bolts", "Max": 8, "Steps": [
+      { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_cylinder head/cylinder head(Clone)/pivot_carburator/carburator(Clone)/BoltPM", "Fsm": "Screw", "Event": "TIGHTEN" },
+      { "Op": "waitframes", "Frames": 30 }
+    ] },
+    { "Op": "waitframes", "Frames": 300 },
+    { "Op": "fullsnap", "Label": "reassembled" },
+    { "Op": "quit" }
+  ]
+}

@@ -1,0 +1,72 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    MOPR6: the rewrite of MOP - REVIVAL for the vanilla game (spec: .kiro\specs\mopr6-rewrite).
+    The file is MOPR.dll (as 5.x: it replaces it in Mods); the mod ID, name and namespaces are MOPR6, the version is in
+    the log. TestBot helpers that look for the 5.x types in the assembly "MOPR" simply find none in this one.
+    One DLL: the mod code (Mod\**) plus the Unity-free core (Core\src\**, also built for net8.0 by Core\MOPR6.Core.csproj
+    for the unit tests in Tests\ and the host tools in Tools\). Default items are off, so the nested projects and their
+    bin\obj folders are never compiled into the mod.
+
+    Built against the real game only: -p:ManagedDir=<game>\mysummercar_Data\Managed
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net35</TargetFramework>
+    <AssemblyName>MOPR</AssemblyName>
+    <RootNamespace>MOPR6</RootNamespace>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <OutputType>Library</OutputType>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Deterministic>true</Deterministic>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- CS0618/CS0612: MSCLoader marks some MSC APIs obsolete for parity with the MWC branch; they still work on MSC. -->
+    <NoWarn>$(NoWarn);CS0618;CS0612</NoWarn>
+    <DefineConstants>$(DefineConstants);MSC</DefineConstants>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <LoaderCacheDir>$(MSBuildThisFileDirectory)..\refs\cache\MSCLoader</LoaderCacheDir>
+    <LoaderRefDir Condition=" '$(ManagedDir)' != '' And Exists('$(ManagedDir)\MSCLoader.dll') ">$(ManagedDir)</LoaderRefDir>
+    <LoaderRefDir Condition=" '$(LoaderRefDir)' == '' ">$(LoaderCacheDir)</LoaderRefDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Mod\**\*.cs" />
+    <Compile Include="Core\src\**\*.cs" LinkBase="Core" />
+  </ItemGroup>
+
+  <!-- The vanilla FSM structures (EquivCompare catalog build -> fsmkeys.txt, next to the full inventory.json that only
+       the host tools and tests use): without it the systems limited to vanilla FSMs stay off. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\catalog\fsmkeys.txt" LogicalName="MOPR6.catalog.fsmkeys.txt" Condition="Exists('Resources\catalog\fsmkeys.txt')" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net35" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Game / loader assemblies. Never copied to the output (Private=false). -->
+  <ItemGroup>
+    <Reference Include="UnityEngine"><HintPath>$(ManagedDir)\UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.UI"><HintPath>$(ManagedDir)\UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="PlayMaker"><HintPath>$(ManagedDir)\PlayMaker.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Assembly-CSharp"><HintPath>$(ManagedDir)\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="ES2"><HintPath>$(ManagedDir)\ES2.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="MSCLoader"><HintPath>$(LoaderRefDir)\MSCLoader.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>$(LoaderRefDir)\Newtonsoft.Json.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(LoaderRefDir)\0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System.Core" />
+  </ItemGroup>
+
+  <Target Name="RequireGame" BeforeTargets="CoreCompile">
+    <Error Text="[MOPR6] Pass -p:ManagedDir=&lt;game&gt;\mysummercar_Data\Managed (MOPR6 is built against the real game only)." Condition=" '$(ManagedDir)' == '' Or !Exists('$(ManagedDir)\UnityEngine.dll') Or !Exists('$(ManagedDir)\PlayMaker.dll') " />
+  </Target>
+
+</Project>

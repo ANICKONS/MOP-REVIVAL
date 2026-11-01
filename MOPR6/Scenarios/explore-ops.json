@@ -1,0 +1,17 @@
+{
+  "Name": "explore-ops",
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Exploration for the TestBot operations of task 9: the shop (buy, pay), the bed (sleep), the save point (cancel), part assembly (hood, carburettor)." },
+    { "Op": "dumpfsm", "Label": "savegame", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Recursive": true },
+    { "Op": "find", "Label": "beds", "Text": "bed,Bed,SLEEP,Sleep", "Max": 60 },
+    { "Op": "fsmgrep", "Label": "sleep", "Text": "Sleep,sleep,PlayerSleeps,Fatigue", "Max": 300 },
+    { "Op": "dumpfsm", "Label": "register", "Path": "STORE/StoreCashRegister", "Recursive": true },
+    { "Op": "find", "Label": "storeitems", "Text": "Product,product,Buy,BUY,Shelf,shelf,Cart,Bag", "Max": 120 },
+    { "Op": "fsmgrep", "Label": "buy", "Text": "Buy,Purchase,Pay,Bought,Cash register,Check out,Checkout", "Max": 400 },
+    { "Op": "find", "Label": "triggers", "Text": "trigger_hood,trigger_carburator,TriggerHood,trigger_", "Max": 120 },
+    { "Op": "fsmgrep", "Label": "assemble", "Text": "Assemble,ASSEMBLE,assemble", "Max": 300 },
+    { "Op": "dumpfsm", "Label": "carb", "Path": "SATSUMA(557kg, 248)/Chassis/sub frame(xxxxx)/CarMotorPivot/block(Clone)/pivot_cylinder head/cylinder head(Clone)/pivot_carburator/carburator(Clone)", "Recursive": false },
+    { "Op": "quit" }
+  ]
+}

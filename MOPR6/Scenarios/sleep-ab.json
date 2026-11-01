@@ -1,0 +1,29 @@
+{
+  "Name": "sleep-ab",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "MOPR6 script sleep (sleep.idle): how honest is the 1 s A/B of its own switch. Living room and next to the car: the own switch with 1 s and 3 s blocks, then the whole system off / on (A = removed, hooks gone; B = installed, 6 s blocks: about 1.5 s to fall asleep again). The upkeep numbers (tick, hooks) in the reports." },
+    { "Op": "activate", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN", "Active": false },
+    { "Op": "mopr", "Text": "on sleep.idle" },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "wait", "Seconds": 15 },
+    { "Op": "moprapi", "Text": "Report", "Label": "home" },
+    { "Op": "abtoggle", "Label": "home-own-1s", "Var": "mopr6ab", "Path": "sleep.idle", "Seconds": 20, "Block": 1 },
+    { "Op": "abtoggle", "Label": "home-own-3s", "Var": "mopr6ab", "Path": "sleep.idle", "Seconds": 36, "Block": 3 },
+    { "Op": "abtoggle", "Label": "home-install-6s", "Var": "mopr6", "Path": "sleep.idle", "Seconds": 48, "Block": 6 },
+    { "Op": "mopr", "Text": "on sleep.idle" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "moprapi", "Text": "Report", "Label": "home2" },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-6.5, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "abtoggle", "Label": "car-own-1s", "Var": "mopr6ab", "Path": "sleep.idle", "Seconds": 20, "Block": 1 },
+    { "Op": "abtoggle", "Label": "car-install-6s", "Var": "mopr6", "Path": "sleep.idle", "Seconds": 48, "Block": 6 },
+    { "Op": "mopr", "Text": "on sleep.idle" },
+    { "Op": "wait", "Seconds": 10 },
+    { "Op": "moprapi", "Text": "Report", "Label": "car" },
+    { "Op": "mopr", "Text": "errors" },
+    { "Op": "quit" }
+  ]
+}

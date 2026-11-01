@@ -1,5 +1,5 @@
-# Publishes the compatibility website (site/) to GitHub Pages.
-# The data is built from compat/mods.json and src/MOPR/Rules by scripts/build-site.ps1; the build fails (and nothing
+# Publishes the compatibility website of MOPR (site/web) to GitHub Pages.
+# The data is built from site/compat/mods.json and MOPR5/mod/Rules by site/build-site.ps1; the build fails (and nothing
 # is published) when a rule file has no entry in the list or an entry is wrong.
 # One-time setup: repository Settings -> Pages -> Source: "GitHub Actions".
 name: Compatibility site
@@ -8,12 +8,10 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'compat/**'
       - 'site/**'
-      - 'src/MOPR/Rules/**'
-      - 'src/MOPR/Properties/AssemblyInfo.cs'
-      - 'scripts/build-site.ps1'
-      - 'docs/images/icon.png'
+      - 'MOPR5/mod/Rules/**'
+      - 'MOPR5/mod/Properties/AssemblyInfo.cs'
+      - 'MOPR5/docs/images/icon.png'
       - '.github/workflows/site.yml'
   workflow_dispatch:
 
@@ -33,11 +31,11 @@ jobs:
       - uses: actions/checkout@v7.0.1
       - name: Build the data
         shell: pwsh
-        run: ./scripts/build-site.ps1
+        run: ./site/build-site.ps1
       - uses: actions/configure-pages@v6.0.0
       - uses: actions/upload-pages-artifact@v5.0.0
         with:
-          path: site
+          path: site/web
 
   deploy:
     needs: build

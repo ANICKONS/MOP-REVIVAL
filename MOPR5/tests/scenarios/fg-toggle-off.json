@@ -1,0 +1,28 @@
+{
+  "Name": "fg-toggle-off",
+  "StayInMenu": true,
+  "SettleSeconds": 5,
+  "LoadTimeoutSeconds": 300,
+  "Steps": [
+    { "Op": "log", "Text": "Frame generation switch (Graphics - Frame generation, console 'mopr fg'): the status before, the settings page section (RU), switched on (or off with Text 'off' in the second run), the status after. Check the driver profile with MOPR5/tools/NvProfileTool afterwards; the second start of the game must report 'working'." },
+    { "Op": "console", "Text": "mopr fg" },
+    { "Op": "opensettings", "Text": "MOPR" },
+    { "Op": "modsetting", "Text": "MOPR", "Var": "language", "Value": "1" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "scrollsettings", "Value": "0.5" },
+    { "Op": "screenshot", "Label": "ru_50" },
+    { "Op": "scrollsettings", "Value": "0.53" },
+    { "Op": "screenshot", "Label": "ru_47" },
+    { "Op": "scrollsettings", "Value": "0.45" },
+    { "Op": "screenshot", "Label": "ru_55" },
+    { "Op": "scrollsettings", "Value": "0.4" },
+    { "Op": "screenshot", "Label": "ru_60" },
+    { "Op": "console", "Text": "mopr fg off" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "scrollsettings", "Value": "0.45" },
+    { "Op": "screenshot", "Label": "ru_55_after" },
+    { "Op": "closesettings" },
+    { "Op": "console", "Text": "mopr fg" },
+    { "Op": "quit" }
+  ]
+}

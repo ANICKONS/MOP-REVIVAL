@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    MOPR6.Core: the logic of MOPR6 that does not need Unity (change ledger, arbiters, policies, catalogue,
+    snapshot comparison, benchmark statistics). Built here for net8.0 only, for the unit tests (MOPR6\Tests) and
+    the host tools (MOPR6\Tools). The mod (MOPR6\MOPR6.csproj, net35) compiles the same source files into
+    MOPR6.dll, so:
+      * C# 9 at most (the mod's LangVersion) and no implicit usings (the mod build has none);
+      * only APIs that exist in .NET 3.5 - the mod build fails otherwise;
+      * no references to UnityEngine, PlayMaker or the game.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RootNamespace>MOPR6.Core</RootNamespace>
+    <AssemblyName>MOPR6.Core</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The same glob the mod links: everything under src\ is shared code. -->
+    <Compile Include="src\**\*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The same version MSCLoader 1.4.2 ships in the game (Managed\Newtonsoft.Json.dll 13.0.4); the mod uses that one. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+</Project>

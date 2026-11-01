@@ -1,0 +1,44 @@
+{
+  "Name": "deact-veh",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "MOPR6 world.deactivate, parked vehicles switched off whole with a stand-in (task 50): from the road and the store (every vehicle at home is far), the report and the system's own A/B; then up close (test distance 10 m) the picture with the stand-ins against the vehicles; a ledger restore; back home." },
+    { "Op": "activate", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN", "Active": false },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "mopr", "Text": "on world.deactivate" },
+    { "Op": "wait", "Seconds": 3 },
+
+    { "Op": "teleport", "Path": "Waypoint Manager/TeimoBicycleIn/Waypoint 6", "Pos": [0.0, 1.5, 0.0], "Target": "Waypoint Manager/TeimoBicycleIn/Waypoint 9" },
+    { "Op": "wait", "Seconds": 40 },
+    { "Op": "moprapi", "Text": "Report", "Label": "road" },
+    { "Op": "abtoggle", "Label": "road-veh", "Var": "mopr6ab", "Path": "world.deactivate", "Seconds": 16, "Block": 1 },
+
+    { "Op": "teleport", "Path": "STORE/Inventory", "Pos": [0.0, 1.0, 0.0], "Target": "STORE/TeimoInShop" },
+    { "Op": "wait", "Seconds": 15 },
+    { "Op": "abtoggle", "Label": "store-veh", "Var": "mopr6ab", "Path": "world.deactivate", "Seconds": 16, "Block": 1 },
+    { "Op": "moprapi", "Text": "Report", "Label": "store" },
+
+    { "Op": "mopr", "Text": "world distance 10" },
+    { "Op": "teleport", "Path": "FERNDALE(1630kg)", "Local": true, "Pos": [0.0, 1.5, 18.0], "Target": "FERNDALE(1630kg)" },
+    { "Op": "wait", "Seconds": 35 },
+    { "Op": "moprapi", "Text": "Report", "Label": "near" },
+    { "Op": "abshot", "Label": "near-front", "Path": "world.deactivate", "Var": "ab", "Seconds": 2 },
+    { "Op": "teleport", "Path": "FERNDALE(1630kg)", "Local": true, "Pos": [18.0, 1.5, 0.0], "Target": "FERNDALE(1630kg)" },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "abshot", "Label": "near-side", "Path": "world.deactivate", "Var": "ab", "Seconds": 2 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [0.0, 1.5, -25.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "abshot", "Label": "near-yard", "Path": "world.deactivate", "Var": "ab", "Seconds": 2 },
+    { "Op": "moprapi", "Text": "RestoreAll", "Label": "restore" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "moprapi", "Text": "Report", "Label": "after-restore" },
+    { "Op": "mopr", "Text": "world distance 0" },
+
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "moprapi", "Text": "Report", "Label": "home" },
+    { "Op": "mopr", "Text": "errors" },
+    { "Op": "quit" }
+  ]
+}

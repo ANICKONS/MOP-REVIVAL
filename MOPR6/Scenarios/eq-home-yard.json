@@ -1,0 +1,20 @@
+{
+  "Name": "eq-home-yard",
+  "Deterministic": true,
+  "VirtualRealtime": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Equivalence: home and yard (requirement 3.5). Snapshots at the spawn point, in the living room and next to the Satsuma." },
+    { "Op": "fullsnap", "Label": "spawn" },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "fullsnap", "Label": "living" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "fullsnap", "Label": "yard" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [8.0, 2.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 1200 },
+    { "Op": "fullsnap", "Label": "yard2" },
+    { "Op": "quit" }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "Name": "diag-drive",
+  "Deterministic": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Real driving, fourth try (vanilla). Run 3 drove 268 m at 40 km/h on Teimo's bicycle route (2 m left of it), then hit something at a junction and rolled over: the bicycle route is no car lane. Now the dirt road traffic lane (TRAFFIC/Routes/DirtRoad, the cousin's own lane; he is switched off), from the point next to the old start, 250 points (about 1.3 km). Run 2: the cousin's green Fittan (TRAFFIC/VehiclesDirtRoad/Rally/FITTAN, the only car of the dirt roads; it also uses the home road) passed within 7 m of the parked car and pushed it; the player was not seated (Key DOWN 30 frames after the trigger teleport is too early), so the car's input axes were not set. Now: the cousin's car is switched off for the whole scenario (the same in every variant), the player waits by the car before getting in, the route 2 m to the left of the road edge." },
+    { "Op": "activate", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN", "Active": false },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 120 },
+
+    { "Op": "route", "Path": "TRAFFIC/Routes/DirtRoad", "Max": 2233, "Last": 2483 },
+    { "Op": "route", "Path": "TRAFFIC/Routes/DirtRoad", "Max": 1983, "Last": 2233 },
+    { "Op": "placecar", "Target": "SATSUMA(557kg, 248)", "Path": "TRAFFIC/Routes/DirtRoad", "Max": 2233 },
+    { "Op": "watch", "Label": "parked", "Seconds": 2, "Interval": 0.25, "Probes": [ "pos=SATSUMA(557kg, 248)|@pos", "up=SATSUMA(557kg, 248)|@up", "roll=SATSUMA(557kg, 248)|@roll", "kmh=SATSUMA(557kg, 248)|@kmh", "near=SATSUMA(557kg, 248)|@near:40", "cousin=TRAFFIC/VehiclesDirtRoad/Rally/FITTAN|@self" ] },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "waitframes", "Frames": 120 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Pos": [0.0, 0.0, 0.0] },
+    { "Op": "look", "Target": "SATSUMA(557kg, 248)", "Pitch": -3 },
+    { "Op": "waitframes", "Frames": 120 },
+    { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Fsm": "PlayerTrigger", "Event": "Key DOWN" },
+    { "Op": "waitframes", "Frames": 240 },
+    { "Op": "watch", "Label": "seated0", "Seconds": 0, "Probes": [ "cam=name:FPSCamera|@yawin:SATSUMA(557kg, 248)", "player=name:PLAYER|@parent", "vehicle=global|PlayerCurrentVehicle", "thrAxis=SATSUMA(557kg, 248)|#AxisCarController.throttleAxis" ] },
+    { "Op": "look", "Pitch": -3 },
+    { "Op": "watch", "Label": "seated", "Seconds": 0, "Probes": [ "cam=name:FPSCamera|@yawin:SATSUMA(557kg, 248)", "up=SATSUMA(557kg, 248)|@up", "roll=SATSUMA(557kg, 248)|@roll" ] },
+
+    { "Op": "fsmstate", "Path": "SATSUMA(557kg, 248)/Dashboard/Steering/steering_column2/IgnitionSatsuma", "Fsm": "UseNew", "Text": "Check key" },
+    { "Op": "fsmset", "Path": "SATSUMA(557kg, 248)/MiscParts/HandBrake/handbrake(xxxxx)/handbrake lever", "Fsm": "Use", "Var": "KnobPos", "Value": "0" },
+    { "Op": "watch", "Label": "crank", "Seconds": 6, "Interval": 0.5, "Probes": [
+      "ignition=SATSUMA(557kg, 248)/Dashboard/Steering/steering_column2/IgnitionSatsuma|UseNew|@state", "starter=SATSUMA(557kg, 248)/CarSimulation/Car/Starter|Starter|@state",
+      "rpm=SATSUMA(557kg, 248)|#Drivetrain.rpm", "hb=SATSUMA(557kg, 248)|#AxisCarController.handbrakeInput", "cam=name:FPSCamera|@yawin:SATSUMA(557kg, 248)" ] },
+    { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/Dashboard/Steering/steering_column2/IgnitionSatsuma", "Fsm": "UseNew", "Event": "FINISHED" },
+    { "Op": "waitframes", "Frames": 60 },
+
+    { "Op": "autodrive", "Target": "SATSUMA(557kg, 248)", "Path": "TRAFFIC/Routes/DirtRoad", "Max": 2233, "Last": 2483, "Speed": 45 },
+    { "Op": "watch", "Label": "drive", "Seconds": 120, "Interval": 0.5, "Probes": [
+      "pos=SATSUMA(557kg, 248)|@pos", "up=SATSUMA(557kg, 248)|@up", "drv=static|MOPR.TestBot.AutoDriver.Status", "near=SATSUMA(557kg, 248)|@near:30",
+      "cam=name:FPSCamera|@yawin:SATSUMA(557kg, 248)", "dead=Systems/Death|@self", "starter=SATSUMA(557kg, 248)/CarSimulation/Car/Starter|Starter|@state", "cousin=TRAFFIC/VehiclesDirtRoad/Rally/FITTAN|@self" ] },
+    { "Op": "autodrivestop" },
+    { "Op": "watch", "Label": "stop", "Seconds": 8, "Interval": 1, "Probes": [ "drv=static|MOPR.TestBot.AutoDriver.Status", "up=SATSUMA(557kg, 248)|@up", "dead=Systems/Death|@self" ] },
+    { "Op": "quit" }
+  ]
+}

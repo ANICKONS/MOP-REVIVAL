@@ -1,0 +1,64 @@
+[
+  { "Pattern": "MAP/CloudSystem/*", "Volatile": true, "Reason": "weather and thunder: random (UnityEngine.Random), timing-driven" },
+  { "Pattern": "HUMANS/*", "Volatile": true, "Reason": "walking NPCs: random targets and directions" },
+  { "Pattern": "TRAFFIC/*", "Volatile": true, "Reason": "AI traffic: spawn timing and PhysX order" },
+  { "Pattern": "NPC_CARS/*", "Volatile": true, "Reason": "AI buses and NPC cars: timing and PhysX order" },
+  { "Pattern": "TRAIN/*", "Volatile": true, "Reason": "train schedule and whistle: timing" },
+  { "Pattern": "*/WaspHive/*", "Volatile": true, "Reason": "wasp hives: random animation states" },
+  { "Pattern": "STORE/LOD/VideoPoker*", "Volatile": true, "Reason": "video poker cash: random" },
+  { "Pattern": "save:defaultES2File.txt|Slot*Cash!i", "Volatile": true, "Reason": "video poker cash in the save: random (the same as STORE/LOD/VideoPoker)" },
+  { "Pattern": "PLAYER/Flies/*", "Volatile": true, "Reason": "mosquito: random flight" },
+  { "Pattern": "GUI/HUD/FPS*", "Volatile": true, "Reason": "the game's FPS counter averages real frame times" },
+  { "Pattern": "light bulb(Clone)*", "Volatile": true, "Reason": "author's save: two spare light bulbs fall below the map in vanilla (y about -3600); where they are depends on the time of the fall" },
+  { "Pattern": "save:items.txt|light bulb*", "Volatile": true, "Reason": "author's save: the falling light bulbs (see above)" },
+  { "Pattern": "alternator belt(Clone)*", "Volatile": true, "Reason": "author's save: a spare alternator belt falls / slides in vanilla" },
+  { "Pattern": "save:items.txt|alternator belt*", "Volatile": true, "Reason": "author's save: the falling alternator belt (see above)" },
+  { "Pattern": "r20 battery box(Clone)*", "Volatile": true, "Reason": "author's save: a stack of battery boxes in the garage settles one way or another (2-4 cm, up to 2 degrees) - varied in 6 of 9 leave-one-out comparisons" },
+  { "Pattern": "save:items.txt|r20 battery box*", "Volatile": true, "Reason": "author's save: the settling battery boxes (see above) as saved" },
+  { "Pattern": "brake fluid(itemx)*", "Volatile": true, "Reason": "author's save: a pile of brake fluid bottles in the garage settles one way or another (3 cm, 3 degrees; 1 of 5 vanilla trip runs)" },
+  { "Pattern": "save:items.txt|brake fluid*", "Volatile": true, "Reason": "author's save: the settling brake fluid bottles (see above) as saved" },
+  { "Pattern": "*/RainScript#Speed.f.Speed", "Reason": "rain script speed of a parked vehicle: physics jitter (1e-4 .. 1e-3 m/s)", "Abs": 0.01 },
+
+  { "Pattern": "*(itemx)#Use.f.Condition", "Volatile": true, "Reason": "real time: food spoils in a loop with a 1 s Wait realTime=True (all 17 food items; scenario realtime-grep). Deterministic runs fix game time only, so the condition at a frame follows how fast the computer runs: decay per wall-clock second was 0.000493-0.000499 in 5 vanilla and 1 MOPR6 trip runs, the faster MOPR6 run decayed less per frame" },
+  { "Pattern": "*/LookTarget#Move*", "Volatile": true, "Reason": "real time: NPC heads turn to the player in a loop with a 3-4 s Wait realTime=True (34 of 36 LookTarget FSMs, the other 2 are the same police cars under another parent)" },
+  { "Pattern": "*/TargetPoint#Direction*", "Volatile": true, "Reason": "real time: the soccer kids pick a new direction after a 5 s Wait realTime=True (all 16)" },
+  { "Pattern": "MasterAudio/*.cmp", "Volatile": true, "Reason": "real time: MasterAudio enables SoundGroupVariationUpdater while a sound plays and ends it by Time.realtimeSinceStartup (SoundGroupVariationUpdater.cs lines 175, 388, 426)" },
+
+  { "Pattern": "Radio/*", "Volatile": true, "Reason": "radio programmes: random adverts and songs" },
+  { "Pattern": "*.vel", "Volatile": true, "Reason": "velocities: a loose item still bouncing at the checkpoint in one run (seen 1.7 m/s vs 0); freezing by a mod shows in .rb and .pose" },
+  {
+    "Pattern": "GIFU(750/450psi)/*.pose",
+    "Reason": "world.vehicles: the parked Gifu is frozen 2 s after it stands, but in vanilla it still sinks / creeps a little longer (1.0-1.3 cm, its hose chain the same; eq-teimo-buy and eq-walkaway, equiv-20261031-151515). 3 cm is still far below a part falling off",
+    "Groups": [ { "Abs": 0.03 }, { "QuatDeg": 0.5 } ]
+  },
+  {
+    "Pattern": "*(itemx)*.pose",
+    "Reason": "loose items lying in piles (sausages, sprays) settle differently: about 1 degree, 2 mm",
+    "Groups": [ { "Abs": 0.01 }, { "QuatDeg": 2.0 } ]
+  },
+  {
+    "Pattern": "*(Clone)*.pose",
+    "Reason": "loose parts and packages lying on slopes or in piles settle differently: about 1 degree",
+    "Groups": [ { "Abs": 0.01 }, { "QuatDeg": 2.0 } ]
+  },
+  { "Pattern": "save:items.txt|*.rot!q", "Reason": "saved rotations of loose items: the same settling as their .pose", "QuatDeg": 2.0 },
+  { "Pattern": "*#Condition.f.Slip*", "Reason": "wheel slip of a parked car: physics jitter around 1e-4", "Abs": 0.001 },
+  { "Pattern": "*#Use.f.Distance", "Reason": "item FSM distance to the player or a target: follows the item's settling (2 mm)", "Abs": 0.005 },
+  {
+    "Pattern": "*.pose",
+    "Reason": "physics: resting bodies settle differently between vanilla runs (parked Satsuma about 1 mm, an item on a slope 0.25 degree); 1 cm and 0.5 degree are far below a mod bug (a part falling off, an item through the floor)",
+    "Groups": [ { "Abs": 0.01 }, { "QuatDeg": 0.5 } ]
+  },
+  { "Pattern": "save:*.rot!q", "Reason": "saved transform rotations: the same settling as .pose", "QuatDeg": 0.5 },
+  { "Pattern": "save:*!q", "Reason": "saved rotations", "QuatDeg": 0.5 },
+  { "Pattern": "save:*.pos!v", "Reason": "saved transform positions: the same settling as .pose", "Abs": 0.01 },
+  { "Pattern": "save:*!v", "Reason": "saved vectors", "Abs": 0.001 },
+
+  { "Pattern": "*#LOD.f.*", "Reason": "vehicle LOD FSMs copy the parked vehicle's position and distance: physics settling (GIFU height 0.5 mm)", "Abs": 0.01 },
+  { "Pattern": "*Steer*.f.*", "Reason": "steering FSMs copy the speed of a parked vehicle: physics jitter (0.005 km/h)", "Abs": 0.01 },
+  { "Pattern": "*#CalculateAngle.f.*", "Reason": "wheel angle FSMs of parked vehicles: physics jitter", "Abs": 0.01 },
+  { "Pattern": "Systems/*Bills#Data.f.Wait*", "Reason": "bill counters tick once per game second; the load takes a varying number of frames", "Abs": 2 },
+  { "Pattern": "*#Use.f.DischargeRate", "Reason": "battery discharge rate: recomputed from timing-dependent values (seen 0.00124 vs 0.00126)", "Rel": 0.05 },
+  { "Pattern": "save:*!f", "Reason": "saved floats: float rounding and values accumulated over a varying number of load frames", "Abs": 1e-4, "Rel": 5e-5 },
+  { "Pattern": "*.f.*", "Reason": "FSM floats: float rounding and values accumulated per frame over a varying number of load frames (battery charge, food condition: about 1e-5 relative)", "Abs": 1e-4, "Rel": 5e-5 }
+]

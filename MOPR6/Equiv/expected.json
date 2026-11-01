@@ -1,0 +1,58 @@
+[
+  {
+    "Pattern": "SATSUMA(557kg, 248)/*#Use.fsm",
+    "Scenario": "eq-perajarvi-trip",
+    "Reason": "the drive does not stop at the same place: 1519-1529 m in 5 vanilla runs, 1514-1515 m in both MOPR6 runs (also in the build without optimizations, so not caused by them; real-time Waits of the car, e.g. the starter, shift with the computer's speed). Where the driver's camera points follows, and with it the mouse-over states of the car's parts (here the right door)",
+    "Since": "6.0.0-preview.1"
+  },
+  {
+    "Pattern": "SATSUMA(557kg, 248)/*#Removal.b.Required*",
+    "Scenario": "eq-perajarvi-trip",
+    "Reason": "the same stop position: the dashboard's Removal FSM reads its requirements only while the mouse is over the dashboard (Mouse off -> Requirements -> 1 s Wait realTime=True)",
+    "Since": "6.0.0-preview.1"
+  },
+  {
+    "Pattern": "@global.f.SpeedValmet",
+    "Reason": "world.vehicles: the parked tractor is frozen. In vanilla UnityCar keeps a parked car jittering, the tractor's speed reads 0.0002-0.0003 km/h; frozen it reads 0 (equiv-20261030-015121, all 7 scenarios)",
+    "Since": "6.0.0-preview.1"
+  },
+  {
+    "Pattern": "BOAT#Y Velocity.f.*",
+    "Reason": "world.vehicles: the parked boat is frozen with its floating FSM 'Y Velocity' off, so its variables keep the values of the moment it froze (Velo 0.19444 against vanilla's bobbing 0.19463; eq-home-yard, equiv-20261031-153718)",
+    "Since": "6.0.0-preview.1"
+  },
+  {
+    "Pattern": "*#CalculateAngle.f.TireAngle",
+    "Reason": "world.vehicles: a frozen vehicle keeps its suspension as it was when it froze. The Gifu's IK tire angles (front and rear) are 0.03 degrees from vanilla's, which settles a little longer (eq-teimo-buy, eq-walkaway)",
+    "Since": "6.0.0-preview.1"
+  },
+  {
+    "Pattern": "Database/DatabaseOrders/FireworksBag#Data.s.Date",
+    "Reason": "GetSystemDateTime: the computer's month. The vanilla baseline (_testruns/stage6/vrt) was recorded in October, the mod runs in November (10 against 11 in every scenario of equiv-20261101-004117); nothing of the mod reads or writes it",
+    "Since": "6.0.0-preview.1"
+  },
+  {
+    "Pattern": "SOCCER/LOD/KID*#LookBall.go.Target",
+    "Scenario": "eq-walkaway",
+    "Reason": "the soccer kids look at the ball or at a goal depending on where the ball is; the ball is a free body and its path differs between runs (35 SOCCER poses are learned noise). Seen once, at km2 and back2km of equiv-20261101-012440, a run in which no vehicle was switched off",
+    "Since": "6.0.0-preview.1"
+  },
+  {
+    "Pattern": "KEKMET(350-400psi)/LOD/Dashboard/Brake/Pivot*",
+    "Scenario": "eq-perajarvi-trip",
+    "Reason": "world.deactivate: the parked tractor's brake lever follows the player's brake input every frame (AxisCarController.brakeInput, a state without transitions). Switched off, the lever keeps its angle; it takes the input again on its first frame back, but the harness takes the snapshot in the frame of the restore (Anim.Data 0 against 25 while the player brakes the Satsuma)",
+    "Since": "6.0.0-preview.1"
+  },
+  {
+    "Pattern": "*/Colliders#Steering.f.Lane",
+    "Scenario": "eq-perajarvi-trip",
+    "Reason": "world.deactivate: a parked vehicle's Steering FSM copies the global PlayerRoadLane every frame (a state without transitions). Switched off, it keeps the lane of the moment it went off (-2 against 99) until its first frame back; the harness takes the snapshot in the frame of the restore",
+    "Since": "6.0.0-preview.1"
+  },
+  {
+    "Pattern": "SATSUMA(557kg, 248)/CarSimulation/Symptoms/SuspDamage/Calculations#Sounds.go.Position",
+    "Scenario": "eq-perajarvi-trip",
+    "Reason": "world.vehicles: which wheel last made the suspension damage sound on the drive (front left in vanilla, rear left in the mod). The path of the driven car at millimetre scale follows PhysX, and the frozen parked vehicles change the set of bodies PhysX solves; the wheel conditions stay equal. The same key moved with the computer's speed before PlayMaker's real time followed the frames",
+    "Since": "6.0.0-preview.1"
+  }
+]

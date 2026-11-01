@@ -16,7 +16,7 @@ public partial class PlayMakerArrayListProxy : PlayMakerCollectionProxy { }
 public partial class Deformable : UnityEngine.MonoBehaviour { }   // body panels that dent (5.1 mesh merger skips them)
 
 // The game's CCD IK (suspension, jacks, tractor and flatbed cylinders). Public fields as decompiled
-// (_reference/decomp/actions/SimpleIKSolver.cs); used by src/MOPR/src/Next/Engine/IkFastPath.cs (5.1).
+// (_reference/decomp/actions/SimpleIKSolver.cs); used by MOPR5/mod/src/Next/Engine/IkFastPath.cs (5.1).
 public partial class SimpleIKSolver : UnityEngine.MonoBehaviour
 {
     public bool IsActive;
@@ -43,7 +43,7 @@ public partial class SimpleIKSolver : UnityEngine.MonoBehaviour
     }
 }
 
-// Evaluated actions (src/MOPR/src/Next/Engine/FsmFastPath.cs, 5.1): public fields as in the decompiled
+// Evaluated actions (MOPR5/mod/src/Next/Engine/FsmFastPath.cs, 5.1): public fields as in the decompiled
 // actions (_reference/decomp/actions/MousePickEvent.cs, BoolTest.cs, FloatCompare.cs). FloatCompare.float2 is generated.
 namespace HutongGames.PlayMaker.Actions
 {

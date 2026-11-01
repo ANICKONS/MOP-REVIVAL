@@ -11,7 +11,7 @@ public partial class PlayMakerGlobals : UnityEngine.ScriptableObject { }
 // FsmTransition.EventName (get), FsmTransition.ToState (get/set).
 // stub-skip: FsmTransition.ToState
 //
-// Engine Lab (src/MOPR/src/Next/Engine), verified against the decompiled PlayMaker 1.6 (_reference/decomp/PlayMaker):
+// Engine Lab (MOPR5/mod/src/Next/Engine), verified against the decompiled PlayMaker 1.6 (_reference/decomp/PlayMaker):
 //   Fsm.Finished {get; private set}, Fsm.Owner {get; set}, Fsm.DelayedEvents {get}, Fsm.States {get; set},
 //   static Fsm.HitBreakpoint {get; set}, FsmState.loopCount/StateTime {get; private set}, FsmState.Active {get},
 //   FsmStateAction.State/Owner {get; set}, static class FsmExecutionStack (StackCount, MaxStackCount {get}),

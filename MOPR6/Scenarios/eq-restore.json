@@ -1,0 +1,31 @@
+{
+  "Name": "eq-restore",
+  "Deterministic": true,
+  "VirtualRealtime": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Equivalence: change ledger and save barrier (requirements 5.3, 6.1-6.3, tasks 19 and 21). The test probe hides the renderers of the living room through the render arbiter; 'restore' must give back exactly vanilla. Then the probe hides them again and the game saves: the barrier restores before the save is written, so the save equals vanilla. In vanilla runs the 'mopr' steps do nothing." },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "waitframes", "Frames": 600 },
+    { "Op": "mopr", "Text": "probe hide YARD/Building/LIVINGROOM" },
+    { "Op": "waitframes", "Frames": 120 },
+    { "Op": "moprapi", "Text": "LedgerDump", "Label": "hidden" },
+    { "Op": "mopr", "Text": "status" },
+    { "Op": "mopr", "Text": "restore" },
+    { "Op": "mopr", "Text": "probe off" },
+    { "Op": "waitframes", "Frames": 60 },
+    { "Op": "moprapi", "Text": "LedgerDump", "Label": "restored" },
+    { "Op": "fullsnap", "Label": "restored" },
+    { "Op": "mopr", "Text": "probe hide YARD/Building/LIVINGROOM" },
+    { "Op": "waitframes", "Frames": 120 },
+    { "Op": "mopr", "Text": "barrier" },
+    { "Op": "savegame" },
+    { "Op": "savecopy", "Label": "saved" },
+    { "Op": "mopr", "Text": "barrier" },
+    { "Op": "mopr", "Text": "probe off" },
+    { "Op": "waitframes", "Frames": 300 },
+    { "Op": "mopr", "Text": "errors" },
+    { "Op": "fullsnap", "Label": "loaded" },
+    { "Op": "quit" }
+  ]
+}

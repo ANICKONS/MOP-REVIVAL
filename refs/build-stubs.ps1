@@ -11,7 +11,7 @@
     3. Compiles the stubs (plus refs/overlay/*.cs) into refs/generated/bin.
 
     The output never contains game code — only member signatures with `throw null` bodies.
-    Release builds of the mod must be compiled against the real game DLLs (see scripts/build.ps1).
+    Release builds of the mod must be compiled against the real game DLLs (see MOPR5/scripts/build.ps1).
 #>
 [CmdletBinding()]
 param(
@@ -25,12 +25,12 @@ $env:DOTNET_NOLOGO = '1'
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
 
 $RefsDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
-$RepoRoot  = Split-Path -Parent $RefsDir
+$Shared    = Split-Path -Parent $RefsDir   # the repository
 $CacheDir  = Join-Path $RefsDir 'cache'
 $GenDir    = Join-Path $RefsDir 'generated'
 $Overlay   = Join-Path $RefsDir 'overlay'
-$ToolProj  = Join-Path $RepoRoot 'tools\RefStubGen\RefStubGen.csproj'
-$ToolOut   = Join-Path $RepoRoot 'tools\RefStubGen\out'
+$ToolProj  = Join-Path $Shared 'tools\RefStubGen\RefStubGen.csproj'
+$ToolOut   = Join-Path $Shared 'tools\RefStubGen\out'
 
 if ([string]::IsNullOrEmpty($Dotnet)) {
     $local = Join-Path $env:USERPROFILE '.dotnet\dotnet.exe'

@@ -1,0 +1,24 @@
+{
+  "Name": "deact-split",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "MOPR6 defaults. Where the cost of distant parts is (task 50/52): the places of world-map and the other vehicles, whole roots off (the upper bound) against only their renderers hidden (the drawing share), from the living room and from the road far from everything." },
+    { "Op": "activate", "Path": "TRAFFIC/VehiclesDirtRoad/Rally/FITTAN", "Active": false },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.6, 0.0], "Yaw": 90 },
+    { "Op": "wait", "Seconds": 12 },
+    { "Op": "abtoggle", "Label": "home-places-off", "Var": "active", "Path": "PERAJARVI;CABIN;COTTAGE;DANCEHALL;SOCCER;WATERFACILITY;MAP/Buildings/DINGONBIISI;RALLY/PartsSalesman;STORE;REPAIRSHOP;INSPECTION;LANDFILL;JOBS", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "home-places-hidden", "Var": "renderers", "Path": "PERAJARVI;CABIN;COTTAGE;DANCEHALL;SOCCER;WATERFACILITY;MAP/Buildings/DINGONBIISI;RALLY/PartsSalesman;STORE;REPAIRSHOP;INSPECTION;LANDFILL;JOBS", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "home-cars-off", "Var": "active", "Path": "FERNDALE(1630kg);HAYOSIKO(1500kg, 250);GIFU(750/450psi);KEKMET(350-400psi);RCO_RUSCKO12(270);JONNEZ ES(Clone);FLATBED;BOAT", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "home-cars-hidden", "Var": "renderers", "Path": "FERNDALE(1630kg);HAYOSIKO(1500kg, 250);GIFU(750/450psi);KEKMET(350-400psi);RCO_RUSCKO12(270);JONNEZ ES(Clone);FLATBED;BOAT", "Seconds": 16, "Block": 1 },
+
+    { "Op": "teleport", "Path": "Waypoint Manager/TeimoBicycleIn/Waypoint 6", "Pos": [0.0, 1.5, 0.0], "Target": "Waypoint Manager/TeimoBicycleIn/Waypoint 9" },
+    { "Op": "wait", "Seconds": 12 },
+    { "Op": "abtoggle", "Label": "road-places-off", "Var": "active", "Path": "PERAJARVI;CABIN;COTTAGE;DANCEHALL;SOCCER;WATERFACILITY;MAP/Buildings/DINGONBIISI;RALLY/PartsSalesman;STORE;REPAIRSHOP;INSPECTION;LANDFILL;JOBS;YARD", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "road-places-hidden", "Var": "renderers", "Path": "PERAJARVI;CABIN;COTTAGE;DANCEHALL;SOCCER;WATERFACILITY;MAP/Buildings/DINGONBIISI;RALLY/PartsSalesman;STORE;REPAIRSHOP;INSPECTION;LANDFILL;JOBS;YARD", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "road-cars-off", "Var": "active", "Path": "FERNDALE(1630kg);HAYOSIKO(1500kg, 250);GIFU(750/450psi);KEKMET(350-400psi);RCO_RUSCKO12(270);JONNEZ ES(Clone);FLATBED;BOAT;SATSUMA(557kg, 248)", "Seconds": 16, "Block": 1 },
+    { "Op": "abtoggle", "Label": "road-cars-hidden", "Var": "renderers", "Path": "FERNDALE(1630kg);HAYOSIKO(1500kg, 250);GIFU(750/450psi);KEKMET(350-400psi);RCO_RUSCKO12(270);JONNEZ ES(Clone);FLATBED;BOAT;SATSUMA(557kg, 248)", "Seconds": 16, "Block": 1 },
+    { "Op": "mopr", "Text": "errors" },
+    { "Op": "quit" }
+  ]
+}

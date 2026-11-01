@@ -1,0 +1,22 @@
+{
+  "Name": "teimo-diag2",
+  "Deterministic": true,
+  "VirtualRealtime": true,
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Diagnosis 2: with sleep.idle on and PlayMaker real time following the frames, eq-teimo-buy's 'home' still misses one step of Database/PlayerDatabase 'Simulation' (Wait {SimulationRate}=45 s realTime in 'Run simulation'). When was that state entered (RealStartTime / PlayMaker clock), from the sync point on; the FSM dumped. Run in vanilla and in mopr6 with -Mopr6Steps 'on sleep.idle'." },
+    { "Op": "watch", "Label": "sim0", "Seconds": 1, "Interval": 1, "Probes": [ "sim=Database/PlayerDatabase|Simulation|@state", "entered=Database/PlayerDatabase|Simulation|@entered", "stress=global|PlayerStress" ] },
+    { "Op": "dumpfsm", "Path": "Database/PlayerDatabase", "Detail": true, "Label": "playerdb" },
+    { "Op": "teleport", "Path": "STORE/Inventory", "Pos": [0.0, 1.0, 0.0], "Target": "STORE/TeimoInShop" },
+    { "Op": "watch", "Label": "sim1", "Seconds": 10, "Interval": 1, "Probes": [ "sim=Database/PlayerDatabase|Simulation|@state", "entered=Database/PlayerDatabase|Simulation|@entered", "stress=global|PlayerStress" ] },
+    { "Op": "fsmset", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Var": "QSausages", "Value": "1" },
+    { "Op": "fsmset", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Var": "QMilk", "Value": "1" },
+    { "Op": "fsmset", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Var": "Total", "Value": "12" },
+    { "Op": "fsmstate", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Text": "Check money" },
+    { "Op": "watch", "Label": "sim2", "Seconds": 10, "Interval": 1, "Probes": [ "sim=Database/PlayerDatabase|Simulation|@state", "entered=Database/PlayerDatabase|Simulation|@entered", "stress=global|PlayerStress" ] },
+    { "Op": "fullsnap", "Label": "bought" },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "watch", "Label": "sim3", "Seconds": 40, "Interval": 1, "Probes": [ "sim=Database/PlayerDatabase|Simulation|@state", "entered=Database/PlayerDatabase|Simulation|@entered", "stress=global|PlayerStress" ] },
+    { "Op": "quit" }
+  ]
+}

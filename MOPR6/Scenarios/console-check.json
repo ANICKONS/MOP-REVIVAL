@@ -1,0 +1,12 @@
+{
+  "Name": "console-check",
+  "SettleSeconds": 3,
+  "MenuSteps": [
+    { "Op": "screenshot", "Label": "menu" }
+  ],
+  "Steps": [
+    { "Op": "screenshot", "Label": "game" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "quit" }
+  ]
+}

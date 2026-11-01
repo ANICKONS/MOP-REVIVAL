@@ -1,0 +1,44 @@
+{
+  "Name": "explore-ops2",
+  "SettleSeconds": 5,
+  "Steps": [
+    { "Op": "log", "Text": "Task 9, try-outs with the existing operations: buying at Teimo's (register FSM), sleeping in the bed, a cancelled save (look at the save point, look away), and the assembly FSMs of the hood and the carburettor." },
+
+    { "Op": "log", "Text": "--- buy ---" },
+    { "Op": "teleport", "Path": "STORE/Inventory", "Pos": [0.0, 1.0, 0.0], "Target": "STORE/TeimoInShop" },
+    { "Op": "wait", "Seconds": 3 },
+    { "Op": "watch", "Label": "buy0", "Seconds": 0, "Probes": [ "money=global|PlayerMoney", "reg=STORE/StoreCashRegister/Register|Data|@state", "total=STORE/StoreCashRegister/Register|Data|Total" ] },
+    { "Op": "fsmset", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Var": "QSausages", "Value": "1" },
+    { "Op": "fsmset", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Var": "QMilk", "Value": "1" },
+    { "Op": "fsmset", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Var": "Total", "Value": "12" },
+    { "Op": "fsmstate", "Path": "STORE/StoreCashRegister/Register", "Fsm": "Data", "Text": "Check money" },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "watch", "Label": "buy1", "Seconds": 0, "Probes": [ "money=global|PlayerMoney", "reg=STORE/StoreCashRegister/Register|Data|@state", "total=STORE/StoreCashRegister/Register|Data|Total", "qs=STORE/StoreCashRegister/Register|Data|QSausages" ] },
+    { "Op": "find", "Label": "bags", "Text": "shopping bag,ShoppingBag,bag(itemx)", "Max": 20 },
+
+    { "Op": "log", "Text": "--- save point: look at it, look away ---" },
+    { "Op": "teleport", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Pos": [0.0, 0.3, 0.0] },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "fsmstate", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Fsm": "Button", "Text": "Wait for click" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "watch", "Label": "save1", "Seconds": 0, "Probes": [ "btn=YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME|Button|@state", "gui=global|GUIinteraction" ] },
+    { "Op": "fsmevent", "Path": "YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME", "Fsm": "Button", "Event": "FINISHED" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "watch", "Label": "save2", "Seconds": 0, "Probes": [ "btn=YARD/Building/LIVINGROOM/LOD_livingroom/SAVEGAME|Button|@state", "gui=global|GUIinteraction" ] },
+
+    { "Op": "log", "Text": "--- sleep ---" },
+    { "Op": "dumpfsm", "Label": "bed", "Path": "YARD/Building/BEDROOM1/LOD_bedroom1/Sleep/SleepTrigger", "Recursive": false },
+    { "Op": "teleport", "Path": "YARD/Building/BEDROOM1/LOD_bedroom1/Sleep/SleepTrigger", "Pos": [0.0, 0.5, -0.8] },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "fsmset", "Path": "global", "Var": "PlayerFatigue", "Value": "70" },
+    { "Op": "watch", "Label": "sleep0", "Seconds": 0, "Probes": [ "bed=YARD/Building/BEDROOM1/LOD_bedroom1/Sleep/SleepTrigger|Activate|@state", "fatigue=global|PlayerFatigue", "sleeps=global|PlayerSleeps", "tod=global|TimeOfDay" ] },
+    { "Op": "fsmstate", "Path": "YARD/Building/BEDROOM1/LOD_bedroom1/Sleep/SleepTrigger", "Fsm": "Activate", "Text": "Check sleepy" },
+    { "Op": "watch", "Label": "sleeping", "Seconds": 40, "Interval": 2, "Probes": [ "bed=YARD/Building/BEDROOM1/LOD_bedroom1/Sleep/SleepTrigger|Activate|@state", "fatigue=global|PlayerFatigue", "sleeps=global|PlayerSleeps", "tod=global|TimeOfDay", "hour=global|TimeRotationHour" ] },
+
+    { "Op": "log", "Text": "--- assembly ---" },
+    { "Op": "dumpfsm", "Label": "trigger_hood", "Path": "SATSUMA(557kg, 248)/Body/trigger_hood", "Recursive": false },
+    { "Op": "dumpfsm", "Label": "hood", "Path": "SATSUMA(557kg, 248)/Body/pivot_hood/hood(Clone)", "Recursive": false },
+    { "Op": "find", "Label": "carbtriggers", "Text": "trigger_carb", "Max": 20 },
+    { "Op": "quit" }
+  ]
+}
